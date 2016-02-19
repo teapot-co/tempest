@@ -1,0 +1,215 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>legacy - co.teapot.legacy</title>
+          <meta name="description" content="legacy - co.teapot.legacy" />
+          <meta name="keywords" content="legacy co.teapot.legacy" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../../lib/template.js"></script>
+      <script type="text/javascript" src="../../../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../../index.html';
+            var hash = 'co.teapot.legacy.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img src="../../../lib/package_big.png" />
+        <p id="owner"><a href="../../package.html" class="extype" name="co">co</a>.<a href="../package.html" class="extype" name="co.teapot">teapot</a></p>
+        <h1>legacy</h1><span class="permalink">
+      <a href="../../../index.html#co.teapot.legacy.package" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">legacy</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        
+        
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="co.teapot.legacy.IntLongSource" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="IntLongSourceextendsAnyRef"></a>
+      <a id="IntLongSource:IntLongSource"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="IntLongSource.html"><span class="name">IntLongSource</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#co.teapot.legacy.package@IntLongSourceextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Represents an arbitrarily large sequence of bytes which can be interpreted as ints or longs.</p>
+    </li><li name="co.teapot.legacy.IntSourceSlice" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="IntSourceSliceextendsIndexedSeq[Int]"></a>
+      <a id="IntSourceSlice:IntSourceSlice"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="IntSourceSlice.html"><span class="name">IntSourceSlice</span></a><span class="result"> extends <span class="extype" name="scala.IndexedSeq">IndexedSeq</span>[<span class="extype" name="scala.Int">Int</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#co.teapot.legacy.package@IntSourceSliceextendsIndexedSeq[Int]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="co.teapot.legacy.MemoryMappedDirectedGraphVersion0" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="MemoryMappedDirectedGraphVersion0extendsDirectedGraph"></a>
+      <a id="MemoryMappedDirectedGraphVersion0:MemoryMappedDirectedGraphVersion0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="MemoryMappedDirectedGraphVersion0.html"><span class="name">MemoryMappedDirectedGraphVersion0</span></a><span class="result"> extends <a href="../graph/DirectedGraph.html" class="extype" name="co.teapot.graph.DirectedGraph">DirectedGraph</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#co.teapot.legacy.package@MemoryMappedDirectedGraphVersion0extendsDirectedGraph" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A graph which reads edge data from a memory mapped file.</p><div class="fullcomment"><div class="comment cmt"><p>A graph which reads edge data from a memory mapped file.  There is no object overhead per
+node: the memory used for n nodes and m edges with both in-neighbor and out-neighbor access is
+exactly 16 + 16*n + 8*m bytes. Also, loading is very fast because no parsing of text is required.
+Loading time is exactly the time it takes the operating system to page data from disk into
+memory.  Nodes are numbered sequentially from 0 to nodeCount - 1 and must be a range of this
+form (i.e. nodeCount == maxNodeId + 1).</p><p>When transforming a graph where nodeCount &lt;= maxNodeId
+to this format, new nodes with no neighbors will be implicitly created. The binary
+format is currently subject to change.
+</p></div></div>
+    </li><li name="co.teapot.legacy.MemoryMappedIntLongSource" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="MemoryMappedIntLongSourceextendsIntLongSource"></a>
+      <a id="MemoryMappedIntLongSource:MemoryMappedIntLongSource"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="MemoryMappedIntLongSource.html"><span class="name">MemoryMappedIntLongSource</span></a><span class="result"> extends <a href="IntLongSource.html" class="extype" name="co.teapot.legacy.IntLongSource">IntLongSource</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#co.teapot.legacy.package@MemoryMappedIntLongSourceextendsIntLongSource" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Wraps a sequence of FileChannels to enable random access on a memory mapped file of arbitrary size.</p><div class="fullcomment"><div class="comment cmt"><p>Wraps a sequence of FileChannels to enable random access on a memory mapped file of arbitrary size.
+Motivation: FileChannel.open only supports 2GB at a time.</p></div></div>
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="co.teapot.legacy.IntSourceSlice" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="IntSourceSlice"></a>
+      <a id="IntSourceSlice:IntSourceSlice"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="IntSourceSlice$.html"><span class="name">IntSourceSlice</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#co.teapot.legacy.package@IntSourceSlice" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="co.teapot.legacy.MemoryMappedDirectedGraphVersion0" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MemoryMappedDirectedGraphVersion0"></a>
+      <a id="MemoryMappedDirectedGraphVersion0:MemoryMappedDirectedGraphVersion0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="MemoryMappedDirectedGraphVersion0$.html"><span class="name">MemoryMappedDirectedGraphVersion0</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#co.teapot.legacy.package@MemoryMappedDirectedGraphVersion0" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>

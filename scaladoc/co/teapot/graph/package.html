@@ -1,0 +1,425 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>graph - co.teapot.graph</title>
+          <meta name="description" content="graph - co.teapot.graph" />
+          <meta name="keywords" content="graph co.teapot.graph" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../../lib/template.js"></script>
+      <script type="text/javascript" src="../../../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../../index.html';
+            var hash = 'co.teapot.graph.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img src="../../../lib/package_big.png" />
+        <p id="owner"><a href="../../package.html" class="extype" name="co">co</a>.<a href="../package.html" class="extype" name="co.teapot">teapot</a></p>
+        <h1>graph</h1><span class="permalink">
+      <a href="../../../index.html#co.teapot.graph.package" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">graph</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        
+        
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="co.teapot.graph.ConcurrentHashMapDynamicGraph" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ConcurrentHashMapDynamicGraphextendsDynamicDirectedGraph"></a>
+      <a id="ConcurrentHashMapDynamicGraph:ConcurrentHashMapDynamicGraph"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="ConcurrentHashMapDynamicGraph.html"><span class="name">ConcurrentHashMapDynamicGraph</span></a><span class="result"> extends <a href="DynamicDirectedGraph.html" class="extype" name="co.teapot.graph.DynamicDirectedGraph">DynamicDirectedGraph</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#co.teapot.graph.package@ConcurrentHashMapDynamicGraphextendsDynamicDirectedGraph" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">An efficient dynamic graph implementation which supports concurrent reading and writing.</p><div class="fullcomment"><div class="comment cmt"><p>An efficient dynamic graph implementation which supports concurrent reading and writing.  Locks
+are only used by writing threads. Nodes are stored in a ConcurrentHashMap.
+Multi-edges are allowed (multiple copies of an edge may exist in the graph).  Node count and
+edge count are both available.
+</p></div></div>
+    </li><li name="co.teapot.graph.ConcurrentNode" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ConcurrentNodeextendsAnyRef"></a>
+      <a id="ConcurrentNode:ConcurrentNode"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="ConcurrentNode.html"><span class="name">ConcurrentNode</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#co.teapot.graph.package@ConcurrentNodeextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="co.teapot.graph.DirectedGraph" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="DirectedGraphextendsAnyRef"></a>
+      <a id="DirectedGraph:DirectedGraph"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="DirectedGraph.html"><span class="name">DirectedGraph</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#co.teapot.graph.package@DirectedGraphextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A directed graph where nodes are identified by Int ids.</p><div class="fullcomment"><div class="comment cmt"><p>A directed graph where nodes are identified by Int ids.  Implementations may or may not allow
+multiple copies of the same edge (see their documentation).  If given an invalid node id,
+methods call the defaultNeighbors method, which by default throws a NoSuchElementException,
+but this can be overridden, for example to assume that non-existant nodes simply have no
+neighbors.
+</p></div></div>
+    </li><li name="co.teapot.graph.DirectedGraphUnion" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="DirectedGraphUnionextendsDirectedGraph"></a>
+      <a id="DirectedGraphUnion:DirectedGraphUnion"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="DirectedGraphUnion.html"><span class="name">DirectedGraphUnion</span></a><span class="result"> extends <a href="DirectedGraph.html" class="extype" name="co.teapot.graph.DirectedGraph">DirectedGraph</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#co.teapot.graph.package@DirectedGraphUnionextendsDirectedGraph" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Wraps a sequence of directed graphs to create a view of the union of their nodes and edges.</p><div class="fullcomment"><div class="comment cmt"><p>Wraps a sequence of directed graphs to create a view of the union of their nodes and edges.
+Graph mutations are not supported through this view, but if underlying graphs change, this view
+will reflect the changes.
+</p></div></div>
+    </li><li name="co.teapot.graph.DynamicDirectedGraph" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="DynamicDirectedGraphextendsDirectedGraph"></a>
+      <a id="DynamicDirectedGraph:DynamicDirectedGraph"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="DynamicDirectedGraph.html"><span class="name">DynamicDirectedGraph</span></a><span class="result"> extends <a href="DirectedGraph.html" class="extype" name="co.teapot.graph.DirectedGraph">DirectedGraph</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#co.teapot.graph.package@DynamicDirectedGraphextendsDirectedGraph" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="co.teapot.graph.DynamicDirectedGraphUnion" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="DynamicDirectedGraphUnionextendsDynamicDirectedGraph"></a>
+      <a id="DynamicDirectedGraphUnion:DynamicDirectedGraphUnion"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="DynamicDirectedGraphUnion.html"><span class="name">DynamicDirectedGraphUnion</span></a><span class="result"> extends <a href="DynamicDirectedGraph.html" class="extype" name="co.teapot.graph.DynamicDirectedGraph">DynamicDirectedGraph</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#co.teapot.graph.package@DynamicDirectedGraphUnionextendsDynamicDirectedGraph" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Wraps a directed graph and a dynamic directed graph to create a dynamic graph with the union of their nodes and edges.</p><div class="fullcomment"><div class="comment cmt"><p>Wraps a directed graph and a dynamic directed graph to create a dynamic graph with the union of their nodes and edges.  When
+edge are added, they are added to the underlying dynamic graph.  Edge deletion is not supported.
+</p></div></div>
+    </li><li name="co.teapot.graph.MemoryMappedDirectedGraph" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="MemoryMappedDirectedGraphextendsDirectedGraph"></a>
+      <a id="MemoryMappedDirectedGraph:MemoryMappedDirectedGraph"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="MemoryMappedDirectedGraph.html"><span class="name">MemoryMappedDirectedGraph</span></a><span class="result"> extends <a href="DirectedGraph.html" class="extype" name="co.teapot.graph.DirectedGraph">DirectedGraph</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#co.teapot.graph.package@MemoryMappedDirectedGraphextendsDirectedGraph" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A graph which reads edge data from a memory mapped file.</p><div class="fullcomment"><div class="comment cmt"><p>A graph which reads edge data from a memory mapped file.  There is no object overhead per
+node: the memory used for with both in-neighbor and out-neighbor access is 8 bytes per edge
+and 8 bytes per node. Loading is very fast because no parsing of text is required.
+Loading time is exactly the time it takes the operating system to page data from disk into
+memory.  Nodes are numbered sequentially from 0 to nodeCount - 1 and must be a range of this
+form (i.e. nodeCount == maxNodeId + 1).</p><p>Graphs are converted to this format using MemoryMappedDirectedGraphConverter, then loaded
+using this class.  When transforming a graph where nodeCount &lt;= maxNodeId
+to this format, new nodes with no neighbors will be implicitly created. The binary
+format is currently subject to change.
+</p></div></div>
+    </li><li name="co.teapot.graph.MemoryMappedDirectedGraphConverter" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MemoryMappedDirectedGraphConverterextendsAnyRef"></a>
+      <a id="MemoryMappedDirectedGraphConverter:MemoryMappedDirectedGraphConverter"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="MemoryMappedDirectedGraphConverter.html"><span class="name">MemoryMappedDirectedGraphConverter</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#co.teapot.graph.package@MemoryMappedDirectedGraphConverterextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="co.teapot.graph.NodeWrapper" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="NodeWrapperextendsAnyRef"></a>
+      <a id="NodeWrapper:NodeWrapper"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="NodeWrapper.html"><span class="name">NodeWrapper</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#co.teapot.graph.package@NodeWrapperextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="co.teapot.graph.ConcurrentHashMapDynamicGraph" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ConcurrentHashMapDynamicGraph"></a>
+      <a id="ConcurrentHashMapDynamicGraph:ConcurrentHashMapDynamicGraph"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ConcurrentHashMapDynamicGraph$.html"><span class="name">ConcurrentHashMapDynamicGraph</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#co.teapot.graph.package@ConcurrentHashMapDynamicGraph" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="co.teapot.graph.DirectedGraph" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DirectedGraph"></a>
+      <a id="DirectedGraph:DirectedGraph"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="DirectedGraph$.html"><span class="name">DirectedGraph</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#co.teapot.graph.package@DirectedGraph" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="co.teapot.graph.DynamicDirectedGraph" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DynamicDirectedGraph"></a>
+      <a id="DynamicDirectedGraph:DynamicDirectedGraph"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="DynamicDirectedGraph$.html"><span class="name">DynamicDirectedGraph</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#co.teapot.graph.package@DynamicDirectedGraph" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="co.teapot.graph.EdgeDir" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="EdgeDir"></a>
+      <a id="EdgeDir:EdgeDir"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="EdgeDir$.html"><span class="name">EdgeDir</span></a><span class="result"> extends <span class="extype" name="scala.Enumeration">Enumeration</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#co.teapot.graph.package@EdgeDir" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="co.teapot.graph.GraphGenerator" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="GraphGenerator"></a>
+      <a id="GraphGenerator:GraphGenerator"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="GraphGenerator$.html"><span class="name">GraphGenerator</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#co.teapot.graph.package@GraphGenerator" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="co.teapot.graph.MemoryMappedDirectedGraph" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MemoryMappedDirectedGraph"></a>
+      <a id="MemoryMappedDirectedGraph:MemoryMappedDirectedGraph"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="MemoryMappedDirectedGraph$.html"><span class="name">MemoryMappedDirectedGraph</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#co.teapot.graph.package@MemoryMappedDirectedGraph" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="co.teapot.graph.MemoryMappedDirectedGraphConstants" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MemoryMappedDirectedGraphConstants"></a>
+      <a id="MemoryMappedDirectedGraphConstants:MemoryMappedDirectedGraphConstants"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="MemoryMappedDirectedGraphConstants$.html"><span class="name">MemoryMappedDirectedGraphConstants</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#co.teapot.graph.package@MemoryMappedDirectedGraphConstants" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="co.teapot.graph.MemoryMappedDirectedGraphConverter" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="MemoryMappedDirectedGraphConverter"></a>
+      <a id="MemoryMappedDirectedGraphConverter:MemoryMappedDirectedGraphConverter"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="MemoryMappedDirectedGraphConverter$.html"><span class="name">MemoryMappedDirectedGraphConverter</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#co.teapot.graph.package@MemoryMappedDirectedGraphConverter" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">The convert method converts a graph from a text file of unsorted edges to a binary file which
+can be efficiently read using MemoryMappedDirectedGraph.</p><div class="fullcomment"><div class="comment cmt"><p>The convert method converts a graph from a text file of unsorted edges to a binary file which
+can be efficiently read using MemoryMappedDirectedGraph.  This can also be run from the
+command line; for example:
+sbt assembly
+printf &quot;1 2\n3 4\n1 3&quot; &gt; input_graph.txt
+java -Xmx7g -cp target/scala-2.11/bidirectional-random-walk-assembly-1.0.jar\
+co.teapot.graph.MemoryMappedDirectedGraphConverter input_graph.txt output_graph.dat</p><p>Then in scala code, MemoryMappedDirectedGraph(&quot;output_graph.dat&quot;) will efficiently read the
+graph.
+</p></div></div>
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>
