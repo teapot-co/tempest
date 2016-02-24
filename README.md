@@ -1,4 +1,14 @@
 # Tempest Graph Library
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**
+  - [Background](#background)
+  - [Project Roadmap](#project-roadmap)
+  - [Requirements](#requirements)
+  - [Converting a Graph to Tempest Format](#converting-a-graph-to-tempest-format)
+  - [Using Tempest from Scala](#using-tempest-from-scala)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Background
 At [Teapot](http://teapot.co) we work with large social networks, and we needed a graph library that
@@ -49,15 +59,16 @@ bin/convert_graph.sh src/test/resources/test_graph.txt test_graph.dat
 
 ## Using Tempest from Scala 
 The graph classes in tempest are the following:
-  - [DirectedGraph](http://teapot-co.github.io/tempest/scaladoc/#co.teapot.graph.DirectedGraph) -
-   contains the methods defined for graphs
-  - [MemoryMappedDirectedGraph](http://teapot-co.github.io/tempest/scaladoc/#co.teapot.graph.MemoryMappedDirectedGraph)
-   efficiently creates an immutable graph from a Tempest binary graph file
-  - [ConcurrentHashMapDynamicGraph](http://teapot-co.github.io/tempest/scaladoc/#co.teapot.graph.ConcurrentHashMapDynamicGraph)
-    is a thread-safe mutable graph class based on ConcurrentHashMap
-  - [DynamicDirectedGraphUnion](http://teapot-co.github.io/tempest/scaladoc/#co.teapot.graph.DynamicDirectedGraphUnion)
-    combines an immutable graph with a mutable graph, for situations where you have a large 
-    memory mapped graph but want to be able to add edges to it.
+
+- [DirectedGraph](http://teapot-co.github.io/tempest/scaladoc/#co.teapot.graph.DirectedGraph)
+  contains the methods defined for graphs
+- [MemoryMappedDirectedGraph](http://teapot-co.github.io/tempest/scaladoc/#co.teapot.graph.MemoryMappedDirectedGraph)
+  efficiently creates an immutable graph from a Tempest binary graph file
+- [ConcurrentHashMapDynamicGraph](http://teapot-co.github.io/tempest/scaladoc/#co.teapot.graph.ConcurrentHashMapDynamicGraph)
+  is a thread-safe mutable graph class based on ConcurrentHashMap
+- [DynamicDirectedGraphUnion](http://teapot-co.github.io/tempest/scaladoc/#co.teapot.graph.DynamicDirectedGraphUnion)
+  combines an immutable graph with a mutable graph, for situations where you have a large 
+  memory mapped graph but want to be able to add edges to it.
     
 As an example of using the graph methods, convert the test graph to test_graph.dat as described 
 above, then run the following:
