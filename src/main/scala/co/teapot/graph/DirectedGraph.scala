@@ -16,6 +16,9 @@
 package co.teapot.graph
 
 import scala.util.Random
+import java.util
+import scala.collection.JavaConverters._
+import java.lang.Integer
 
 /**
   * A directed graph where nodes are identified by Int ids.  Implementations may or may not allow
@@ -40,6 +43,16 @@ trait DirectedGraph {
   /** Returns the in-neighbors of the given id.
     * */
   def inNeighbors(id: Int): IndexedSeq[Int]
+
+  /** Returns the out-neighbors of the given id as a java.util.List.
+    * */
+  def outNeighborList(id: Int): util.List[Integer] =
+    outNeighbors(id).asJava.asInstanceOf[util.List[Integer]]
+
+  /** Returns the in-neighbors of the given id as a java.util.List.
+    * */
+  def inNeighborList(id: Int): util.List[Integer] =
+    inNeighbors(id).asJava.asInstanceOf[util.List[Integer]]
 
   /** Returns the ith out-neighbor of the node with the given id.
     * Throws IndexOutOfBoundsException unless 0 <= i < outDegree(id).
@@ -74,11 +87,19 @@ trait DirectedGraph {
   /** The number of edges in this graph. */
   def edgeCount: Long
 
-  def uniformRandomOutNeighbor(id: Int, random: Random = Random.self) =
-    outNeighbor(id, random.nextInt(outDegree(id)))
+  def uniformRandomOutNeighbor(id: Int, random: Random = Random.self) = {
+    if (outDegree(id) > 0)
+      outNeighbor(id, random.nextInt(outDegree(id)))
+    else
+      throw new NoSuchElementException(s"id $id has no out-neighbors")
+  }
 
-  def uniformRandomInNeighbor(id: Int, random:Random = Random.self) =
-    inNeighbor(id, random.nextInt(inDegree(id)))
+  def uniformRandomInNeighbor(id: Int, random:Random = Random.self) = {
+    if (inDegree(id) > 0)
+      inNeighbor(id, random.nextInt(inDegree(id)))
+    else
+      throw new NoSuchElementException(s"id $id has no in-neighbors")
+  }
 
   /** Returns the out-degree of the given node id, or 0 if the node id does not exist. */
   def outDegreeOr0(id: Int): Int =
@@ -93,6 +114,7 @@ trait DirectedGraph {
       inDegree(id)
     else
       0
+
   /** Called by other methods when given an id that doesn't exist in this graph.  By default it
     * throws an exception, but implementations can override it to return an IndexedSeq which is
     * the neighbor seq of non-existing nodes (typically an empty IndexedSeq).
