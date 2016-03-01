@@ -1,6 +1,11 @@
 name := "tempest"
 
-version := "0.5"
+version := "0.8.0"
+
+organization := "co.teapot"
+
+description := "A graph library which efficiently supports graphs with billions of edges with" +
+  " almost instant loading time."
 
 scalaVersion := "2.11.5"
 
