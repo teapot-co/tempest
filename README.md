@@ -2,11 +2,13 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**
-  - [Background](#background)
-  - [Project Roadmap](#project-roadmap)
-  - [Requirements](#requirements)
-  - [Converting a Graph to Tempest Format](#converting-a-graph-to-tempest-format)
-  - [Using Tempest from Scala](#using-tempest-from-scala)
+
+- [Background](#background)
+- [Requirements](#requirements)
+- [Converting a Graph to Tempest Format](#converting-a-graph-to-tempest-format)
+- [Using Tempest from Scala](#using-tempest-from-scala)
+- [Using Tempest from Python](#using-tempest-from-python)
+- [Project Roadmap](#project-roadmap)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -50,7 +52,11 @@ bin/convert_graph.sh src/test/resources/test_graph.txt test_graph.dat
 ```
 
 ## Using Tempest from Scala 
-The graph classes in tempest are the following:
+Simply add
+```
+libraryDependencies += "co.teapot" %% "tempest" % "0.8.0"
+```
+to your `build.sbt` file.  The graph classes in tempest are the following:
 
 - [DirectedGraph](http://teapot-co.github.io/tempest/scaladoc/#co.teapot.graph.DirectedGraph)
   contains the methods defined for graphs
@@ -74,8 +80,35 @@ graph.outNeighbors(4)
 graph.inNeighbors(4)
 ```
 
+## Using Tempest from Python
+To use tempest from python, it has a client/server mode, so the server (written efficiently in scala)
+stores large graphs in RAM, while the client is conveniently in python.  The server and client can even
+be on different machines; for example the client can run on web server while the server runs in a large
+graph server. First clone the repository and convert the graph to Tempest binary format, as described
+ above.  Then start the server, supplying the binary graph name, for example
+```
+bin/start_server.sh test_graph.dat 
+```
+The server runs by default on TCP port 10001, but you can change this, for example
+```
+bin/start_server.sh test_graph.dat 12345
+```
+
+Finally,  connect to the server from python.  First run `pip install tempest_graph`.  Then
+from the python console:
+```
+>>> import tempest_graph
+>>> graph = tempest_graph.get_client()
+>>> graph.maxNodeId()
+9
+>>> graph.outDegree(2)
+4
+>>> graph.outNeighbors(2)
+[0, 1, 3, 9]
+```
+
 ## Project Roadmap
-- Implement Python and Ruby bindings
+- Ruby bindings
 - Implement clustering algorithms
 - (potentially) Implement PageRank, personalized PageRank, or shortest path algorithms
 - (potentially) Implement persistent store for edge updates

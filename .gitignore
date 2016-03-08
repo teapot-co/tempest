@@ -1,3 +1,11 @@
+src/gen/
+
+python-package/tempest_graph/
+python-package/__init__.py
+python-package/dist/
+python-package/tempest_client.pyc
+python-package/tempest_graph.egg-info/        
+
 *.class
 *.log
 
