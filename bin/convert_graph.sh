@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 
+TEMPEST_PATH="`dirname \"$0\"`/.."
+
 if [ "$#" -ne 2 ]; then
   echo "Usage: $0 <source edge text file> <destination binary graph file>"
   exit 1
 fi
 
-JAR_FILE="target/scala-2.11/tempest-assembly-0.5.jar"
+JAR_FILE="$TEMPEST_PATH/target/scala-2.11/tempest-assembly-0.9.jar"
 if [ ! -f "$JAR_FILE" ]; then
   echo "Building Tempest"
   sbt assembly
