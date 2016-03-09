@@ -1,6 +1,6 @@
 name := "tempest"
 
-version := "0.9"
+version := "0.9.0"
 
 scalaVersion := "2.11.5"
 
@@ -19,6 +19,8 @@ libraryDependencies += "com.twitter" %% "util-app" % "6.23.0"
 scalacOptions += "-target:jvm-1.7"
 
 scalacOptions += "-Ywarn-unused"
+
+javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
 
 unmanagedSourceDirectories in Compile += baseDirectory.value / "src/gen/java"
 
