@@ -80,6 +80,24 @@ graph.outNeighbors(4)
 graph.inNeighbors(4)
 ```
 
+## Using Tempest from Java
+Because scala compiles to the jvm, you can naturally use Tempest from Java.  Tempest is in a maven repo,
+so you're using maven, simply add
+```
+<dependency>
+      <groupId>co.teapot</groupId>
+      <artifactId>tempest_2.11</artifactId>
+      <version>0.8.0</version>
+    </dependency>
+```
+to your pom.xml file to access the Tempest dependency.  Then for example, in Java you can 
+`import co.teapot.graph.MemoryMappedDirectedGraph` and write
+```
+MemoryMappedDirectedGraph graph = new MemoryMappedDirectedGraph(new File("test_graph.dat"));
+System.out.println("out-neighbors of 2: " + graph.outNeighborList(2));
+```
+The documentation javadoc for the graph classes is linked above in the Scala section.
+
 ## Using Tempest from Python
 To use tempest from python, it has a client/server mode, so the server (written efficiently in scala)
 stores large graphs in RAM, while the client is conveniently in python.  The server and client can even
