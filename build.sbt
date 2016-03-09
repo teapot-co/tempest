@@ -2,6 +2,11 @@ name := "tempest"
 
 version := "0.9.0"
 
+organization := "co.teapot"
+
+description := "A graph library which efficiently supports graphs with billions of edges with" +
+  " almost instant loading time."
+
 scalaVersion := "2.11.5"
 
 libraryDependencies += "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test"
