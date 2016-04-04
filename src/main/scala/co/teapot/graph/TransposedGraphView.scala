@@ -17,7 +17,7 @@ package co.teapot.graph
 /**
   * A transposed view of a given graph.
   */
-private[graph] class TransposedGraphView(graph: DirectedGraph) extends DirectedGraph {
+private[graph] class TransposedGraphView(graph: DirectedGraph) extends GraphView(graph) {
   override def outNeighbors(id: Int): IndexedSeq[Int] =
     graph.inNeighbors(id)
   override def inNeighbors(id: Int): IndexedSeq[Int] =
@@ -30,11 +30,4 @@ private[graph] class TransposedGraphView(graph: DirectedGraph) extends DirectedG
 
   override def outDegree(id: Int): Int = graph.inDegree(id)
   override def inDegree(id: Int): Int = graph.outDegree(id)
-
-  // These just defer to the underlying graph.
-  override def maxNodeId: Int = graph.maxNodeId
-  override def existsNode(id: Int): Boolean = graph.existsNode(id)
-  override def nodeIds: Iterable[Int] = graph.nodeIds
-  override def nodeCountOption: Option[Int] = graph.nodeCountOption
-  override def edgeCount: Long = graph.edgeCount // Not precise, but good enough
 }
