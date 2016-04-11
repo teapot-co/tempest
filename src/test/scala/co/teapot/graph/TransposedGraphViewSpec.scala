@@ -5,7 +5,7 @@ import org.scalatest.{FlatSpec, Matchers}
 class TransposedGraphViewSpec extends FlatSpec with Matchers {
   "A TransposedGraphView" should "behave correctly" in {
     val graph = DirectedGraph(1 -> 2, 1 -> 3)
-    val transpose = graph.transposeView()
+    val transpose = graph.transposeView
     transpose.inNeighbors(1) should contain theSameElementsInOrderAs Seq(2, 3)
     transpose.outNeighbors(1) should contain theSameElementsInOrderAs Seq()
     transpose.outNeighbors(2) should contain theSameElementsInOrderAs Seq(1)
