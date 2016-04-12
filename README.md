@@ -55,7 +55,7 @@ bin/convert_graph.sh src/test/resources/test_graph.txt test_graph.dat
 ## Using Tempest from Scala 
 Simply add
 ```
-libraryDependencies += "co.teapot" %% "tempest" % "0.9.0"
+libraryDependencies += "co.teapot" %% "tempest" % "0.10.0"
 ```
 to your `build.sbt` file.  The graph classes in tempest are the following:
 
@@ -88,7 +88,7 @@ so you're using maven, simply add
 <dependency>
       <groupId>co.teapot</groupId>
       <artifactId>tempest_2.11</artifactId>
-      <version>0.9.0</version>
+      <version>0.10.0</version>
     </dependency>
 ```
 to your pom.xml file to access the Tempest dependency.  Then for example, in Java you can 

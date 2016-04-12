@@ -142,7 +142,7 @@ trait DirectedGraph {
 
   /** Returns a view of the transpose of this graph.
     */
-  def transposeView(): DirectedGraph =
+  def transposeView: DirectedGraph =
     new TransposedGraphView(this)
 
   /**
