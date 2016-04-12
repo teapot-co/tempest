@@ -9,10 +9,12 @@
 # print('outneighbors(1): ' + str(graph.outNeighbors(1)))
 # graph.close() # Close the TCP connection
 
-__all__ = ['TempestService', 'get_client']
+__all__ = ['TempestService', 'get_client', 'BidirectionalPPRParams']
 
 
 from tempest_graph import TempestService
+import tempest_graph.ttypes
+BidirectionalPPRParams = tempest_graph.ttypes.BidirectionalPPRParams
 
 from thrift.transport import TSocket
 from thrift.transport import TTransport

@@ -2,7 +2,7 @@ package co.teapot.server
 
 import java.util
 
-import co.teapot.graph.{BidirectionalPPRParams, DirectedGraph, MemoryMappedDirectedGraph, TempestService}
+import co.teapot.graph._
 import co.teapot.thriftbase.TeapotThriftLauncher
 import co.teapot.util.LogUtil
 import co.teapot.util.tempest.CollectionUtil
@@ -14,29 +14,58 @@ import scala.util.Random
 
 /** Given a graph, this thrift server responds to requests about that graph. */
 class TempestServer(graph: DirectedGraph) extends TempestService.Iface {
-  override def outDegree(id: Int): Int = graph.outDegree(id)
+  override def outDegree(id: Int): Int = {
+    validateNodeId(id)
+    graph.outDegree(id)
+  }
 
-  override def inDegree(id: Int): Int = graph.inDegree(id)
+  override def inDegree(id: Int): Int = {
+    validateNodeId(id)
+    graph.inDegree(id)
+  }
 
-  override def outNeighbors(id: Int): util.List[Integer] = graph.outNeighborList(id)
+  override def outNeighbors(id: Int): util.List[Integer] = {
+    validateNodeId(id)
+    graph.outNeighborList(id)
+  }
 
-  override def inNeighbors(id: Int): util.List[Integer] = graph.inNeighborList(id)
+  override def inNeighbors(id: Int): util.List[Integer] = {
+    validateNodeId(id)
+    graph.inNeighborList(id)
+  }
 
-  override def outNeighbor(id: Int, i: Int): Int = graph.outNeighbor(id, i)
+  override def outNeighbor(id: Int, i: Int): Int = {
+    validateNodeId(id)
+    if (i >= graph.outDegree(id))
+      throw new InvalidIndexException(s"Invalid index for node $id with out-degree ${graph.outDegree(id)}")
+    graph.outNeighbor(id, i)
+  }
 
-  override def inNeighbor(id: Int, i: Int): Int = graph.inNeighbor(id, i)
+  override def inNeighbor(id: Int, i: Int): Int = {
+    validateNodeId(id)
+    if (i >= graph.inDegree(id))
+      throw new InvalidIndexException(s"Invalid index for node $id with in-degree ${graph.inDegree(id)}")
+    graph.inNeighbor(id, i)
+  }
 
   override def edgeCount(): Long = graph.edgeCount
 
-  override def nodeCount(): Int = graph.nodeCount
+  override def nodeCount(): Int = graph.nodeCountOption.getOrElse(
+    throw new InvalidArgumentException("nodeCount not supported on this graph type"))
 
   override def maxNodeId(): Int = graph.maxNodeId
 
-  override def pprSingleTarget(seedPersonIds: util.List[Integer],
+  override def pprSingleTarget(seedPersonIdsJava: util.List[Integer],
                                targetPersonId: Int,
                                params: BidirectionalPPRParams): Double = {
+    val seedPersonIds = CollectionUtil.toScala(seedPersonIdsJava)
+    for (id <- seedPersonIds)
+      validateNodeId(id)
+    validateNodeId(targetPersonId)
+    validateBidirectionalPPRParams(params)
+
     val estimator = new BidirectionalPPREstimator(graph, params.resetProbability.toFloat)
-    val startDistribution = new UniformDistribution(CollectionUtil.toScala(seedPersonIds), new Random())
+    val startDistribution = new UniformDistribution(seedPersonIds, new Random())
     val minimumPPR = if (params.isSetMinProbability)
       params.minProbability.toFloat
     else
@@ -52,6 +81,24 @@ class TempestServer(graph: DirectedGraph) extends TempestService.Iface {
       estimate
     else
       0.0 // Return a clean 0.0 rather than noise if PPR value is too small
+  }
+
+  def validateNodeId(id: Int): Unit = {
+    if (!graph.existsNode(id)) {
+      throw new InvalidNodeIdException(s"Invalid node id $id")
+    }
+  }
+
+  def validateBidirectionalPPRParams(params: BidirectionalPPRParams): Unit = {
+    if (params.resetProbability >= 1.0 || params.resetProbability <= 0.0) {
+      throw new InvalidArgumentException("resetProbability must be between 0.0 and 1.0")
+    }
+    if (params.relativeError <= 0.0) {
+      throw new InvalidArgumentException("relativeError must be positive")
+    }
+    if (params.isSetMinProbability && params.minProbability <= 0.0) {
+      throw new InvalidArgumentException("minProbability must be positive")
+    }
   }
 }
 
