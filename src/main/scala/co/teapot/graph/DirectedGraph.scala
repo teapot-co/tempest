@@ -140,6 +140,11 @@ trait DirectedGraph {
     result.toString
   }
 
+  /** Returns a view of the transpose of this graph.
+    */
+  def transposeView(): DirectedGraph =
+    new TransposedGraphView(this)
+
   /**
     * Returns the node with the given {@code id} or else {@code None} if the given node does not
     * exist in this graph.  Deprecated: to decrease the number of objects used, get node
