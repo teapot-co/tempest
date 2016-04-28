@@ -19,16 +19,16 @@ class LouvainClusteringSpec extends FlatSpec with Matchers {
     cliqueRingGraph.addEdge(5 * i + 4, (5 * (i + 1)) % 150)
     cliqueRingGraph.addEdge((5 * (i + 1)) % 150, 5 * i + 4)
   }
+  //for (u <- cliqueRingGraph.nodeIds.toArray.sorted) {
+  //  for (v <- cliqueRingGraph.outNeighbors(u).sorted) {
+  //    println(s"$u $v")
+  //  }
+  //}
 
   "LouvainClusterer" should "cluster cliques in a ring " in {
     val clusterer = new SerialLouvainClusterer(cliqueRingGraph)
-    val clusterings = clusterer.cluster()
-    for ((cs, i) <- clusterings.zipWithIndex) {
-      println(s"Clustering $i:")
-      for ((u, c) <- cs.toSeq.sorted) {
-        println(s"$u: $c")
-      }
-    }
+    val recursiveClustering = clusterer.cluster()
+    val clusterings = recursiveClustering.clusterings
 
     clusterings.size should be (2)
     val expectedClusterSizes = Seq(5, 2)
@@ -42,15 +42,15 @@ class LouvainClusteringSpec extends FlatSpec with Matchers {
         clusterToSize(c) should equal (expectedSize)
     }
 
-    val nodes = 0 until 150
+    val nodes = recursiveClustering.nodes
     val nodeToCluster1 = new Array[Int](nodes.size)
-    for (u <- nodes) {
-      nodeToCluster1(u) = clusterings(0)(u)
-    }
     val nodeToCluster2 = new Array[Int](nodes.size)
     for (u <- nodes) {
-      nodeToCluster2(u) = clusterings(1)(nodeToCluster1(u))
+      nodeToCluster1(u) = recursiveClustering.clustersOfNode(u)(0)
+      nodeToCluster2(u) = recursiveClustering.clustersOfNode(u)(1)
+
     }
+
     clusterer.computeModularity(nodeToCluster1) shouldEqual (0.876 +- 0.001)
     clusterer.computeModularity(nodeToCluster2) shouldEqual (0.888 +- 0.001)
   }
@@ -76,13 +76,10 @@ class LouvainClusteringSpec extends FlatSpec with Matchers {
       }
     }
     val clusterer = new SerialLouvainClusterer(graph)
-    val clusterings = clusterer.cluster()
+    val clustering = clusterer.cluster()
     val nodeToEmpericalCluster = new Array[Int](n)
     for (i <- 0 until n) {
-      var cluster = i
-      for (clustering <- clusterings)
-        cluster = clustering(cluster)
-      nodeToEmpericalCluster(i) = cluster
+      nodeToEmpericalCluster(i) = clustering.clustersOfNode(i).last
     }
     for (i <- 0 until n) {
       for (j <- 0 until n) {
@@ -91,6 +88,5 @@ class LouvainClusteringSpec extends FlatSpec with Matchers {
         expectedInSameCluster shouldEqual (actualInSameCluster)
       }
     }
-
   }
 }

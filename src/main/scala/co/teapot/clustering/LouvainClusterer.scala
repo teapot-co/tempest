@@ -1,8 +1,9 @@
 package co.teapot.clustering
 
+import java.io.{BufferedWriter, FileWriter}
 import java.util.Date
 
-import co.teapot.graph.DirectedGraph
+import co.teapot.graph.{MemoryMappedDirectedGraph, DirectedGraph}
 import co.teapot.graph.experimental.{DirectedGraphAsUnweightedGraph, WeightedUndirectedGraph, MutableWeightedUndirectedGraph, HashMapMutableWeightedUndirectedGraph}
 import co.teapot.util.CollectionUtil
 import it.unimi.dsi.fastutil.ints.IntArrayList
@@ -17,14 +18,11 @@ class SerialLouvainClusterer(originalGraph: DirectedGraph) {
   val n = originalGraph.maxNodeId + 1
   val m = originalGraph.edgeCount / 2.0 // Divide by two because we're interpreting a directed graph as undirected
 
-  /** Clusters the given graph, and returns a sequence of maps mapping ids to cluster ids.
-    * The first map maps node ids in the original graph to 1st level cluster ids.
-    * The second map maps 1st level cluster ids to 2nd level cluster ids.
-    * ...The ith map maps (i-1)th level cluster ids to ith level cluster ids.
+  /** Clusters the given graph.
     */
-  def cluster(): Seq[collection.Map[Int, Int]] = {
+  def cluster(): HierarchicalClustering = {
     val firstGraph = new DirectedGraphAsUnweightedGraph(originalGraph)
-    clusterRecursively(firstGraph)
+    new HierarchicalClustering(clusterRecursively(firstGraph))
   }
 
   def clusterRecursively(currentGraph: WeightedUndirectedGraph): Seq[collection.Map[Int, Int]] = {
@@ -42,7 +40,7 @@ class SerialLouvainClusterer(originalGraph: DirectedGraph) {
     * merge would include the modularity of the graph.
     */
   def doPass(previousGraph: WeightedUndirectedGraph): Option[collection.Map[Int, Int]] = {
-    println(s"Starting pass at ${new Date()}")
+    println(s"Starting phase at ${new Date()}")
     // The results depends on the order nodes are visited; for consistency, sort nodes.
     val sortedNodes = previousGraph.nodes.toArray.sorted
 
@@ -61,6 +59,7 @@ class SerialLouvainClusterer(originalGraph: DirectedGraph) {
     var someNodeMoved = true
     while (someNodeMoved) {
       someNodeMoved = false
+      println(s"  Starting iteration over the nodes at ${new Date()}")
 
       for (u <- sortedNodes) {
         val edgeWeightU = previousGraph.totalWeight(u)
@@ -153,4 +152,3 @@ object LouvainClusterer {
   val MinImprovement = 1.0e-6
   val Debug = false
 }
-
