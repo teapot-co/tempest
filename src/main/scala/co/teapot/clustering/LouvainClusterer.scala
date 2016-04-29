@@ -14,7 +14,7 @@ import scala.collection.mutable
   * A class for Louvain Clustering, as described in the paper "Fast unfolding of communities in large networks."
   * The given graph is interpreted as an undirected graph, using only its out-neighbors.
   */
-class SerialLouvainClusterer(originalGraph: DirectedGraph) {
+class SerialLouvainClusterer(originalGraph: DirectedGraph, debug: Boolean = false) {
   val n = originalGraph.maxNodeId + 1
   val m = originalGraph.edgeCount / 2.0 // Divide by two because we're interpreting a directed graph as undirected
 
@@ -81,7 +81,7 @@ class SerialLouvainClusterer(originalGraph: DirectedGraph) {
             (if (cluster == nodeToCluster(u)) edgeWeightU else 0)
           val s = clusterToEdgeWeightU(cluster) / m -
             2.0 * edgeWeightWithoutU * edgeWeightU / square(2.0 * m)
-          if (LouvainClusterer.Debug)
+          if (debug)
             println(s"from $u to $cluster, weight-from-$u, internal-weight, score: " +
               (clusterToEdgeWeightU(cluster), edgeWeightWithoutU, s))
           s
@@ -91,7 +91,7 @@ class SerialLouvainClusterer(originalGraph: DirectedGraph) {
 
         //println(s" best new cluster, current: $bestNewCluster ${nodeToCluster(u)}")
         if (score(bestNewCluster) > score(nodeToCluster(u)) + LouvainClusterer.MinImprovement) {
-          if (LouvainClusterer.Debug) println (s"  Moving node $u to cluster $bestNewCluster")
+          if (debug) println (s"  Moving node $u to cluster $bestNewCluster")
           someNodeMoved = true
           someNodeEverMoved = true
           //currentModularity += (score(bestNewCluster) - score(nodeToCluster(i)))
@@ -149,6 +149,5 @@ class SerialLouvainClusterer(originalGraph: DirectedGraph) {
 }
 
 object LouvainClusterer {
-  val MinImprovement = 1.0e-6
-  val Debug = false
+  val MinImprovement = 1.0e-10
 }

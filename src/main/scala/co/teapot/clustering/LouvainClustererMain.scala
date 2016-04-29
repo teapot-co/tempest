@@ -6,14 +6,15 @@ import co.teapot.graph.MemoryMappedDirectedGraph
 
 object LouvainClustererMain {
   def main(args: Array[String]): Unit = {
-    if (args.size != 2) {
-      println("Usage: java -cp <tempest.jar> co.teapot.clustering.ouvainClusterMain <binary graph> <output cluster file>")
+    if (args.size < 2) {
+      println("Usage: java -cp <tempest.jar> co.teapot.clustering.LouvainClusterMain <binary graph> <output cluster file>")
       System.exit(1)
     }
     val graphName = args(0)
     val outputFile = args(1)
+    val debug = args.size > 2 // Temporary: Extra parameter indicates debug
     val graph = MemoryMappedDirectedGraph(graphName)
-    val clusterings = new SerialLouvainClusterer(graph).cluster()
+    val clusterings = new SerialLouvainClusterer(graph, debug).cluster()
     printClusterings(outputFile, clusterings)
   }
 
