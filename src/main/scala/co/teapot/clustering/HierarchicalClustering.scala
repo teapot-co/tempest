@@ -14,7 +14,7 @@ class HierarchicalClustering(val clusterings: Seq[collection.Map[Int, Int]]) {
   def clustersOfNode(u: Int): Seq[Int] = {
     var clusterId = u
     for (clustering <- clusterings) yield {
-      clusterId = clustering(clusterId)
+      clusterId = clustering.getOrElse(clusterId, -1)
       clusterId
     }
   }
