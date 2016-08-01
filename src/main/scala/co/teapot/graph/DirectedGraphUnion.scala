@@ -10,8 +10,8 @@ import scala.collection.mutable
 class DirectedGraphUnion(graphs: Seq[DirectedGraph])
   extends DirectedGraph {
 
-  override def outDegree(id: Int): Int = (graphs map (_.outDegree(id))).sum
-  override def inDegree(id: Int): Int = (graphs map (_.inDegree(id))).sum
+  override def outDegree(id: Int): Int = (graphs map (_.outDegreeOr0(id))).sum
+  override def inDegree(id: Int): Int = (graphs map (_.inDegreeOr0(id))).sum
 
   override def outNeighbors(id: Int): IndexedSeq[Int] =
     new FlattenedIndexedSeq(graphs filter (_.existsNode(id)) map (_.outNeighbors(id)))
@@ -22,7 +22,7 @@ class DirectedGraphUnion(graphs: Seq[DirectedGraph])
   override def outNeighbor(id: Int, i: Int): Int = {
     var adjustedI = i // i - (cumulative outdegree of id in previous graphs)
     for (graph <- graphs) {
-      val outDegree = graph.outDegree(id)
+      val outDegree = graph.outDegreeOr0(id)
       if (adjustedI < outDegree) {
         return graph.outNeighbor(id, adjustedI)
       } else {
@@ -35,7 +35,7 @@ class DirectedGraphUnion(graphs: Seq[DirectedGraph])
   override def inNeighbor(id: Int, i: Int): Int = {
     var adjustedI = i // i - (cumulative indegree of id in previous graphs)
     for (graph <- graphs) {
-      val inDegree = graph.inDegree(id)
+      val inDegree = graph.inDegreeOr0(id)
       if (adjustedI < inDegree) {
         return graph.inNeighbor(id, adjustedI)
       } else {
@@ -58,7 +58,7 @@ class DirectedGraphUnion(graphs: Seq[DirectedGraph])
     graphs exists { _.existsNode(id) }
 
   override def nodeIds: Iterable[Int] =
-    (0 to maxNodeId) filter { id => graphs forall (_.existsNode(id)) }
+    (0 to maxNodeId) filter { id => existsNode(id) }
 
   override def toString() =
     s"A union of ${graphs.size} graphs: $graphs"

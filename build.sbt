@@ -1,6 +1,6 @@
 name := "tempest"
 
-version := "0.10.2"
+version := "0.10.4"
 
 organization := "co.teapot"
 
