@@ -1,4 +1,4 @@
-# Tempest Graph Library
+# Tempest Graph Library and Database (Beta)
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**
@@ -55,17 +55,19 @@ bin/convert_graph.sh src/test/resources/test_graph.txt test_graph.dat
 ## Using Tempest from Scala 
 Simply add
 ```
-libraryDependencies += "co.teapot" %% "tempest" % "0.10.0"
+libraryDependencies += "co.teapot" %% "tempest" % "0.12.0"
 ```
 to your `build.sbt` file.  The graph classes in tempest are the following:
 
-- [DirectedGraph](http://teapot-co.github.io/tempest/scaladoc/#co.teapot.graph.DirectedGraph)
-  contains the methods defined for graphs
-- [MemoryMappedDirectedGraph](http://teapot-co.github.io/tempest/scaladoc/#co.teapot.graph.MemoryMappedDirectedGraph)
-  efficiently creates an immutable graph from a Tempest binary graph file
-- [ConcurrentHashMapDynamicGraph](http://teapot-co.github.io/tempest/scaladoc/#co.teapot.graph.ConcurrentHashMapDynamicGraph)
+- [DirectedGraph](http://teapot-co.github.io/tempest/scaladoc/#co.teapot.tempest.graph.DirectedGraph)
+  defines the interface for graphs
+- [MemoryMappedDirectedGraph](http://teapot-co.github.io/tempest/scaladoc/#co.teapot.tempest.graph.MemoryMappedDirectedGraph)
+  efficiently reads an immutable graph from a Tempest binary graph file
+- [MemoryMappedMutableDirectedGraph](http://teapot-co.github.io/tempest/scaladoc/#co.teapot.tempest.graph.MemMappedDynamicDirectedGraph)
+  efficiently stores a graph in a binary file and allows efficient edge additions
+- [ConcurrentHashMapDynamicGraph](http://teapot-co.github.io/tempest/scaladoc/#co.teapot.tempest.graph.ConcurrentHashMapDynamicGraph)
   is a thread-safe mutable graph class based on ConcurrentHashMap
-- [DynamicDirectedGraphUnion](http://teapot-co.github.io/tempest/scaladoc/#co.teapot.graph.DynamicDirectedGraphUnion)
+- [DynamicDirectedGraphUnion](http://teapot-co.github.io/tempest/scaladoc/#co.teapot.tempest.graph.DynamicDirectedGraphUnion)
   combines an immutable graph with a mutable graph, for situations where you have a large 
   memory mapped graph but want to be able to add edges to it.
     
@@ -73,7 +75,7 @@ As an example of using the graph methods, convert the test graph to test_graph.d
 above, then run the following from the tempest directory:
 ```
 sbt console
-val graph = co.teapot.graph.MemoryMappedDirectedGraph("test_graph.dat")
+val graph = co.teapot.tempest.graph.MemoryMappedDirectedGraph("test_graph.dat")
 graph.nodeCount
 graph.edgeCount
 graph.outDegree(4)
@@ -92,7 +94,7 @@ so you're using maven, simply add
     </dependency>
 ```
 to your pom.xml file to access the Tempest dependency.  Then for example, in Java you can 
-`import co.teapot.graph.MemoryMappedDirectedGraph` and write
+`import co.teapot.tempest.graph.MemoryMappedDirectedGraph` and write
 ```
 MemoryMappedDirectedGraph graph = new MemoryMappedDirectedGraph(new File("test_graph.dat"));
 System.out.println("out-neighbors of 2: " + graph.outNeighborList(2));
@@ -102,8 +104,10 @@ The documentation javadoc for the graph classes is linked above in the Scala sec
 ## Using Tempest from Python
 To use tempest from python, it has a client/server mode, so the server (written efficiently in scala)
 stores large graphs in RAM, while the client is conveniently in python.  The server and client can even
-be on different machines; for example the client can run on web server while the server runs in a large
-graph server. First clone the repository and convert the graph to Tempest binary format, as described
+be on different machines; for example the client can run on a web server while the server runs in a large
+graph server.
+
+First clone the repository and convert the graph to Tempest binary format, as described
  above.  Then start the server, supplying the binary graph name, for example
 ```
 bin/start_server.sh test_graph.dat 
@@ -127,9 +131,6 @@ from the python console:
 ```
 
 ## Project Roadmap
-- Ruby bindings
-- Implement clustering algorithms
-- (potentially) Implement PageRank, personalized PageRank, or shortest path algorithms
-- (potentially) Implement persistent store for edge updates
-- (potentially) Support node and edge attributes
-- (potentially) Support non-integer node ids
+- (potentially) Support non-integer node ids.  Currently node ids must be sequential integers,
+  and the database allows ndoes to be selected by attribute.
+- (potentially) Support edge attributes.

@@ -2,7 +2,7 @@ package soal.ppr
 
 import java.util.Random
 
-import co.teapot.graph.ConcurrentHashMapDynamicGraph
+import co.teapot.tempest.graph.ConcurrentHashMapDynamicGraph
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.collection.mutable
