@@ -25,7 +25,7 @@ import it.unimi.dsi.fastutil.ints.{IntBigArrayBigList, IntArrayList}
   * sbt assembly
   * printf "1 2\n3 4\n1 3" > input_graph.txt
   * java -cp target/scala-2.11/tempest<current_version>.jar \
-  * co.teapot.graph.MemMappedDynamicDirectedGraphConverter input_graph.txt output_graph.dat
+  * co.teapot.tempest.graph.MemMappedDynamicDirectedGraphConverter input_graph.txt output_graph.dat
   *
   * Then in scala code, MemMappedDynamicDirectedGraph("output_graph.dat") will efficiently read the
   * graph and allow for further nodes and edges to be added.

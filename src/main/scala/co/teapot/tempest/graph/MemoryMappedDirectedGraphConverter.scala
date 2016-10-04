@@ -35,7 +35,7 @@ import co.teapot.tempest.graph.MemoryMappedDirectedGraph._
   * sbt assembly
   * printf "1 2\n3 4\n1 3" > input_graph.txt
   * java -Xmx7g -cp target/scala-2.11/bidirectional-random-walk-assembly-1.0.jar\
-  * co.teapot.graph.MemoryMappedDirectedGraphConverter input_graph.txt output_graph.dat
+  * co.teapot.tempest.graph.MemoryMappedDirectedGraphConverter input_graph.txt output_graph.dat
   *
   * Then in scala code, MemoryMappedDirectedGraph("output_graph.dat") will efficiently read the
   * graph.
