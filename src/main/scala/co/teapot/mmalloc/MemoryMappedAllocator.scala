@@ -16,7 +16,7 @@ package co.teapot.mmalloc
 
 import java.io.File
 import java.util
-import co.teapot.util.Util
+import co.teapot.tempest.util.Util
 import com.twitter.logging.Logger
 import it.unimi.dsi.fastutil.longs.LongArrayList
 

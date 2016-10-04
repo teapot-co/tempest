@@ -1,7 +1,10 @@
 package co.teapot.experiments
 
-import co.teapot.graph.{DirectedGraph, GraphGenerator}
-import experiments.PPRBigArrayPowerIteration
+import co.teapot.graphs.PPRBigArrayPowerIteration
+import co.teapot.graphs.PPRBigArrayPowerIteration
+import co.teapot.graphs.PPRBigArrayPowerIteration
+import co.teapot.graphs.PPRBigArrayPowerIteration
+import co.teapot.tempest.graph.{DirectedGraph, GraphGenerator}
 import org.scalatest.{Matchers, FlatSpec}
 import com.twitter.logging.Logger
 

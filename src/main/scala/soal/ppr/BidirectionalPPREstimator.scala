@@ -2,7 +2,7 @@ package soal.ppr
 
 import java.util.Random
 
-import co.teapot.graph.DirectedGraph
+import co.teapot.tempest.graph.DirectedGraph
 import soal.util._
 
 import scala.collection.mutable

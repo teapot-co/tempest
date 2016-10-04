@@ -18,7 +18,7 @@ import java.io.File
 import java.nio.ByteOrder
 import java.nio.channels.FileChannel
 
-import co.teapot.util.Util
+import co.teapot.tempest.util.Util
 import com.indeed.util.mmap.{DirectMemory, MMapBuffer}
 
 /** Memory maps a file and provides access to Ints and Longs. Any write operation automatically

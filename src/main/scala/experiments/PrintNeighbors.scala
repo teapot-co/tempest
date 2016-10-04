@@ -1,6 +1,6 @@
 package experiments
 
-import co.teapot.graph.MemMappedDynamicDirectedGraph
+import co.teapot.tempest.graph.MemMappedDynamicDirectedGraph
 
 object PrintNeighbors {
   def main(args: Array[String]): Unit = {

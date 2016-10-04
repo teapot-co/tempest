@@ -2,7 +2,7 @@ package co.teapot.mmalloc
 
 import java.io.File
 
-import co.teapot.util.LogUtil
+import co.teapot.tempest.util.LogUtil
 import org.scalatest.{FlatSpec, Matchers}
 
 class MemoryMappedAllocatorSpec extends FlatSpec with Matchers {

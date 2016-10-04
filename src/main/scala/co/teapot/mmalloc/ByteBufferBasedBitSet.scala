@@ -14,7 +14,7 @@
 
 package co.teapot.mmalloc
 
-import co.teapot.util.Util
+import co.teapot.tempest.util.Util
 
 /** Represents a subset of [0, bitCount) using 4 * ceiling(bitCount / 32) bytes, starting at the
   * given pointer.
