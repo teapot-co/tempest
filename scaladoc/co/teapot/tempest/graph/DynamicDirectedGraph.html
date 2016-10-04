@@ -1,0 +1,893 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>DynamicDirectedGraph - co.teapot.tempest.graph.DynamicDirectedGraph</title>
+          <meta name="description" content="DynamicDirectedGraph - co.teapot.tempest.graph.DynamicDirectedGraph" />
+          <meta name="keywords" content="DynamicDirectedGraph co.teapot.tempest.graph.DynamicDirectedGraph" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../../../lib/template.js"></script>
+      <script type="text/javascript" src="../../../../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../../../index.html';
+            var hash = 'co.teapot.tempest.graph.DynamicDirectedGraph';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="type">
+      <div id="definition">
+        <a href="DynamicDirectedGraph$.html" title="Go to companion"><img src="../../../../lib/trait_to_object_big.png" /></a>
+        <p id="owner"><a href="../../../package.html" class="extype" name="co">co</a>.<a href="../../package.html" class="extype" name="co.teapot">teapot</a>.<a href="../package.html" class="extype" name="co.teapot.tempest">tempest</a>.<a href="package.html" class="extype" name="co.teapot.tempest.graph">graph</a></p>
+        <h1><a href="DynamicDirectedGraph$.html" title="Go to companion">DynamicDirectedGraph</a></h1><h3><span class="morelinks"><div>
+            Related Docs:
+            <a href="DynamicDirectedGraph$.html" title="See companion">object DynamicDirectedGraph</a>
+            | <a href="package.html" class="extype" name="co.teapot.tempest.graph">package graph</a>
+          </div></span></h3><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <span class="name">DynamicDirectedGraph</span><span class="result"> extends <a href="DirectedGraph.html" class="extype" name="co.teapot.tempest.graph.DirectedGraph">DirectedGraph</a></span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <span class="toggle">Linear Supertypes</span>
+          <div class="superTypes hiddenContent"><a href="DirectedGraph.html" class="extype" name="co.teapot.tempest.graph.DirectedGraph">DirectedGraph</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+        </div><div class="toggleContainer block">
+            <span class="toggle">Known Subclasses</span>
+            <div class="subClasses hiddenContent"><a href="ConcurrentHashMapDynamicGraph.html" class="extype" name="co.teapot.tempest.graph.ConcurrentHashMapDynamicGraph">ConcurrentHashMapDynamicGraph</a>, <a href="DynamicDirectedGraphUnion.html" class="extype" name="co.teapot.tempest.graph.DynamicDirectedGraphUnion">DynamicDirectedGraphUnion</a>, <a href="MemMappedDynamicDirectedGraph.html" class="extype" name="co.teapot.tempest.graph.MemMappedDynamicDirectedGraph">MemMappedDynamicDirectedGraph</a></div>
+          </div></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        <div id="order">
+              <span class="filtertype">Ordering</span>
+              <ol>
+                
+                <li class="alpha in"><span>Alphabetic</span></li>
+                <li class="inherit out"><span>By inheritance</span></li>
+              </ol>
+            </div>
+        <div id="ancestors">
+                <span class="filtertype">Inherited<br />
+                </span>
+                <ol id="linearization">
+                  <li class="in" name="co.teapot.tempest.graph.DynamicDirectedGraph"><span>DynamicDirectedGraph</span></li><li class="in" name="co.teapot.tempest.graph.DirectedGraph"><span>DirectedGraph</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                </ol>
+              </div><div id="ancestors">
+            <span class="filtertype"></span>
+            <ol>
+              <li class="hideall out"><span>Hide All</span></li>
+              <li class="showall in"><span>Show all</span></li>
+            </ol>
+            <a href="http://docs.scala-lang.org/overviews/scaladoc/usage.html#members" target="_blank">Learn more about member selection</a>
+          </div>
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        
+
+        <div id="values" class="values members">
+              <h3>Abstract Value Members</h3>
+              <ol><li name="co.teapot.tempest.graph.DynamicDirectedGraph#addEdge" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="addEdge(id1:Int,id2:Int):Unit"></a>
+      <a id="addEdge(Int,Int):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">addEdge</span><span class="params">(<span name="id1">id1: <span class="extype" name="scala.Int">Int</span></span>, <span name="id2">id2: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@addEdge(id1:Int,id2:Int):Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Adds the given edge to the graph, increasing the number of nodes if needed.</p>
+    </li><li name="co.teapot.tempest.graph.DirectedGraph#edgeCount" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="edgeCount:Long"></a>
+      <a id="edgeCount:Long"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">edgeCount</span><span class="result">: <span class="extype" name="scala.Long">Long</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@edgeCount:Long" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">The number of edges in this graph.</p><div class="fullcomment"><div class="comment cmt"><p>The number of edges in this graph.</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DirectedGraph.html" class="extype" name="co.teapot.tempest.graph.DirectedGraph">DirectedGraph</a></dd></dl></div>
+    </li><li name="co.teapot.tempest.graph.DirectedGraph#existsNode" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="existsNode(id:Int):Boolean"></a>
+      <a id="existsNode(Int):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">existsNode</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@existsNode(id:Int):Boolean" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DirectedGraph.html" class="extype" name="co.teapot.tempest.graph.DirectedGraph">DirectedGraph</a></dd></dl></div>
+    </li><li name="co.teapot.tempest.graph.DirectedGraph#inDegree" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="inDegree(id:Int):Int"></a>
+      <a id="inDegree(Int):Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">inDegree</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@inDegree(id:Int):Int" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Returns the number of in-neighbors of the given id.</p><div class="fullcomment"><div class="comment cmt"><p>Returns the number of in-neighbors of the given id.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DirectedGraph.html" class="extype" name="co.teapot.tempest.graph.DirectedGraph">DirectedGraph</a></dd></dl></div>
+    </li><li name="co.teapot.tempest.graph.DirectedGraph#inNeighbors" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="inNeighbors(id:Int):IndexedSeq[Int]"></a>
+      <a id="inNeighbors(Int):IndexedSeq[Int]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">inNeighbors</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.IndexedSeq">IndexedSeq</span>[<span class="extype" name="scala.Int">Int</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@inNeighbors(id:Int):IndexedSeq[Int]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Returns the in-neighbors of the given id.</p><div class="fullcomment"><div class="comment cmt"><p>Returns the in-neighbors of the given id.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DirectedGraph.html" class="extype" name="co.teapot.tempest.graph.DirectedGraph">DirectedGraph</a></dd></dl></div>
+    </li><li name="co.teapot.tempest.graph.DirectedGraph#maxNodeId" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="maxNodeId:Int"></a>
+      <a id="maxNodeId:Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">maxNodeId</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@maxNodeId:Int" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">The largest node id in this graph (or an upper bound on it).</p><div class="fullcomment"><div class="comment cmt"><p>The largest node id in this graph (or an upper bound on it).</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DirectedGraph.html" class="extype" name="co.teapot.tempest.graph.DirectedGraph">DirectedGraph</a></dd></dl></div>
+    </li><li name="co.teapot.tempest.graph.DirectedGraph#nodeCountOption" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="nodeCountOption:Option[Int]"></a>
+      <a id="nodeCountOption:Option[Int]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">nodeCountOption</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Int">Int</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@nodeCountOption:Option[Int]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">The number of nodes in this graph.</p><div class="fullcomment"><div class="comment cmt"><p>The number of nodes in this graph.  May return None if it is expensive to compute (for
+example, for the union of two graphs).</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DirectedGraph.html" class="extype" name="co.teapot.tempest.graph.DirectedGraph">DirectedGraph</a></dd></dl></div>
+    </li><li name="co.teapot.tempest.graph.DirectedGraph#nodeIds" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="nodeIds:Iterable[Int]"></a>
+      <a id="nodeIds:Iterable[Int]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">nodeIds</span><span class="result">: <span class="extype" name="scala.Iterable">Iterable</span>[<span class="extype" name="scala.Int">Int</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@nodeIds:Iterable[Int]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">All nodeIds that exist in the graph.</p><div class="fullcomment"><div class="comment cmt"><p>All nodeIds that exist in the graph.</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DirectedGraph.html" class="extype" name="co.teapot.tempest.graph.DirectedGraph">DirectedGraph</a></dd></dl></div>
+    </li><li name="co.teapot.tempest.graph.DirectedGraph#outDegree" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="outDegree(id:Int):Int"></a>
+      <a id="outDegree(Int):Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">outDegree</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@outDegree(id:Int):Int" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Returns the number of out-neighbors of the given id.</p><div class="fullcomment"><div class="comment cmt"><p>Returns the number of out-neighbors of the given id.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DirectedGraph.html" class="extype" name="co.teapot.tempest.graph.DirectedGraph">DirectedGraph</a></dd></dl></div>
+    </li><li name="co.teapot.tempest.graph.DirectedGraph#outNeighbors" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="outNeighbors(id:Int):IndexedSeq[Int]"></a>
+      <a id="outNeighbors(Int):IndexedSeq[Int]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">outNeighbors</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.IndexedSeq">IndexedSeq</span>[<span class="extype" name="scala.Int">Int</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@outNeighbors(id:Int):IndexedSeq[Int]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Returns the out-neighbors of the given id.</p><div class="fullcomment"><div class="comment cmt"><p>Returns the out-neighbors of the given id.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DirectedGraph.html" class="extype" name="co.teapot.tempest.graph.DirectedGraph">DirectedGraph</a></dd></dl></div>
+    </li></ol>
+            </div>
+
+        <div id="values" class="values members">
+              <h3>Concrete Value Members</h3>
+              <ol><li name="scala.AnyRef#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="!=(x$1:Any):Boolean"></a>
+      <a id="!=(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@!=(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef###" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="##():Int"></a>
+      <a id="##():Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@##():Int" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef#==" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="==(x$1:Any):Boolean"></a>
+      <a id="==(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@==(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="asInstanceOf[T0]:T0"></a>
+      <a id="asInstanceOf[T0]:T0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">asInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Any.asInstanceOf.T0">T0</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@asInstanceOf[T0]:T0" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="clone():Object"></a>
+      <a id="clone():AnyRef"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@clone():Object" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.CloneNotSupportedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="co.teapot.tempest.graph.DirectedGraph#defaultNeighbors" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="defaultNeighbors(id:Int):IndexedSeq[Int]"></a>
+      <a id="defaultNeighbors(Int):IndexedSeq[Int]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">defaultNeighbors</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.IndexedSeq">IndexedSeq</span>[<span class="extype" name="scala.Int">Int</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@defaultNeighbors(id:Int):IndexedSeq[Int]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Called by other methods when given an id that doesn't exist in this graph.</p><div class="fullcomment"><div class="comment cmt"><p>Called by other methods when given an id that doesn't exist in this graph.  By default it
+throws an exception, but implementations can override it to return an IndexedSeq which is
+the neighbor seq of non-existing nodes (typically an empty IndexedSeq).
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DirectedGraph.html" class="extype" name="co.teapot.tempest.graph.DirectedGraph">DirectedGraph</a></dd></dl></div>
+    </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="eq(x$1:AnyRef):Boolean"></a>
+      <a id="eq(AnyRef):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#equals" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="equals(x$1:Any):Boolean"></a>
+      <a id="equals(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@equals(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="finalize():Unit"></a>
+      <a id="finalize():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@finalize():Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="symbol">classOf[java.lang.Throwable]</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyRef#getClass" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getClass():Class[_]"></a>
+      <a id="getClass():Class[_]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Class">Class</span>[_]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@getClass():Class[_]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef#hashCode" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="hashCode():Int"></a>
+      <a id="hashCode():Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@hashCode():Int" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="co.teapot.tempest.graph.DirectedGraph#inDegreeOr0" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="inDegreeOr0(id:Int):Int"></a>
+      <a id="inDegreeOr0(Int):Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">inDegreeOr0</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@inDegreeOr0(id:Int):Int" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Returns the in-degree of the given node id, or 0 if the node id does not exist.</p><div class="fullcomment"><div class="comment cmt"><p>Returns the in-degree of the given node id, or 0 if the node id does not exist.</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DirectedGraph.html" class="extype" name="co.teapot.tempest.graph.DirectedGraph">DirectedGraph</a></dd></dl></div>
+    </li><li name="co.teapot.tempest.graph.DirectedGraph#inNeighbor" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="inNeighbor(id:Int,i:Int):Int"></a>
+      <a id="inNeighbor(Int,Int):Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">inNeighbor</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Int">Int</span></span>, <span name="i">i: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@inNeighbor(id:Int,i:Int):Int" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Returns the ith in-neighbor of the node with the given id.</p><div class="fullcomment"><div class="comment cmt"><p>Returns the ith in-neighbor of the node with the given id.
+Throws IndexOutOfBoundsException unless 0 &lt;= i &lt; inDegree(id).
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DirectedGraph.html" class="extype" name="co.teapot.tempest.graph.DirectedGraph">DirectedGraph</a></dd></dl></div>
+    </li><li name="co.teapot.tempest.graph.DirectedGraph#inNeighborList" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="inNeighborList(id:Int):java.util.List[Integer]"></a>
+      <a id="inNeighborList(Int):List[Integer]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">inNeighborList</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="java.util.List">List</span>[<span class="extype" name="java.lang.Integer">Integer</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@inNeighborList(id:Int):java.util.List[Integer]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Returns the in-neighbors of the given id as a java.util.List.</p><div class="fullcomment"><div class="comment cmt"><p>Returns the in-neighbors of the given id as a java.util.List.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DirectedGraph.html" class="extype" name="co.teapot.tempest.graph.DirectedGraph">DirectedGraph</a></dd></dl></div>
+    </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="isInstanceOf[T0]:Boolean"></a>
+      <a id="isInstanceOf[T0]:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ne(x$1:AnyRef):Boolean"></a>
+      <a id="ne(AnyRef):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="co.teapot.tempest.graph.DirectedGraph#nodeCount" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="nodeCount:Int"></a>
+      <a id="nodeCount:Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">nodeCount</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@nodeCount:Int" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Returns the nodeCount if it is defined.</p><div class="fullcomment"><div class="comment cmt"><p>Returns the nodeCount if it is defined.  Otherwise throws an UnsupportedOperationException.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DirectedGraph.html" class="extype" name="co.teapot.tempest.graph.DirectedGraph">DirectedGraph</a></dd></dl></div>
+    </li><li name="scala.AnyRef#notify" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="notify():Unit"></a>
+      <a id="notify():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@notify():Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#notifyAll" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="notifyAll():Unit"></a>
+      <a id="notifyAll():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@notifyAll():Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="co.teapot.tempest.graph.DirectedGraph#outDegreeOr0" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="outDegreeOr0(id:Int):Int"></a>
+      <a id="outDegreeOr0(Int):Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">outDegreeOr0</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@outDegreeOr0(id:Int):Int" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Returns the out-degree of the given node id, or 0 if the node id does not exist.</p><div class="fullcomment"><div class="comment cmt"><p>Returns the out-degree of the given node id, or 0 if the node id does not exist.</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DirectedGraph.html" class="extype" name="co.teapot.tempest.graph.DirectedGraph">DirectedGraph</a></dd></dl></div>
+    </li><li name="co.teapot.tempest.graph.DirectedGraph#outNeighbor" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="outNeighbor(id:Int,i:Int):Int"></a>
+      <a id="outNeighbor(Int,Int):Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">outNeighbor</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Int">Int</span></span>, <span name="i">i: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@outNeighbor(id:Int,i:Int):Int" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Returns the ith out-neighbor of the node with the given id.</p><div class="fullcomment"><div class="comment cmt"><p>Returns the ith out-neighbor of the node with the given id.
+Throws IndexOutOfBoundsException unless 0 &lt;= i &lt; outDegree(id).
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DirectedGraph.html" class="extype" name="co.teapot.tempest.graph.DirectedGraph">DirectedGraph</a></dd></dl></div>
+    </li><li name="co.teapot.tempest.graph.DirectedGraph#outNeighborList" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="outNeighborList(id:Int):java.util.List[Integer]"></a>
+      <a id="outNeighborList(Int):List[Integer]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">outNeighborList</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="java.util.List">List</span>[<span class="extype" name="java.lang.Integer">Integer</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@outNeighborList(id:Int):java.util.List[Integer]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Returns the out-neighbors of the given id as a java.util.List.</p><div class="fullcomment"><div class="comment cmt"><p>Returns the out-neighbors of the given id as a java.util.List.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DirectedGraph.html" class="extype" name="co.teapot.tempest.graph.DirectedGraph">DirectedGraph</a></dd></dl></div>
+    </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
+      <a id="synchronized[T0](⇒T0):T0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">synchronized</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="params">(<span name="arg0">arg0: ⇒ <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>)</span><span class="result">: <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="co.teapot.tempest.graph.DirectedGraph#toString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="toString():String"></a>
+      <a id="toString():String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@toString():String" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DirectedGraph.html" class="extype" name="co.teapot.tempest.graph.DirectedGraph">DirectedGraph</a> → AnyRef → Any</dd></dl></div>
+    </li><li name="co.teapot.tempest.graph.DirectedGraph#transposeView" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="transposeView:co.teapot.tempest.graph.DirectedGraph"></a>
+      <a id="transposeView:DirectedGraph"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">transposeView</span><span class="result">: <a href="DirectedGraph.html" class="extype" name="co.teapot.tempest.graph.DirectedGraph">DirectedGraph</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@transposeView:co.teapot.tempest.graph.DirectedGraph" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Returns a view of the transpose of this graph.</p><div class="fullcomment"><div class="comment cmt"><p>Returns a view of the transpose of this graph.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DirectedGraph.html" class="extype" name="co.teapot.tempest.graph.DirectedGraph">DirectedGraph</a></dd></dl></div>
+    </li><li name="co.teapot.tempest.graph.DirectedGraph#uniformRandomInNeighbor" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="uniformRandomInNeighbor(id:Int,random:scala.util.Random):Int"></a>
+      <a id="uniformRandomInNeighbor(Int,Random):Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">uniformRandomInNeighbor</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Int">Int</span></span>, <span name="random">random: <span class="extype" name="scala.util.Random">Random</span> = <span class="symbol">Random.self</span></span>)</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@uniformRandomInNeighbor(id:Int,random:scala.util.Random):Int" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DirectedGraph.html" class="extype" name="co.teapot.tempest.graph.DirectedGraph">DirectedGraph</a></dd></dl></div>
+    </li><li name="co.teapot.tempest.graph.DirectedGraph#uniformRandomOutNeighbor" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="uniformRandomOutNeighbor(id:Int,random:scala.util.Random):Int"></a>
+      <a id="uniformRandomOutNeighbor(Int,Random):Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">uniformRandomOutNeighbor</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Int">Int</span></span>, <span name="random">random: <span class="extype" name="scala.util.Random">Random</span> = <span class="symbol">Random.self</span></span>)</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@uniformRandomOutNeighbor(id:Int,random:scala.util.Random):Int" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DirectedGraph.html" class="extype" name="co.teapot.tempest.graph.DirectedGraph">DirectedGraph</a></dd></dl></div>
+    </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait():Unit"></a>
+      <a id="wait():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@wait():Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait(x$1:Long,x$2:Int):Unit"></a>
+      <a id="wait(Long,Int):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>, <span name="arg1">arg1: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait(x$1:Long):Unit"></a>
+      <a id="wait(Long):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@wait(x$1:Long):Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="co.teapot.tempest.graph.DirectedGraph#getNodeById" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getNodeById(id:Int):Option[co.teapot.tempest.graph.NodeWrapper]"></a>
+      <a id="getNodeById(Int):Option[NodeWrapper]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 1.0) Rather than using Node objects, use graph method directly">getNodeById</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="NodeWrapper.html" class="extype" name="co.teapot.tempest.graph.NodeWrapper">NodeWrapper</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#co.teapot.tempest.graph.DynamicDirectedGraph@getNodeById(id:Int):Option[co.teapot.tempest.graph.NodeWrapper]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Returns the node with the given <code>id</code> or else <code>None</code> if the given node does not
+exist in this graph.</code></code></p><div class="fullcomment"><div class="comment cmt"><p>Returns the node with the given <code>id</code> or else <code>None</code> if the given node does not
+exist in this graph.  Deprecated: to decrease the number of objects used, get node
+neighbors and degrees directly through the graph.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DirectedGraph.html" class="extype" name="co.teapot.tempest.graph.DirectedGraph">DirectedGraph</a></dd><dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 1.0)</i> Rather than using Node objects, use graph method directly</p></dd></dl></div>
+    </li></ol>
+            </div>
+        </div>
+
+        <div id="inheritedMembers">
+        <div class="parent" name="co.teapot.tempest.graph.DirectedGraph">
+              <h3>Inherited from <a href="DirectedGraph.html" class="extype" name="co.teapot.tempest.graph.DirectedGraph">DirectedGraph</a></h3>
+            </div><div class="parent" name="scala.AnyRef">
+              <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
+            </div><div class="parent" name="scala.Any">
+              <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
+            </div>
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>mmalloc - co.teapot.mmalloc</title>
+          <meta name="description" content="mmalloc - co.teapot.mmalloc" />
+          <meta name="keywords" content="mmalloc co.teapot.mmalloc" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../../lib/template.js"></script>
+      <script type="text/javascript" src="../../../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../../index.html';
+            var hash = 'co.teapot.mmalloc.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img src="../../../lib/package_big.png" />
+        <p id="owner"><a href="../../package.html" class="extype" name="co">co</a>.<a href="../package.html" class="extype" name="co.teapot">teapot</a></p>
+        <h1>mmalloc</h1><span class="permalink">
+      <a href="../../../index.html#co.teapot.mmalloc.package" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">mmalloc</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        
+        
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="co.teapot.mmalloc.Allocator" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="AllocatorextendsAnyRef"></a>
+      <a id="Allocator:Allocator"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Allocator.html"><span class="name">Allocator</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#co.teapot.mmalloc.package@AllocatorextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Manages memory and provides functions similar to C's standard library, including functions to
+allocate memory, extend an allocation, and free memory.</p><div class="fullcomment"><div class="comment cmt"><p>Manages memory and provides functions similar to C's standard library, including functions to
+allocate memory, extend an allocation, and free memory. All &quot;pointers&quot; are byte offsets into data,
+a LargeMappedByteBuffer.</p></div></div>
+    </li><li name="co.teapot.mmalloc.LargeMappedByteBuffer" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="LargeMappedByteBufferextendsAnyRef"></a>
+      <a id="LargeMappedByteBuffer:LargeMappedByteBuffer"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="LargeMappedByteBuffer.html"><span class="name">LargeMappedByteBuffer</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#co.teapot.mmalloc.package@LargeMappedByteBufferextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Memory maps a file and provides access to Ints and Longs.</p><div class="fullcomment"><div class="comment cmt"><p>Memory maps a file and provides access to Ints and Longs. Any write operation automatically
+extends the length of the underlying file.
+</p></div></div>
+    </li><li name="co.teapot.mmalloc.MMapByteBuffer" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MMapByteBufferextendsLargeMappedByteBuffer"></a>
+      <a id="MMapByteBuffer:MMapByteBuffer"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="MMapByteBuffer.html"><span class="name">MMapByteBuffer</span></a><span class="result"> extends <a href="LargeMappedByteBuffer.html" class="extype" name="co.teapot.mmalloc.LargeMappedByteBuffer">LargeMappedByteBuffer</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#co.teapot.mmalloc.package@MMapByteBufferextendsLargeMappedByteBuffer" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="co.teapot.mmalloc.MemoryMappedAllocator" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="MemoryMappedAllocatorextendsAllocator"></a>
+      <a id="MemoryMappedAllocator:MemoryMappedAllocator"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="MemoryMappedAllocator.html"><span class="name">MemoryMappedAllocator</span></a><span class="result"> extends <a href="Allocator.html" class="extype" name="co.teapot.mmalloc.Allocator">Allocator</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#co.teapot.mmalloc.package@MemoryMappedAllocatorextendsAllocator" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Allocates memory backed by an underlying memory-mapped file.</p><div class="fullcomment"><div class="comment cmt"><p>Allocates memory backed by an underlying memory-mapped file.  If the given file is empty,
+initializes it.  The file grows automatically as allocations are performed.</p><p>For tuning performance, the parameter blockSize controls the unit of memory internally allocated.
+The parameter pieceSizes controls the granularity of allocations. When allocating k bytes,
+the allocator pads k up to the next element in pieceSizes, or to the next multiple of blockSize
+if k is larger than the largest element of pieceSizes.  The array pieceSizes must be sorted,
+and the largest piece size must be smaller than blockSize by at least ~32 bytes (the minimum
+size of a PieceBlock header). If blockSize or pieceSizes are given when a file is first created,
+the same parameters must be used when MemoryMappedAllocator is constructed with the same file.</p><p>This class is thread-safe (multiple threads may call the methods concurrently).  (TODO: double-check thread-safety)
+</p></div></div>
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="co.teapot.mmalloc.MemoryMappedAllocator" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MemoryMappedAllocator"></a>
+      <a id="MemoryMappedAllocator:MemoryMappedAllocator"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="MemoryMappedAllocator$.html"><span class="name">MemoryMappedAllocator</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#co.teapot.mmalloc.package@MemoryMappedAllocator" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>
