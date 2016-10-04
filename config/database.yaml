@@ -1,0 +1,4 @@
+# Of the system's RAM, some should be reserved for the graph (8 bytes per edge) and most of the rest should be used for database caching
+database_caching_ram: 100MB
+
+host: "localhost" # TODO: Finish adding full support for non-localhost database

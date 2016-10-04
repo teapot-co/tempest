@@ -14,23 +14,24 @@ from os import path
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
-with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
-    long_description = f.read()
+#with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
+#    long_description = f.read()
 
 setup(
-        name='tempest_graph',
+        name='tempest_db',
 
         # Versions should comply with PEP440.  For a discussion on single-sourcing
         # the version across setup.py and the project code, see
         # https://packaging.python.org/en/latest/single_source_version.html
-        version='0.9.0',
+        # TODO: can we read this from a file to avoid repeating ourselves?
+        version='0.11.1',
 
-        description = 'Python client for the Tempest Graph Library',
+        description = 'Python client for the Tempest Graph Database.',
 
-        long_description=long_description,
+        long_description='Python client for the Tempest Graph Database.  Email ppd@teapot.co or peter@teapot.co to learn more.',
 
         # The project's main homepage.
-        url = 'https://github.com/teapot-co/tempest', # use the URL to the github repo
+        url = 'https://teapot.co', # use the URL to the github repo
 
         # Author details
         author = 'Peter Lofgren',

@@ -60,7 +60,6 @@ service TempestService {
 
   long edgeCount()
 
-  // TODO: Basic Monte Carlo PPR
 
   // Estimates the PPR of the given target personId personalized to the uniform distribution over
   // the seed personIds.  If the PPR is significant (currently meaning >= 0.25 / maxNodeId), the

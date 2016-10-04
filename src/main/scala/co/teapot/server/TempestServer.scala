@@ -1,3 +1,17 @@
+/*
+ * Copyright 2016 Teapot, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
+ * file except in compliance with the License. You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ * CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
 package co.teapot.server
 
 import java.util
@@ -5,7 +19,7 @@ import java.util
 import co.teapot.graph._
 import co.teapot.thriftbase.TeapotThriftLauncher
 import co.teapot.util.LogUtil
-import co.teapot.util.tempest.CollectionUtil
+import co.teapot.util.CollectionUtil
 import org.apache.thrift.TProcessor
 import soal.ppr.BidirectionalPPREstimator
 import soal.util.UniformDistribution
@@ -58,7 +72,7 @@ class TempestServer(graph: DirectedGraph) extends TempestService.Iface {
   override def pprSingleTarget(seedPersonIdsJava: util.List[Integer],
                                targetPersonId: Int,
                                params: BidirectionalPPRParams): Double = {
-    val seedPersonIds = CollectionUtil.toScala(seedPersonIdsJava)
+    val seedPersonIds = CollectionUtil.integersToScala(seedPersonIdsJava)
     for (id <- seedPersonIds)
       validateNodeId(id)
     validateNodeId(targetPersonId)

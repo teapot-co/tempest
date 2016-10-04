@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # Test of python client
-import tempest_graph
-from tempest_graph.ttypes import *
+import tempest_db
+from tempest_db.tempest_graph.ttypes import InvalidNodeIdException
+from tempest_db import twitter_2010_example
 
 def expect_equal(expected, actual):
     assert expected == actual, "expected " + str(expected) + " but actual " + str(actual)
@@ -17,27 +18,75 @@ def expect_exception(body, exception_type):
     except exception_type:
         pass
 
-graph = tempest_graph.get_client(port=10012)
+port = 10011
+client = tempest_db.client(port=port)
 
-expect_equal(graph.outDegree(0), 2)
-expect_equal(sorted(graph.outNeighbors(1)), [0, 2])
+expect_equal(client.out_degree(1), 1)
+expect_equal(client.out_neighbors(1), [2])
 
-expect_exception(lambda: graph.outDegree(1234),
+# I haven't verified PPR_1[3] analytically, but 0.22 seems reasonable
+expect_approx_equal(client.ppr("graph1", [1], num_steps=1000, reset_probability=0.3)[3], 0.22, 0.05)
+
+expect_equal(client.node_attribute("graph1", 1, "name"), "Alice Johnson")
+expect_equal(client.node_attribute("graph1", 1, "login_count"), 5)
+expect_equal(client.node_attribute("graph1", 1, "premium_subscriber"), False)
+expect_equal(client.node_attribute("graph1", 3, "premium_subscriber"), True)
+id_to_login_count = client.multi_node_attribute("graph1", [1, 3], "login_count")
+expect_equal(id_to_login_count[1], 5)
+expect_equal(id_to_login_count[3], 3)
+
+expect_equal(
+        client.nodes("graph1", "username = 'bob'"),
+        [2])
+
+expect_equal(
+        sorted(client.nodes("graph1", "login_count > 2")),
+        [1, 3])
+
+expect_equal(
+  client.multi_hop_out_neighbors("graph1", 1, 3, "login_count > 2", min_in_degree=1),
+  [3])
+expect_equal(
+  sorted(client.multi_hop_out_neighbors("graph1", 1, 3, filter="login_count > 2")),
+  [1, 3])
+expect_equal(
+        sorted(client.multi_hop_in_neighbors("graph1", 3, 3, filter="login_count > 2")),
+        [1, 3])
+expect_equal(
+  sorted(client.multi_hop_out_neighbors("graph1", 1, 3, min_in_degree=1)),
+  [2, 3])
+expect_equal(sorted(client.multi_hop_out_neighbors("graph1", 1, 3)), [1,2,3])
+
+# id 4 exists but has null name
+expect_equal(client.node_attribute("graph1", 4, "name"), None)
+expect_equal(client.multi_node_attribute("graph1", [4], "name").get(4), None)
+
+expect_equal(
+        client.nodes("graph1", "username = 'non_existent_username'"),
+        [])
+
+expect_exception(lambda: client.nodes("graph1", "invalid_column = 'foo'"),
+                 tempest_db.SQLException)
+expect_exception(lambda: client.out_degree(1234),
                  InvalidNodeIdException)
-expect_exception(lambda: graph.outNeighbors(-1),
+expect_exception(lambda: client.multi_hop_out_neighbors("graph1", -1, 3),
                  InvalidNodeIdException)
 
-expect_exception(lambda: graph.outNeighbor(0, 2),
-                 InvalidIndexException)
+expect_equal(sorted(twitter_2010_example.get_influencers("graph1", 'alice', client)),
+             sorted(['bob', 'carol']))
 
-params = tempest_graph.BidirectionalPPRParams(relativeError=0.01, resetProbability=0.3)
-estimate1_3 = graph.pprSingleTarget([1], 3, params)
-expect_approx_equal(estimate1_3, 0.0512821, tol=0.01)
+#Try mutating the graph.  Keep these tests at the end to avoid cross-test interference.
+client.add_edge("graph1", 1, 20)
+expect_equal(client.out_degree(1), 2)
+expect_equal(client.out_neighbors(1), [2, 20])
+expect_equal(client.in_degree(20), 1)
+expect_equal(client.in_neighbors(20), [1])
 
-params = tempest_graph.BidirectionalPPRParams(relativeError=0.01,
-                                              resetProbability=0.3,
-                                              minProbability=-1.0)
-expect_exception(lambda: graph.pprSingleTarget([1], 3, params),
-                 InvalidArgumentException)
-graph.close()
-print "Python client tests passed :)"
+# TODO: Update test to use multiple graphs, once we store edges for multiple graphs.
+client.add_edges("graph1", [1, 2], [3, 4])
+expect_equal(client.out_neighbors(1), [2, 20, 3])
+expect_equal(client.out_neighbors(2), [3, 4])
+expect_equal(client.in_neighbors(3), [2, 1])
+
+
+client.close()

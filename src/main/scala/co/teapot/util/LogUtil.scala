@@ -1,5 +1,6 @@
 package co.teapot.util
 
+import com.twitter.logging.{ConsoleHandler, Logger, LoggerFactory}
 import org.apache.log4j.{DailyRollingFileAppender, PatternLayout, BasicConfigurator}
 
 object LogUtil {
@@ -9,5 +10,13 @@ object LogUtil {
     val layout = new PatternLayout("%-5p %d [%t]: %m%n")
     val appender = new DailyRollingFileAppender(layout, "main_log4j.log", "'.'yyyy-MM-dd")
     BasicConfigurator.configure(appender)
+  }
+
+  def configureConsoleLog(nodeName: String): Unit = {
+    LoggerFactory(node = nodeName,
+      level = Some(Logger.ALL),
+      handlers = List(ConsoleHandler()),
+      useParents = false
+    )()
   }
 }

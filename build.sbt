@@ -1,11 +1,10 @@
 name := "tempest"
 
-version := "0.10.4"
+version := "0.12.0"
 
 organization := "co.teapot"
 
-description := "A graph library which efficiently supports graphs with billions of edges with" +
-  " almost instant loading time."
+description := "A graph library and database which efficiently supports dynamic graphs with billions of edges"
 
 scalaVersion := "2.11.5"
 
@@ -21,11 +20,23 @@ libraryDependencies += "org.slf4j" % "slf4j-log4j12" % "1.6.1" // Needed for thr
 
 libraryDependencies += "com.twitter" %% "util-app" % "6.23.0"
 
-scalacOptions += "-target:jvm-1.7"
+libraryDependencies += "com.twitter" %% "util-logging" % "6.23.0"
+
+libraryDependencies += "org.postgresql" % "postgresql" % "9.4.1207"
+
+libraryDependencies += "org.yaml" % "snakeyaml" % "1.11"
+
+libraryDependencies += "com.typesafe.play" %% "anorm" % "2.4.0"
+
+libraryDependencies += "com.zaxxer" % "HikariCP" % "2.4.5"
+
+libraryDependencies += "com.indeed" % "util-mmap" % "1.0.20"
+
+scalacOptions += "-target:jvm-1.8" // Anorm requires 1.8
 
 scalacOptions += "-Ywarn-unused"
 
-javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
+javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 
 unmanagedSourceDirectories in Compile += baseDirectory.value / "src/gen/java"
 

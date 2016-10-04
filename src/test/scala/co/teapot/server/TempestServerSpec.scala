@@ -39,9 +39,9 @@ class TempestServerSpec extends FlatSpec with Matchers {
     while(!server.isServing) { Thread.sleep(10) }
 
     val pythonResult = Process(
-      "src/test/python/tempest_local_test.py",
+      "src/test/python/tempest_graph_local_test.py",
       cwd=new File("."),
-      extraEnv=("PYTHONPATH", "python-package")).! // .! forwards output to standard out
+      extraEnv=("PYTHONPATH", "python-package-graph")).! // .! forwards output to standard out
     pythonResult shouldEqual 0
 
     server.stop()

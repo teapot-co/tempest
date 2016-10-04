@@ -1,0 +1,16 @@
+# Must be a csv file, with fields containing commas quoted with double quotes, and double-quote character escaped as \"
+node_file: example/example_nodes2.csv
+
+# The names and types of node attributes, in the same order as the columns of the initial node csv file
+# Supported types: int (32 bit), bigint (64 bit), string, boolean
+node_attributes:
+  - name: string
+  - username: string
+  - login_count: int
+  - login_count2: bigint
+
+# Must be a file of lines with white-space separated pairs, for example "alice,bob\nbob,carol" represents edges from alice to bob and from bob to carol
+edge_file: example/example_edges.csv
+
+# The name of the column in the node data csv which cooresponds to the edges in the edge file.
+node_identifier_field: username

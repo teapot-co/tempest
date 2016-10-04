@@ -11,16 +11,12 @@
  * CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package co.teapot.legacy
 
-import co.teapot.legacy.IntSourceSlice.BytesPerInt
+package co.teapot.server
 
-private[legacy] class IntSourceSlice(val data: IntLongSource,
-                     val offset: Long,
-                     val length: Int) extends IndexedSeq[Int] {
-  def apply(i: Int) = data.getInt(offset + BytesPerInt * i)
-}
+import scala.beans.BeanProperty
 
-private[legacy] object IntSourceSlice {
-  val BytesPerInt = 4
+// We'll probably need this at some point, so we keep it for now as an empty class.
+class TempestDBServerConfig {
+
 }
