@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Converts a graph from a list of int pair edges to a binary graph
 
 TEMPEST_PATH="`dirname \"$0\"`/.."
 
@@ -9,5 +8,9 @@ if [ "$#" -ne 2 ]; then
 fi
 
 JAR_FILE="$TEMPEST_PATH/target/scala-2.11/tempest-assembly-0.12.0.jar"
+if [ ! -f "$JAR_FILE" ]; then
+  echo "Building Tempest"
+  sbt assembly
+fi
 
-java -Xmx64g -cp $JAR_FILE co.teapot.tempest.graph.MemMappedDynamicDirectedGraphConverter $1 $2
+java -Xmx2g -cp $JAR_FILE co.teapot.tempest.graph.MemoryMappedDirectedGraphConverter $1 $2

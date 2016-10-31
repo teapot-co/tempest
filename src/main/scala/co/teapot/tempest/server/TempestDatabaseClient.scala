@@ -14,11 +14,10 @@
 
 package co.teapot.tempest.server
 
-import java.sql.{Types, ResultSet, Connection}
+import java.sql.{Connection, Types}
 
 import anorm._
-import co.teapot.tempest.graph.InvalidArgumentException
-import co.teapot.tempest.{SQLException, UndefinedAttributeException}
+import co.teapot.tempest.{InvalidArgumentException, SQLException, UndefinedAttributeException}
 import org.postgresql.util.PSQLException
 
 import scala.collection.mutable

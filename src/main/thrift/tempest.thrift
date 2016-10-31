@@ -12,7 +12,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-namespace java co.teapot.graph
+namespace java co.teapot.tempest
 namespace py tempest_graph
 
 typedef i32 int

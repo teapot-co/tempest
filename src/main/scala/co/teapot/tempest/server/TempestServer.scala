@@ -16,6 +16,7 @@ package co.teapot.tempest.server
 
 import java.util
 
+import co.teapot.tempest._
 import co.teapot.tempest.graph._
 import co.teapot.thriftbase.TeapotThriftLauncher
 import co.teapot.tempest.util.LogUtil
