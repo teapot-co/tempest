@@ -181,7 +181,9 @@ use Tempest DB, install docker on your machine, then run
    
    `docker run -t -i -v ~/:/mnt/home/ -p 127.0.0.1:10001:10001 teapotco/tempestdb:v0.12.0 bash`
    (Mounting your home directory using `-v ~/:/mnt/home/` is optional, but could be useful for reading
-   your graph files in docker.)
+   your graph files in docker.)  Inside docker, if you've cloned tempest on the host file system, 
+   symlink `~/tempest` to the location under `~/mnt/home/` where tempest is cloned.  Otherwise
+   inside docker run `cd; git clone https://github.com/teapot-co/tempest.git`.
 2. You need three files to fire up the Tempest server with your graph: 
       a) a data file for nodes,
       b) a data file for edges, and
