@@ -28,7 +28,7 @@ class TempestServerSpec extends FlatSpec with Matchers {
       tempBinaryFile
     ).convert()
 
-    val processor = TempestServer.getProcessor(tempBinaryFile.getAbsolutePath)
+    val processor = TempestGraphServer.getProcessor(tempBinaryFile.getAbsolutePath)
     val serverTransport = new TServerSocket(10012)
     val serverArgs = new TThreadPoolServer.Args(serverTransport).processor(processor)
     val server = new TThreadPoolServer(serverArgs)

@@ -38,35 +38,36 @@ struct BidirectionalPPRParams {
   3: optional double minProbability;
 }
 
-service TempestService {
-  int outDegree(1:int id) throws (1:InvalidNodeIdException e)
-  int inDegree(1:int id) throws (1:InvalidNodeIdException e)
+service TempestGraphService {
+  int outDegree(1:string edgeType, 2:int id) throws (1:InvalidNodeIdException e)
+  int inDegree(1:string edgeType, 2:int id) throws (1:InvalidNodeIdException e)
 
-  list<int> outNeighbors(1:int id) throws (1:InvalidNodeIdException e)
-  list<int> inNeighbors(1:int id) throws (1:InvalidNodeIdException e)
+  list<int> outNeighbors(1:string edgeType, 2:int id) throws (1:InvalidNodeIdException e)
+  list<int> inNeighbors(1:string edgeType, 2:int id) throws (1:InvalidNodeIdException e)
 
   /* Returns the ith out-neighbor of the given node.
      Throws an exception unless 0 <= i < outDegree(id).
    */
-  int outNeighbor(1:int id, 2:int i) throws (1:InvalidNodeIdException ex1, 2:InvalidIndexException ex2)
+  int outNeighbor(1:string edgeType, 2:int id, 3:int i) throws (1:InvalidNodeIdException ex1, 2:InvalidIndexException ex2)
   /* Returns the ith in-neighbor of the given node.
        Throws an exception unless 0 <= i < inDegree(id).
    */
-  int inNeighbor(1:int id, 2:int i) throws (1:InvalidNodeIdException ex1, 2:InvalidIndexException ex2)
+  int inNeighbor(1:string edgeType, 2:int id, 3:int i) throws (1:InvalidNodeIdException ex1, 2:InvalidIndexException ex2)
 
-  int maxNodeId()
+  int maxNodeId(1:string edgeType)
 
-  int nodeCount()
+  int nodeCount(1:string edgeType)
 
-  long edgeCount()
+  long edgeCount(1:string edgeType)
 
 
   // Estimates the PPR of the given target personId personalized to the uniform distribution over
   // the seed personIds.  If the PPR is significant (currently meaning >= 0.25 / maxNodeId), the
   // estimate will have relative error less than the given relative error (in expectation).
   // If the PPR is not significant, returns 0.0.
-  double pprSingleTarget(1:list<int> seedPersonIds,
-                         2:int targetPersonId,
-                         3:BidirectionalPPRParams biPPRParams)
+  double pprSingleTarget(1:string edgeType,
+                         2:list<int> seedNodeIds,
+                         3:int targetNodeId,
+                         4:BidirectionalPPRParams biPPRParams)
     throws (1:InvalidNodeIdException ex1, 2:InvalidArgumentException ex2)
 }

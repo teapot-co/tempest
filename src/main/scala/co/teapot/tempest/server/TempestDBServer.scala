@@ -28,8 +28,8 @@ import org.apache.thrift.TProcessor
 import scala.collection.JavaConverters._
 
 /** Given a graph, this thrift server responds to requests about that graph. */
-class TempestDBServer(graph: DynamicDirectedGraph, databaseClient: TempestDatabaseClient, config: TempestDBServerConfig)
-    extends TempestServer(graph) with TempestDBService.Iface {
+class TempestDBServer(graphDirectory: File, databaseClient: TempestDatabaseClient, config: TempestDBServerConfig)
+    extends TempestGraphServer(graphDirectory) with TempestDBService.Iface {
 
   type DegreeFilter = collection.Map[DegreeFilterTypes, Int]
   override def getMultiNodeAttributeAsJSON(graphName: String, nodeIdsJava: util.List[lang.Long], attributeName: String): util.Map[lang.Long, String] = {
@@ -44,19 +44,27 @@ class TempestDBServer(graph: DynamicDirectedGraph, databaseClient: TempestDataba
   def nodes(graphName: String, sqlClause: String): util.List[lang.Long] =
     CollectionUtil.toJava(databaseClient.nodeIdsFiltered(graphName, sqlClause))
 
-  def neighborsWithinKStepsFiltered(graphName: String,
+  /** Returns the type of node reached after k steps along the given edge type. If the edge type
+    * is from nodeType1 to nodeType2, this will return nodeType1 if k is even, or nodeType2 if
+    * k is odd.
+    */
+  def kStepNodeType(edgeType: String, edgeDir: EdgeDir): String = {
+    ???
+  }
+
+  def neighborsWithinKStepsFiltered(edgeType: String,
                                     sourceId: Long,
                                     k: Int,
                                     sqlClause: String,
                                     edgeDir: EdgeDir,
                                     degreeFilter: DegreeFilter): util.List[lang.Long] = {
-    validateNodeId(sourceId)
-
+    validateNodeId(edgeType, sourceId)
+    val targetNodeType = kStepNodeType(edgeType, edgeDir)
     if (k > 3) // TODO (?): Limit the output size instead of limiting the distance
       throw new InvalidArgumentException("For efficiency, this call is limited to 4 steps from the source")
     val effectiveGraph = edgeDir match {
-      case EdgeDir.Out => graph
-      case EdgeDir.In => graph.transposeView
+      case EdgeDir.Out => graph(edgeType)
+      case EdgeDir.In => graph(edgeType).transposeView
     }
     val neighborhoodInts = DirectedGraphAlgorithms.outNeighborsWithinKSteps(effectiveGraph, sourceId.toInt, k)
     val neighborhood = neighborhoodInts.toIntArray map Integer.toUnsignedLong
@@ -64,61 +72,60 @@ class TempestDBServer(graph: DynamicDirectedGraph, databaseClient: TempestDataba
       neighborhood
     } else {
       if (neighborhood.size < TempestServerConstants.MaxNeighborhoodAttributeQuerySize) {
-        databaseClient.filterNodeIds(graphName, neighborhood, sqlClause)
+        databaseClient.filterNodeIds(targetNodeType, neighborhood, sqlClause)
       } else {
-        val candidates = databaseClient.nodeIdsFiltered(graphName, sqlClause)
+        val candidates = databaseClient.nodeIdsFiltered(targetNodeType, sqlClause)
         candidates filter neighborhood.contains
       }
     }
-    CollectionUtil.toJava(resultPreFilter filter { id => satisfiesFilters(graphName, id, degreeFilter) })
+    CollectionUtil.toJava(resultPreFilter filter { id => satisfiesFilters(targetNodeType, id, degreeFilter) })
   }
 
-  override def outNeighborsWithinKStepsFiltered(graphName: String,
+  override def outNeighborsWithinKStepsFiltered(edgeType: String,
                                                 sourceId: Long,
                                                 k: Int,
                                                 sqlClause: String,
                                                 filter: java.util.Map[DegreeFilterTypes, Integer]): util.List[lang.Long] =
-    neighborsWithinKStepsFiltered(graphName, sourceId, k, sqlClause, EdgeDir.Out,
+    neighborsWithinKStepsFiltered(edgeType, sourceId, k, sqlClause, EdgeDir.Out,
                                        CollectionUtil.toScala(filter))
 
 
-  override def inNeighborsWithinKStepsFiltered(graphName: String,
+  override def inNeighborsWithinKStepsFiltered(edgeType: String,
                                                sourceId: Long,
                                                k: Int,
                                                sqlClause: String,
                                                filter: java.util.Map[DegreeFilterTypes, Integer]): util.List[lang.Long] =
-    neighborsWithinKStepsFiltered(graphName, sourceId, k, sqlClause, EdgeDir.In,
+    neighborsWithinKStepsFiltered(edgeType, sourceId, k, sqlClause, EdgeDir.In,
                                        CollectionUtil.toScala(filter))
 
-  override def ppr(graphName: String,
+  override def ppr(edgeType: String,
                    seedsJava: util.List[lang.Long],
                    pageRankParams: MonteCarloPageRankParams): util.Map[lang.Long, lang.Double] = {
     validateMonteCarloParams(pageRankParams)
     val seeds = CollectionUtil.toScala(seedsJava)
     for (id <- seeds)
-      validateNodeId(id)
-    // TODO: We should use graphName once we store multiple graphs.  For now, just use global graph.
-    CollectionUtil.toJava(MonteCarloPPR.estimatePPR(graph,
+      validateNodeId(edgeType, id)
+    CollectionUtil.toJava(MonteCarloPPR.estimatePPR(graph(edgeType),
       seeds map { _.toInt },
       pageRankParams) map {case (id, ppr) => (Integer.toUnsignedLong(id), ppr) })
   }
 
-  def satisfiesFilters(graphName: String, nodeId: Long, degreeFilter: DegreeFilter): Boolean =
+  def satisfiesFilters(edgeType: String, nodeId: Long, degreeFilter: DegreeFilter): Boolean =
     degreeFilter.forall {case(filterType, filterValue) =>
-      satisfiesSingleFilter(graphName, nodeId, filterType, filterValue)
+      satisfiesSingleFilter(edgeType, nodeId, filterType, filterValue)
     }
 
-  def satisfiesSingleFilter(graphName: String, nodeId: Long, filterType: DegreeFilterTypes, filterValue: Int): Boolean =
+  def satisfiesSingleFilter(edgeType: String, nodeId: Long, filterType: DegreeFilterTypes, filterValue: Int): Boolean =
     filterType match { // TODO: Support multiple graphs here
-      case DegreeFilterTypes.INDEGREE_MAX => graph.inDegree(nodeId.toInt) <= filterValue
-      case DegreeFilterTypes.INDEGREE_MIN => graph.inDegree(nodeId.toInt) >= filterValue
-      case DegreeFilterTypes.OUTDEGREE_MAX => graph.outDegree(nodeId.toInt) <= filterValue
-      case DegreeFilterTypes.OUTDEGREE_MIN => graph.outDegree(nodeId.toInt) >= filterValue
+      case DegreeFilterTypes.INDEGREE_MAX => graph(edgeType).inDegree(nodeId.toInt) <= filterValue
+      case DegreeFilterTypes.INDEGREE_MIN => graph(edgeType).inDegree(nodeId.toInt) >= filterValue
+      case DegreeFilterTypes.OUTDEGREE_MAX => graph(edgeType).outDegree(nodeId.toInt) <= filterValue
+      case DegreeFilterTypes.OUTDEGREE_MIN => graph(edgeType).outDegree(nodeId.toInt) >= filterValue
       case default => true
     }
 
-  def validateNodeId(id: Long): Unit =
-    super.validateNodeId(id.toInt)
+  def validateNodeId(edgeType: String, id: Long): Unit =
+    super.validateNodeId(edgeType, id.toInt)
 
   def validateMonteCarloParams(params: MonteCarloPageRankParams): Unit = {
     if (params.resetProbability >= 1.0 || params.resetProbability <= 0.0) {
@@ -132,7 +139,7 @@ class TempestDBServer(graph: DynamicDirectedGraph, databaseClient: TempestDataba
     }
   }
 
-  override def addEdges(graphName: String,
+  override def addEdges(edgeType: String,
                         sourceIds: util.List[lang.Long],
                         destinationIds: util.List[lang.Long]): Unit = {
     if (sourceIds.size != destinationIds.size) {
@@ -141,7 +148,7 @@ class TempestDBServer(graph: DynamicDirectedGraph, databaseClient: TempestDataba
     //// TODO: Multiple graphs databaseClient.addEdges(graphName: String, CollectionUtil.toScala(sourceIds), CollectionUtil.toScala(destinationIds))
     for ((srcId, destId) <- sourceIds.asScala zip destinationIds.asScala) {
       // TODO: Multiple graphs
-      graph.addEdge(srcId.toInt, destId.toInt) // TODO: More efficient Multi-add
+      graph(edgeType).addEdge(srcId.toInt, destId.toInt) // TODO: More efficient Multi-add
     }
   }
 }
@@ -155,11 +162,8 @@ object TempestDBServer {
     val databaseClient = new TempestSQLDatabaseClient(databaseConfig)
 
     // TODO: Read multiple graphs from paths s"/root/tempest/data/${GRAPH}_mapped_edges.dat"
-    val binaryGraphFilename = "/root/tempest/data/mapped_edges.dat"
-    val graph = new MemMappedDynamicDirectedGraph(
-      new File(binaryGraphFilename),
-      syncAllWrites = false /* Graph persistence is handled by database.*/)
-    val server = new TempestDBServer(graph, databaseClient, config)
+    val binaryGraphDirectory = new File("/root/tempest/data/mapped_edges.dat")
+    val server = new TempestDBServer(binaryGraphDirectory, databaseClient, config)
     new TempestDBService.Processor(server)
   }
 
@@ -176,9 +180,9 @@ object TempestDBServerTest {
     val config = new TempestDBServerConfig() // ConfigLoader.loadConfig[TempestDBServerConfig](configFileName)
     val databaseClient = new TempestSQLDatabaseClient(databaseConfig)
 
-    val graph = DynamicDirectedGraph(1 -> 2, 2 -> 3)
+    //val graph = DynamicDirectedGraph(1 -> 2, 2 -> 3)
 
-    val server = new TempestDBServer(graph, databaseClient, config)
+    val server = new TempestDBServer(???, databaseClient, config)
     new TempestDBService.Processor(server)
   }
 
@@ -191,5 +195,5 @@ object TempestDBServerTest {
 }
 
 object TempestServerConstants {
-  val MaxNeighborhoodAttributeQuerySize =  1000 * 1000
+  val MaxNeighborhoodAttributeQuerySize = 1000 * 1000
 }

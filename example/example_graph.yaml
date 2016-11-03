@@ -1,20 +1,40 @@
-graph_name: example
-# Must be a csv file, with fields containing commas quoted with double quotes, and double-quote character escaped as \"
-node_file: /root/tempest/example/example_nodes.csv
 
-# The names and types of node attributes, in the same order as the columns of the initial node csv file
-# Supported types: int (32 bit), bigint (64 bit), string, boolean
-node_attributes:
-  - name: string
-  - username: string
-  - login_count: int
-  - premium_subscriber: boolean
+node_types:
+  - node_type: user
+    # Must be a csv file, with fields containing commas quoted with double quotes, and double-quote character escaped as \"
+    csv_file: /root/tempest/example/example_users.csv
 
-# Must be a file of lines with white-space separated pairs, for example "alice,bob\nbob,carol" represents edges from alice to bob and from bob to carol
-edge_file: /root/tempest/example/example_edges.csv
+    # The names and types of node attributes, in the same order as the columns of the initial node csv file
+    # Supported types: int (32 bit), bigint (64 bit), string, boolean
+    node_attributes:
+      - name: string
+      - username: string
+      - login_count: int
+      - premium_subscriber: boolean
 
-# The name of the column in the node data csv which cooresponds to the edges in the edge file.
-node_identifier_field: username
+  - node_type: book
+    csv_file: /root/tempest/example/example_books.csv
+    node_attributes:
+      - title: string
+      - id: string
+
+edge_types:
+  - edge_type: is_friend
+    node_type1: user
+    node_type2: user
+    # Must be a file of lines with white-space separated pairs, for example "alice,bob\nbob,carol" represents edges from alice to bob and from bob to carol
+    edge_file: /root/tempest/example/example_edges.csv
+    # node_identifier_field1 is the attribute in node_type1 which this csv file uses to identify nodes
+    node_identifier_field1: username
+    node_identifier_field2: username
+
+  - edge_type: has_read
+    node_type1: user
+    node_type2: book
+    # Must be a file of lines with white-space separated pairs, for example "alice,bob\nbob,carol" represents edges from alice to bob and from bob to carol
+    edge_file: /root/tempest/example/example_edges.csv
+    node_identifier_field1: username
+    node_identifier_field2: id
 
 # Of the system's RAM, some should be reserved for the graph (8 bytes per edge) and most of the rest should be used for database caching
 database_caching_ram: 100MB
