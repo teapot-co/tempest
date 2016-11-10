@@ -24,11 +24,11 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Features
-- Single node, scale-up architecture: Graphs are notoriously hard to partition if you also need to support real-time traversals. So Tempest runs on a single commodity node with large-ish memory (see [here](#recommended-machine-sizes)).
-- Scalable: Despite running on a single Tempest supports graphs with billions of nodes and edges.  For example, it can store a 30 billion edge graph using 300GB of RAM.
+- Single machine, scale-up architecture: Graphs are notoriously hard to partition if you also need to support real-time traversals. So Tempest runs on a single commodity machine with large-ish memory (see [here](#recommended-machine-sizes)).
+- Scalable: Despite running on a single machine, Tempest supports graphs with billions of nodes and edges.  For example, it can store a 30 billion edge graph using 300GB of RAM.
 - Fast traversal:  Accessing a neighbor of a node is as fast as two RAM accesses. You can run Personalized PageRank in < 200ms.
 - High write throughput: Tempest supports about 1000 edge additions per second  when storing them persistently, and hundreds of thousands per second when storing in RAM only.
-- Convenient: Tempest is installed with a single Docker command.  Tempest can also be used as a library (together with your favorite persistent store), and is available as a single sbt or Maven dependency.  
+- Convenient: Tempest is installed with a single Docker command.  Tempest can also be used as a in-memory graph analytics library, and is available as a single sbt or Maven dependency.  
 - Fast loading: Tempest loads its graph format instantly, even for 30-billion edge graphs, so you can
   quickly deploy new versions of your code.
 - Flexible: Tempest DB supports clients in any language [Thrift](https://thrift.apache.org/)
@@ -91,7 +91,7 @@ use Tempest DB, install docker on your machine, then run
    `docker run -t -i -v ~/:/mnt/home/ -p 127.0.0.1:10001:10001 teapotco/tempestdb:v0.12.0 bash`
    (Mounting your home directory using `-v ~/:/mnt/home/` is optional, but could be useful for reading
    your graph files in docker.)  Inside docker, if you've cloned tempest on the host file system, 
-   symlink `~/tempest` to the location under `~/mnt/home/` where tempest is cloned.  Otherwise
+   symlink `~/tempest` to the location under `/mnt/home/` where tempest is cloned.  Otherwise
    inside docker run `cd; git clone https://github.com/teapot-co/tempest.git`.
 2. You need three files to fire up the Tempest server with your graph: 
       a) a data file for nodes,
@@ -105,7 +105,7 @@ use Tempest DB, install docker on your machine, then run
 3. Once you have your nodes and edges in this format, copy the config file `/root/tempest/example/example_graph.yaml`
    to a new file, for example `/root/users_graph.yaml`.   The following fields should be changed:
 ```
-graph_name # This is name of your new database. E.g. "users". Database and attribute names may contain alphanumeric characers and '_', and must start with an alphabet character (a-z).
+graph_name # This is the name of your new database. E.g. "users". Database and attribute names may contain alphanumeric characers and '_', and must start with an alphabet character (a-z).
 node_file # for example "/mnt/home/data/users.csv"
 node_attributes #Enter the name and type of each attribute in your node_file.csv. Attributes type may only be 'string', 'int' (32 bit), 'bigint' (64 bit), or 'boolean'. Enter the attributes in the same order as they appear in the node file.
 edge_file # for example "/mnt/home/data/edges.csv"
