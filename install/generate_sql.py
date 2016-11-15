@@ -24,9 +24,8 @@ with open(config_filename, 'r') as config_file:
     config = yaml.safe_load(config_file)
     graph_name = config["graph_name"]
     table_name = graph_name + "_nodes"
-    os.path.join(os.path.dirname(os.path.realpath(__file__)), "../tmp/")
-    id_map_filename = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../tmp/" + graph_name + "_id_map.csv")
-    node_csv = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../", config['node_file'])
+    id_map_filename = "/tmp/" + graph_name + "_id_map.csv"
+    node_csv = os.path.join("/root/tempest/", config['node_file'])
 
     # Attributes are given as a list of single-entry maps
     node_attribute_maps = config['node_attributes']
@@ -37,6 +36,7 @@ with open(config_filename, 'r') as config_file:
     # If the imported data doesn't have a "tempest_id" column, we'll create one.
     create_tempest_id = ("tempest_id" not in node_attributes)
 
+    print "DROP TABLE IF EXISTS " + table_name + ";"
     print "CREATE TABLE " + table_name + " ("
     if create_tempest_id:
         print "    tempest_id SERIAL, " # TODO: Convert to BIGSERIAL, and tempest_id to bigint

@@ -24,14 +24,14 @@ setup(
         # the version across setup.py and the project code, see
         # https://packaging.python.org/en/latest/single_source_version.html
         # TODO: can we read this from a file to avoid repeating ourselves?
-        version='0.11.1',
+        version='0.12.0',
 
         description = 'Python client for the Tempest Graph Database.',
 
         long_description='Python client for the Tempest Graph Database.  Email ppd@teapot.co or peter@teapot.co to learn more.',
 
         # The project's main homepage.
-        url = 'https://teapot.co', # use the URL to the github repo
+        url = 'https://github.com/teapot-co/tempest', # use the URL to the github repo
 
         # Author details
         author = 'Peter Lofgren',
@@ -67,7 +67,7 @@ setup(
         ],
 
         # What does your project relate to?
-        keywords='graph network',
+        keywords='graph database network',
 
         # You can just specify the packages manually here if your project is
         # simple. Or you can use find_packages().

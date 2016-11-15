@@ -14,14 +14,15 @@
 
 package co.teapot.tempest.server
 
+import java.io.File
 import java.{lang, util}
 
+import co.teapot.tempest._
 import co.teapot.tempest.algorithm.MonteCarloPPR
 import co.teapot.tempest.graph.EdgeDir.EdgeDir
-import co.teapot.tempest.graph._
-import co.teapot.tempest._
-import co.teapot.thriftbase.TeapotThriftLauncher
+import co.teapot.tempest.graph.{DirectedGraphAlgorithms, DynamicDirectedGraph, EdgeDir, MemMappedDynamicDirectedGraph}
 import co.teapot.tempest.util.{CollectionUtil, ConfigLoader, LogUtil}
+import co.teapot.thriftbase.TeapotThriftLauncher
 import org.apache.thrift.TProcessor
 
 import scala.collection.JavaConverters._
@@ -149,15 +150,15 @@ object TempestDBServer {
   def getProcessor(configFileName: String): TProcessor = {
     val config = new TempestDBServerConfig()
     // Not currently used: ConfigLoader.loadConfig[TempestDBServerConfig](configFileName)
-    val databaseConfigFile = "config/database.yaml"
+    val databaseConfigFile = "/root/tempest/config/database.yaml"
     val databaseConfig = ConfigLoader.loadConfig[DatabaseConfig](databaseConfigFile)
     val databaseClient = new TempestSQLDatabaseClient(databaseConfig)
 
-    // TODO: Restore: val binaryGraphFilename = s"data/${GRAPH}_mapped_edges.dat"
-    //val graph = new MemMappedDynamicDirectedGraph(
-    //  new File(binaryGraphFilename),
-    //  syncAllWrites = false /* TODO: revert to true if this doesn't work.*/)
-    val graph = DynamicDirectedGraph()
+    // TODO: Read multiple graphs from paths s"/root/tempest/data/${GRAPH}_mapped_edges.dat"
+    val binaryGraphFilename = "/root/tempest/data/mapped_edges.dat"
+    val graph = new MemMappedDynamicDirectedGraph(
+      new File(binaryGraphFilename),
+      syncAllWrites = false /* Graph persistence is handled by database.*/)
     val server = new TempestDBServer(graph, databaseClient, config)
     new TempestDBService.Processor(server)
   }
