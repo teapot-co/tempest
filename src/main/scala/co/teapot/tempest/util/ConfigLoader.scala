@@ -18,12 +18,15 @@ object ConfigLoader {
     yaml.load(source.getLines().mkString("\n")).asInstanceOf[T]
   }
 
-  def loadConfig[T:ClassTag](configFileName: String): T = {
-    val file = new File(configFileName)
-    if (file.exists) {
-      loadConfig(scala.io.Source.fromFile(file))
+  def loadConfig[T:ClassTag](configFile: File): T = {
+    if (configFile.exists) {
+      loadConfig(scala.io.Source.fromFile(configFile))
     } else {
-      throw new Exception("Configuration file not found: " + configFileName)
+      throw new Exception("Configuration file not found: " + configFile.getCanonicalPath)
     }
+  }
+
+  def loadConfig[T:ClassTag](configFileName: String): T = {
+    loadConfig(new File(configFileName))
   }
 }

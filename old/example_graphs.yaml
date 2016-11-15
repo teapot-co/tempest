@@ -2,7 +2,7 @@
 node_types:
   - node_type: user
     # Must be a csv file, with fields containing commas quoted with double quotes, and double-quote character escaped as \"
-    csv_file: /root/tempest/example/example_users.csv
+    csv_file: /root/tempest/example/users.csv
 
     # The names and types of node attributes, in the same order as the columns of the initial node csv file
     # Supported types: int (32 bit), bigint (64 bit), string, boolean
@@ -13,17 +13,17 @@ node_types:
       - premium_subscriber: boolean
 
   - node_type: book
-    csv_file: /root/tempest/example/example_books.csv
+    csv_file: /root/tempest/example/books.csv
     node_attributes:
+      - id: int
       - title: string
-      - id: string
 
 edge_types:
-  - edge_type: is_friend
+  - edge_type: follows
     node_type1: user
     node_type2: user
     # Must be a file of lines with white-space separated pairs, for example "alice,bob\nbob,carol" represents edges from alice to bob and from bob to carol
-    edge_file: /root/tempest/example/example_edges.csv
+    edge_file: /root/tempest/example/follows.csv
     # node_identifier_field1 is the attribute in node_type1 which this csv file uses to identify nodes
     node_identifier_field1: username
     node_identifier_field2: username
@@ -32,7 +32,7 @@ edge_types:
     node_type1: user
     node_type2: book
     # Must be a file of lines with white-space separated pairs, for example "alice,bob\nbob,carol" represents edges from alice to bob and from bob to carol
-    edge_file: /root/tempest/example/example_edges.csv
+    edge_file: /root/tempest/example/has_read.csv
     node_identifier_field1: username
     node_identifier_field2: id
 

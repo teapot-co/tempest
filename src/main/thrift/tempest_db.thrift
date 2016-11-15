@@ -68,15 +68,17 @@ service TempestDBService extends tempest.TempestGraphService {
   list<i64> nodes(1:string nodeType, 2:string sqlClause)
     throws (1: UndefinedGraphException error1, 2: SQLException error2)
 
-  list<i64> outNeighborsWithinKStepsFiltered(1:string edgeType, 2:i64 sourceId, 3:i32 k,
-                                                  4:string sqlClause,
-                                                  5:DegreeFilter filter)
+  list<i64> kStepOutNeighborsFiltered(1:string edgeType, 2:i64 sourceId, 3:i32 k,
+                                      4:string sqlClause,
+                                      5:DegreeFilter filter,
+                                      6:bool alternating)
     throws (1: UndefinedGraphException error1, 2: tempest.InvalidArgumentException error2,
             3: SQLException error3, 4: tempest.InvalidNodeIdException error4)
 
-  list<i64> inNeighborsWithinKStepsFiltered(1:string edgeType, 2:i64 sourceId, 3:i32 k,
-                                                 4:string sqlClause,
-                                                 5:DegreeFilter filter)
+  list<i64> kStepInNeighborsFiltered(1:string edgeType, 2:i64 sourceId, 3:i32 k,
+                                     4:string sqlClause,
+                                     5:DegreeFilter filter,
+                                     6:bool alternating)
     throws (1: UndefinedGraphException error1, 2: tempest.InvalidArgumentException error2,
             3: SQLException error3, 4: tempest.InvalidNodeIdException error4)
 

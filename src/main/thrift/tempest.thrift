@@ -39,26 +39,26 @@ struct BidirectionalPPRParams {
 }
 
 service TempestGraphService {
-  int outDegree(1:string edgeType, 2:int id) throws (1:InvalidNodeIdException e)
-  int inDegree(1:string edgeType, 2:int id) throws (1:InvalidNodeIdException e)
+  int outDegree(1:string edgeType, 2:int id) throws (1:InvalidNodeIdException ex1, 2:InvalidArgumentException ex2)
+  int inDegree(1:string edgeType, 2:int id) throws (1:InvalidNodeIdException ex1, 2:InvalidArgumentException ex2)
 
-  list<int> outNeighbors(1:string edgeType, 2:int id) throws (1:InvalidNodeIdException e)
-  list<int> inNeighbors(1:string edgeType, 2:int id) throws (1:InvalidNodeIdException e)
+  list<int> outNeighbors(1:string edgeType, 2:int id) throws (1:InvalidNodeIdException ex1, 2:InvalidArgumentException ex2)
+  list<int> inNeighbors(1:string edgeType, 2:int id) throws (1:InvalidNodeIdException ex1, 2:InvalidArgumentException ex2)
 
   /* Returns the ith out-neighbor of the given node.
      Throws an exception unless 0 <= i < outDegree(id).
    */
-  int outNeighbor(1:string edgeType, 2:int id, 3:int i) throws (1:InvalidNodeIdException ex1, 2:InvalidIndexException ex2)
+  int outNeighbor(1:string edgeType, 2:int id, 3:int i) throws (1:InvalidNodeIdException ex1, 2:InvalidIndexException ex2, 3:InvalidArgumentException ex3)
   /* Returns the ith in-neighbor of the given node.
        Throws an exception unless 0 <= i < inDegree(id).
    */
-  int inNeighbor(1:string edgeType, 2:int id, 3:int i) throws (1:InvalidNodeIdException ex1, 2:InvalidIndexException ex2)
+  int inNeighbor(1:string edgeType, 2:int id, 3:int i) throws (1:InvalidNodeIdException ex1, 2:InvalidIndexException ex2, 3:InvalidArgumentException ex3)
 
-  int maxNodeId(1:string edgeType)
+  int maxNodeId(1:string edgeType) throws (1:InvalidArgumentException ex)
 
-  int nodeCount(1:string edgeType)
+  int nodeCount(1:string edgeType) throws (1:InvalidArgumentException ex)
 
-  long edgeCount(1:string edgeType)
+  long edgeCount(1:string edgeType) throws (1:InvalidArgumentException ex)
 
 
   // Estimates the PPR of the given target personId personalized to the uniform distribution over

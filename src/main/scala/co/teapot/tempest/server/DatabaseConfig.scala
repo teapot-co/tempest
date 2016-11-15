@@ -24,6 +24,8 @@ class DatabaseConfig {
   @BeanProperty var user: String = "tempest"
   @BeanProperty var password: String = ""
 
+  @BeanProperty var databaseCachingRam: String = null
+
   def createConnectionSource(): HikariDataSource = {
     val config = new HikariConfig()
     config.setJdbcUrl(s"jdbc:postgresql://$host/$database")

@@ -55,11 +55,11 @@ module Teapot
         self.getMultiNodeAttribute(graphName, [nodeId], attributeName)[nodeId]
       end
 
-      def outNeighborsWithinKStepsFiltered(graphName, sourceId, k, sqlClause: "", degreeFilter: {})
-        get_executor.outNeighborsWithinKStepsFiltered(graphName, sourceId, k, sqlClause, degreeFilter)
+      def kStepOutNeighborsFiltered(edgeType, sourceId, k, sqlClause: "", degreeFilter: {}, alternating: true)
+        get_executor.kStepOutNeighborsFiltered(edgeType, sourceId, k, sqlClause, degreeFilter, alternating)
       end
-      def inNeighborsWithinKStepsFiltered(graphName, sourceId, k, sqlClause: "", degreeFilter: {})
-        get_executor.inNeighborsWithinKStepsFiltered(graphName, sourceId, k, sqlClause, degreeFilter)
+      def kStepInNeighborsFiltered(edgeType, sourceId, k, sqlClause: "", degreeFilter: {}, alternating: true)
+        get_executor.kStepInNeighborsFiltered(edgeType, sourceId, k, sqlClause, degreeFilter, alternating)
       end
 
       # Delegate other methods to the thrift generated method

@@ -34,14 +34,14 @@ class TempestGraphServer(graphDirectory: File) extends TempestGraphService.Iface
   val graphMap = new mutable.HashMap[String, DynamicDirectedGraph]()
   def graph(edgeType: String): DynamicDirectedGraph = {
     if (! graphMap.contains(edgeType)) {
-      val graphFile = new File(graphDirectory, edgeType)
+      val graphFile = new File(graphDirectory, s"$edgeType.dat")
       if (graphFile.exists) {
         val graph = new MemMappedDynamicDirectedGraph(
           graphFile,
           syncAllWrites = false /* Graph persistence is handled by database.*/)
         graphMap(edgeType) = graph
       } else {
-        throw new InvalidArgumentException("Invalid edge type \"$edgeType\"")
+        throw new InvalidArgumentException(s"Invalid edge type $edgeType")
       }
     }
     graphMap(edgeType)

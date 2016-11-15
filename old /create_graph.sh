@@ -42,13 +42,13 @@ echo "Backing up edges to Postgres in background..."
 sudo -Hiu postgres psql tempest postgres -c "
 DROP TABLE IF EXISTS ${GRAPH}_edges;
 CREATE TABLE ${GRAPH}_edges
-(tempest_id1 bigint, tempest_id2 bigint);
+(id1 bigint, id2 bigint);
 ALTER TABLE ${GRAPH}_edges OWNER TO tempest;
-COPY ${GRAPH}_edges (tempest_id1, tempest_id2) FROM '${MAPPED_EDGE_PATH}' DELIMITER ' ' CSV;
+COPY ${GRAPH}_edges (id1, id2) FROM '${MAPPED_EDGE_PATH}' DELIMITER ' ' CSV;
 "  &
 # We don't currently need indexes
-#CREATE INDEX ON edges (tempest_id1);
-#CREATE INDEX ON edges (tempest_id2);
+#CREATE INDEX ON edges (id1);
+#CREATE INDEX ON edges (id2);
 
 echo "Done creating graph $GRAPH!"
 echo "To allow connections to Tempest, run "

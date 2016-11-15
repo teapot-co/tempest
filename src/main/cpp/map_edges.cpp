@@ -13,12 +13,22 @@
  */
 
 /*
- * Applies a (id -> person_id) mapping to a file of edges (id1 id2).  First argument is a file of lines of the form
- <id>,<tempest_id>
+Applies a pair of (identifier -> int id) mappings to a file of edges (identifier1 identifier2).
+Arguments:
+  1. A file with lines of the form
+    <identifier1>,<id1>
+  2. A file with lines of the form
+    <identifier2>,<id2>
+  3. An input edge file with lines of the form
+    <identifier1>,<identifier2>
+  4. The output edge file, where we will write lines of the form
+    <id1>,<id2>
+First argument is a file with lines of the form
+  <identifier1>,<id1>
  Second argument is a file with lines of the form
  <id1>,<id2>
  The mapping is applied to the edges, and lines of the form
- <tempest_id1> <tempest_id2>
+ <id1> <id2>
  are written to a file specified by third argument.
  */
 
@@ -56,17 +66,13 @@ std::vector<std::string> split(const std::string &s, char delim) {
     return elems;
 }
 
-int main(int argc, char* argv[]) {
-    if (argc - 1 != 3) {
-        printf("usage: %s <id mapping file> <input edges> <output edges>", argv[0]);
-        return -1;
-    }
-
-    unordered_map<string, int> idToTempestId;
+std::unordered_map<string, int> parseIdentifierToIdFile(char* path) {
+    unordered_map<string, int> identifierToId;
     auto start = chrono::system_clock::now();
     long long idCount = 0; // Use long long in case there are more than 2**32 ids
 
-    ifstream idStream(argv[1]);
+    cerr << "Reading identifier -> id map from " << path << endl;
+    ifstream idStream(path);
     string line;
     while(getline(idStream, line)) {
         vector<string> parts = split(line, ',');
@@ -74,7 +80,7 @@ int main(int argc, char* argv[]) {
             string id = parts[0];
             int tempestId = stoi(parts[1]);
             //cerr << "Read '" << id << "' -> " << tempestId << "\n";
-            idToTempestId[id] = tempestId;
+            identifierToId[id] = tempestId;
             idCount++;
             if (idCount % 1000000 == 0) {
               chrono::duration<double> diff = chrono::system_clock::now() - start;
@@ -85,26 +91,39 @@ int main(int argc, char* argv[]) {
            cerr << "Skipping line '" << line << "' for not having a single comma\n";
         }
     }
-    cerr << "Done reading id -> internal id map.\n";
-    cerr << "Now mapping edges to internal ids.\n";
+    chrono::duration<double> diff = chrono::system_clock::now() - start;
+    cerr << "Reading " << idCount << "(identifier, id) pairs from " << path << " took " << diff.count() << " seconds.\n";
+    return identifierToId;
+}
 
+int main(int argc, char* argv[]) {
+    if (argc - 1 != 4) {
+        printf("usage: %s <(identifier, id) file 1> <(identifier, id) file 2> <input identifier edges> <output id edges>", argv[0]);
+        return -1;
+    }
+
+    unordered_map<string, int> identifierToId1 = parseIdentifierToIdFile(argv[1]);
+    unordered_map<string, int> identifierToId2 = parseIdentifierToIdFile(argv[2]);
+    ifstream edgeInputStream(argv[3]);
+    ofstream edgeOutputStream(argv[4]);
+
+    cerr << "Now mapping edges to internal ids.\n";
     long long lineCount = 0;
     long long discardedEdgeCount = 0;
-    start = chrono::system_clock::now();
+    auto start = chrono::system_clock::now();
+    string line;
 
-    ifstream edgeInputStream(argv[2]);
-    ofstream edgeOutputStream(argv[3]);
     while(getline(edgeInputStream, line)) {
         vector<string> parts = split(line, ',');
         if (parts.size() == 2) {
-            string id1 = parts[0];
-            string id2 = parts[1];
+            string identifier1 = parts[0];
+            string identifier2 = parts[1];
             //cerr << "Read '" << id1 << "','" << id2 << "'\n";
-            if (idToTempestId.count(id1) > 0 && idToTempestId.count(id2) > 0) {
-              edgeOutputStream << idToTempestId[id1] << " " << idToTempestId[id2] << "\n";
+            if (identifierToId1.count(identifier1) > 0 && identifierToId2.count(identifier2) > 0) {
+              edgeOutputStream << identifierToId1[identifier1] << " " << identifierToId2[identifier2] << "\n";
             } else {
               discardedEdgeCount++;
-              cerr << "Skipping line '" << line << "' for having an id not in the id -> internal id file\n";
+              cerr << "Skipping line '" << line << "' for having an id not in the identifier -> id file\n";
             }
             lineCount++;
             if (lineCount % 1000000 == 0) {
@@ -112,10 +131,9 @@ int main(int argc, char* argv[]) {
               int edgesPerSecond = (int)(lineCount / diff.count());
               cerr << "Read " << lineCount << " edges.  Average " << edgesPerSecond << " edges per second \n";
             }
-        } else if (line.length() > 0){
+        } else if (line.length() > 0) {
             cerr << "Skipping line '" << line << "' for not having a single comma\n";
         }
     }
-    cerr << "Discarded " << discardedEdgeCount << " edges from " << argv[2] <<
-            " for not being in the id -> internal id map " << argv[1] << "\n";
+    cerr << "Discarded " << discardedEdgeCount << " of " << lineCount << " edges for not being in both identifier maps\n";
 }
