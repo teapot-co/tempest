@@ -1,32 +1,34 @@
-# Tempest Graph Library and Database (Beta)
+# Tempest: A real-time graph database (Beta)
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**
 
 - [Features](#features)
+- [Introduction](#introduction)
+  - [Graphs are Everywhere](#graphs-are-everywhere)
   - [Applications of Graph Analysis](#applications-of-graph-analysis)
   - [Why a new Graph Database?](#why-a-new-graph-database)
   - [Our Approach](#our-approach)
-- [Using the Tempest library](#using-the-tempest-library)
-  - [Requirements](#requirements)
-  - [Converting a Graph to Tempest Format](#converting-a-graph-to-tempest-format)
-  - [Using Tempest from Scala](#using-tempest-from-scala)
-  - [Using Tempest from Java](#using-tempest-from-java)
-  - [Using Tempest from Python](#using-tempest-from-python)
+  - [Created by](#created-by)
 - [Using Tempest DB](#using-tempest-db)
   - [Recommended Machine Sizes](#recommended-machine-sizes)
+- [Using Tempest as a library](#using-the-tempest-library)
+  - [Requirements](#requirements)
+  - [Converting a Graph to Tempest Format](#converting-a-graph-to-tempest-format)
+  - [Language Support for Tempest](#language-support-for-tempest)
+    - [Scala](#scala)
+    - [Java](#java)
+    - [Python](#python)
 - [Project Roadmap](#project-roadmap)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Features
-- Scalable: Tempest handles graphs with billions of nodes and edges.  For example, it can store a 30-billion
-  edge graph using 300GB of RAM.
-- Fast:  Accessing a neighbor of a node is as fast as two RAM accesses.   Thousands of edges
-  can be added per second when storing them durably, and hundreds of thousands can be added per 
-  second when storing in RAM only.
-- Convenient: Tempest DB is installed with a single Docker command.  The Tempest library is available
-  as a single sbt or Maven dependency.  
+- Single machine, scale-up architecture: Graphs are notoriously hard to partition if you also need to support real-time traversals. So Tempest runs on a single commodity machine with large-ish memory (see [here](#recommended-machine-sizes)).
+- Scalable: Despite running on a single machine, Tempest supports graphs with billions of nodes and edges.  For example, it can store a 30 billion edge graph using 300GB of RAM.
+- Fast traversal:  Accessing a neighbor of a node is as fast as two RAM accesses. You can run Personalized PageRank in < 200ms.
+- High write throughput: Tempest supports about 1000 edge additions per second  when storing them persistently, and hundreds of thousands per second when storing in RAM only.
+- Convenient: Tempest is installed with a single Docker command.  Tempest can also be used as a in-memory graph analytics library, and is available as a single sbt or Maven dependency.  
 - Fast loading: Tempest loads its graph format instantly, even for 30-billion edge graphs, so you can
   quickly deploy new versions of your code.
 - Flexible: Tempest DB supports clients in any language [Thrift](https://thrift.apache.org/)
@@ -45,7 +47,7 @@ in diversity. Traditional data storage and analytics systems (e.g., SQL, Hadoop,
 suited to help you store, access and analyze your graphs. You need a graph database for it.
 
 ### Applications of Graph Analysis
-Graphs are useful in a variety of searh and recommendation problems, for example:
+Graphs are useful in a variety of search and recommendation problems, for example:
   - Given the search query "John" from a user Alice, find all users named John 
     who are friends-of-friends with Alice.
   - Find all products similar to the ones Jane has bought, where two products are similar if a large
@@ -54,9 +56,6 @@ Graphs are useful in a variety of searh and recommendation problems, for example
 A number of graph databases out there perform very poorly on neighborhood and traversal queries. And that performance degrades rapidly as the graph scales. In fact, no graph database out there can be used for real-time queries at the scale of Twitter or Linkedin. That is, no graph database other than Tempest. 
 
 Tempest was purpose-built to enable blazingly fast neighborhood queries. By blazingly fast, we mean in under 250 milliseconds for a graph with 100M nodes and 5B edges.  In fact, Tempest is about 15x faster at these queries than Neo4j. Tempest scales to graphs with up to 4B nodes and 50B edges. It supports 1000 writes (new nodes and edges) per second while supporting truly real-time queries.
-
-Tempest was built by a team of Stanford PhDs who have built state-of-the-art systems and algorithms for large scale network analytics at Stanford, Twitter and Amazon.
-
 
 ### Why a new Graph Database?
 At [Teapot](http://teapot.co) we work with large social networks, and we needed a graph library that
@@ -81,99 +80,9 @@ It requires only 8 bytes per edge for bi-directional edge access, so, for exampl
 [Twitter-2010](http://law.di.unimi.it/webdata/twitter-2010/) graph of 1.5 billion edges using 
 12GB of RAM.  We use the Tempest library in production, and it has careful unit tests.
 
-If you have any questions about using Tempest or have feature requests, create a Github issue or 
-send an email to <peter.lofgren@cs.stanford.edu>.
+### Created by
+Tempest was built by a team of Stanford PhDs---[Peter Lofgren](@plofgren) (lead developer), [Ashish Goel](@ashishgoel), [Pranav Dandekar](@dandekar)---who have built state-of-the-art systems and algorithms for large scale network analytics at Stanford, Twitter and Amazon. If you have any questions about using Tempest or have feature requests, create a Github issue or send an email to <peter.lofgren@cs.stanford.edu>.
 
-## Using the Tempest library
-
-### Requirements
-Tempest depends on Java and [sbt](http://www.scala-sbt.org/download.html).
-
-### Converting a Graph to Tempest Format
-For large graphs, you will want to first convert your graph to the Tempest binary format.  The 
-input to our converter is a simple text format where each line has the form "id1 id2" to 
-indicate an edge from id1 to id2, where id1 and id2 are integers between 0 and 2^31.  To convert 
-the test graph, for example, run:
-```
-git clone https://github.com/teapot-co/tempest.git
-cd tempest
-bin/convert_graph_immutable.sh src/test/resources/test_graph.txt test_graph.dat
-```
-
-### Using Tempest from Scala 
-Simply add
-```
-libraryDependencies += "co.teapot" %% "tempest" % "0.12.0"
-```
-to your `build.sbt` file.  The graph classes in tempest are the following:
-
-- [DirectedGraph](http://teapot-co.github.io/tempest/scaladoc/#co.teapot.tempest.graph.DirectedGraph)
-  defines the interface for graphs
-- [MemoryMappedDirectedGraph](http://teapot-co.github.io/tempest/scaladoc/#co.teapot.tempest.graph.MemoryMappedDirectedGraph)
-  efficiently reads an immutable graph from a Tempest binary graph file
-- [MemoryMappedMutableDirectedGraph](http://teapot-co.github.io/tempest/scaladoc/#co.teapot.tempest.graph.MemMappedDynamicDirectedGraph)
-  efficiently stores a large graph in a binary file and allows efficient edge additions
-- [ConcurrentHashMapDynamicGraph](http://teapot-co.github.io/tempest/scaladoc/#co.teapot.tempest.graph.ConcurrentHashMapDynamicGraph)
-  is a simple mutable graph class based on ConcurrentHashMap
-    
-As an example of using the graph methods, convert the test graph to test_graph.dat as described 
-above, then run the following from the tempest directory:
-```
-sbt console
-val graph = co.teapot.tempest.graph.MemoryMappedDirectedGraph("test_graph.dat")
-graph.nodeCount
-graph.edgeCount
-graph.outDegree(4)
-graph.outNeighbors(4)
-graph.inNeighbors(4)
-```
-
-### Using Tempest from Java
-Because scala compiles to the jvm, you can naturally use Tempest from Java.  Tempest is in a maven repo,
-so you're using maven, simply add
-```
-<dependency>
-      <groupId>co.teapot</groupId>
-      <artifactId>tempest_2.11</artifactId>
-      <version>0.12.0</version>
-    </dependency>
-```
-to your pom.xml file to access the Tempest dependency.  Then for example, in Java you can 
-`import co.teapot.tempest.graph.MemoryMappedDirectedGraph` and write
-```
-MemoryMappedDirectedGraph graph = new MemoryMappedDirectedGraph(new File("test_graph.dat"));
-System.out.println("out-neighbors of 2: " + graph.outNeighborList(2));
-```
-The documentation javadoc for the graph classes is linked above in the Scala section.
-
-### Using Tempest from Python
-To use tempest from python, it has a client/server mode, where the server
-stores large graphs in RAM, while the client is conveniently in python.  The server and client can even
-be on different machines; for example the client can run on a web server while the server runs in a large
-graph server.
-
-First clone the repository and convert the graph to Tempest binary format, as described
-above.  Then start the server, supplying the binary graph name, for example
-```
-bin/start_graph_only_server.sh test_graph.dat 
-```
-The server runs by default on TCP port 10001, but you can change this, for example
-```
-bin/start_server.sh test_graph.dat 12345
-```
-
-Finally,  connect to the server from python.  First run `pip install tempest_db`.  Then
-from the python console:
-```
->>> import tempest_db
->>> graph = tempest_db.client()
->>> graph.max_node_id()
-9
->>> graph.out_degree(2)
-4
->>> graph.out_neighbors(2)
-[0, 1, 3, 9]
-```
 
 ## Using Tempest DB (alpha)
 1. Tempest's dependencies (including postgres and java) are neatly packaged in a Docker container.  To
@@ -182,7 +91,7 @@ use Tempest DB, install docker on your machine, then run
    `docker run -t -i -v ~/:/mnt/home/ -p 127.0.0.1:10001:10001 teapotco/tempestdb:v0.12.0 bash`
    (Mounting your home directory using `-v ~/:/mnt/home/` is optional, but could be useful for reading
    your graph files in docker.)  Inside docker, if you've cloned tempest on the host file system, 
-   symlink `~/tempest` to the location under `~/mnt/home/` where tempest is cloned.  Otherwise
+   symlink `~/tempest` to the location under `/mnt/home/` where tempest is cloned.  Otherwise
    inside docker run `cd; git clone https://github.com/teapot-co/tempest.git`.
 2. You need three files to fire up the Tempest server with your graph: 
       a) a data file for nodes,
@@ -195,16 +104,18 @@ use Tempest DB, install docker on your machine, then run
   
 3. Once you have your nodes and edges in this format, copy the config file `/root/tempest/example/example_graph.yaml`
    to a new file, for example `/root/users_graph.yaml`.   The following fields should be changed:
-      a) graph_name: This is name of your new database. E.g. "users". Database and attribute names may contain alphanumeric characers and '_', and must start with an alphabet character (a-z).
-      b) node_file: for example "/mnt/home/data/users.csv"
-      c) node_attributes: Enter the name and type of each attribute in your node_file.csv. Attributes type may only be 'string', 'int' (32 bit), 'bigint' (64 bit), or 'boolean'. Enter the attributes in the same order as they appear in the node file.
-      d) edge_file: for example "/mnt/home/data/edges.csv"
-      e) node_identifier_field: This is the name of the attribute in the node file that is used to identify edges in the edge file. For example, if your edge file looks like:
+```
+graph_name # This is the name of your new database. E.g. "users". Database and attribute names may contain alphanumeric characers and '_', and must start with an alphabet character (a-z).
+node_file # for example "/mnt/home/data/users.csv"
+node_attributes #Enter the name and type of each attribute in your node_file.csv. Attributes type may only be 'string', 'int' (32 bit), 'bigint' (64 bit), or 'boolean'. Enter the attributes in the same order as they appear in the node file.
+edge_file # for example "/mnt/home/data/edges.csv"
+node_identifier_field # This is the name of the attribute in the node file that is used to identify edges in the edge file. 
+For example, if your edge file looks like:
         > alice,bob
         > bob,carol
         where, 'alice', 'bob', etc. are usernames from the node file, then the node_identifier_field should be set to 'username'.
-      f) database_caching_ram: This is RAM used by Postgres to cache node attributes.  Additional RAM is used by Tempest to store the edges in RAM. Set it to roughly 1/4 of your system's RAM.
-   
+database_caching_ram # This is RAM used by Postgres to cache node attributes.  Additional RAM is used by Tempest to store the edges in RAM. Set it to roughly 1/4 of your system's RAM.
+```   
 4. Convert your graph to binary and load your nodes and edges into Postgres by running
    
    `create_graph.sh <your new config file>`
@@ -234,6 +145,97 @@ use Tempest DB, install docker on your machine, then run
 | 500M-5B  | r3.2xlarge | 2000  |
 | 5B-10B   | r3.4xlarge | 5000  |
 | 10B+     | r3.8xlarge | 10,000|
+
+## Using Tempest as a library
+
+### Requirements
+Tempest depends on Java and [sbt](http://www.scala-sbt.org/download.html).
+
+### Converting a Graph to Tempest Format
+For large graphs, you will want to first convert your graph to the Tempest binary format.  The 
+input to our converter is a simple text format where each line has the form "id1 id2" to 
+indicate an edge from id1 to id2, where id1 and id2 are integers between 0 and 2^31.  To convert 
+the test graph, for example, run:
+```
+git clone https://github.com/teapot-co/tempest.git
+cd tempest
+bin/convert_graph_immutable.sh src/test/resources/test_graph.txt test_graph.dat
+```
+### Languages Supported by Tempest
+#### Scala 
+Simply add
+```
+libraryDependencies += "co.teapot" %% "tempest" % "0.12.0"
+```
+to your `build.sbt` file.  The graph classes in tempest are the following:
+
+- [DirectedGraph](http://teapot-co.github.io/tempest/scaladoc/#co.teapot.tempest.graph.DirectedGraph)
+  defines the interface for graphs
+- [MemoryMappedDirectedGraph](http://teapot-co.github.io/tempest/scaladoc/#co.teapot.tempest.graph.MemoryMappedDirectedGraph)
+  efficiently reads an immutable graph from a Tempest binary graph file
+- [MemoryMappedMutableDirectedGraph](http://teapot-co.github.io/tempest/scaladoc/#co.teapot.tempest.graph.MemMappedDynamicDirectedGraph)
+  efficiently stores a large graph in a binary file and allows efficient edge additions
+- [ConcurrentHashMapDynamicGraph](http://teapot-co.github.io/tempest/scaladoc/#co.teapot.tempest.graph.ConcurrentHashMapDynamicGraph)
+  is a simple mutable graph class based on ConcurrentHashMap
+    
+As an example of using the graph methods, convert the test graph to test_graph.dat as described 
+above, then run the following from the tempest directory:
+```
+sbt console
+val graph = co.teapot.tempest.graph.MemoryMappedDirectedGraph("test_graph.dat")
+graph.nodeCount
+graph.edgeCount
+graph.outDegree(4)
+graph.outNeighbors(4)
+graph.inNeighbors(4)
+```
+
+#### Java
+Because scala compiles to the jvm, you can naturally use Tempest from Java.  Tempest is in a maven repo,
+so you're using maven, simply add
+```
+<dependency>
+      <groupId>co.teapot</groupId>
+      <artifactId>tempest_2.11</artifactId>
+      <version>0.12.0</version>
+    </dependency>
+```
+to your pom.xml file to access the Tempest dependency.  Then for example, in Java you can 
+`import co.teapot.tempest.graph.MemoryMappedDirectedGraph` and write
+```
+MemoryMappedDirectedGraph graph = new MemoryMappedDirectedGraph(new File("test_graph.dat"));
+System.out.println("out-neighbors of 2: " + graph.outNeighborList(2));
+```
+The documentation javadoc for the graph classes is linked above in the Scala section.
+
+#### Python
+To use tempest from python, it has a client/server mode, where the server
+stores large graphs in RAM, while the client is conveniently in python.  The server and client can even
+be on different machines; for example the client can run on a web server while the server runs in a large
+graph server.
+
+First clone the repository and convert the graph to Tempest binary format, as described
+above.  Then start the server, supplying the binary graph name, for example
+```
+bin/start_graph_only_server.sh test_graph.dat 
+```
+The server runs by default on TCP port 10001, but you can change this, for example
+```
+bin/start_server.sh test_graph.dat 12345
+```
+
+Finally,  connect to the server from python.  First run `pip install tempest_db`.  Then
+from the python console:
+```
+>>> import tempest_db
+>>> graph = tempest_db.client()
+>>> graph.max_node_id()
+9
+>>> graph.out_degree(2)
+4
+>>> graph.out_neighbors(2)
+[0, 1, 3, 9]
+```
 
 ## Project Roadmap
 - Improve support for multiple edge types.
