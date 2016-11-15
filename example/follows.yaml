@@ -3,6 +3,6 @@ csvFile: /root/tempest/example/follows.csv
 
 nodeType1: user
 nodeType2: user
-# nodeIdentifierField1 is the attribute in node_type1 which this csv file uses to identify nodes
+# nodeIdentifierField1 is the attribute in nodeType1 which this csv file uses to identify nodes
 nodeIdentifierField1: username
 nodeIdentifierField2: username
