@@ -34,4 +34,3 @@ COPY example /root/tempest/example
 COPY install /root/tempest/install
 COPY README.md /root/tempest/README.md
 COPY target/scala-2.11 /root/tempest/target/scala-2.11
-
