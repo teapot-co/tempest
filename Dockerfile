@@ -27,3 +27,11 @@ RUN service postgresql start && \
     sudo -u postgres createdb tempest
 
 RUN echo 'export PATH="/root/tempest/bin:$PATH"' >> ~/.bashrc
+
+COPY bin /root/tempest/bin
+COPY config /root/tempest/config
+COPY example /root/tempest/example
+COPY install /root/tempest/install
+COPY README.md /root/tempest/README.md
+COPY target/scala-2.11 /root/tempest/target/scala-2.11
+

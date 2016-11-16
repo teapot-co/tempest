@@ -88,11 +88,10 @@ Tempest was built by a team of Stanford PhDs---[Peter Lofgren](@plofgren) (lead 
 1. Tempest's dependencies (including postgres and java) are neatly packaged in a Docker container.  To
 use Tempest DB, install docker on your machine, then run
    
-   `docker run -t -i -v ~/:/mnt/home/ -p 127.0.0.1:10001:10001 teapotco/tempestdb:v0.12.0 bash`
+   `docker run -t -i -v ~/:/mnt/home/ -p 127.0.0.1:10001:10001 teapotco/tempestdb:0.12.1 bash`
    (Mounting your home directory using `-v ~/:/mnt/home/` is optional, but could be useful for reading
-   your graph files in docker.)  Inside docker, if you've cloned tempest on the host file system, 
-   symlink `~/tempest` to the location under `/mnt/home/` where tempest is cloned.  Otherwise
-   inside docker run `cd; git clone https://github.com/teapot-co/tempest.git`.
+   your graph files in docker.)  The docker image contains a built release of Tempest; if you'd like to run against
+   a tempest repo you've checked out locally (say at ~/tempest), add `-v ~/tempest/:/root/tempest/` to the above command.
 2. You need three types of file to fire up the Tempest server with your graph: 
       a) a csv file for each node type,
       b) a csv file for each edge type, and
