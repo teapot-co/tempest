@@ -10,6 +10,8 @@ RUN apt-get update && apt-get install -y \
     python-pip \
     sudo    
 
+RUN pip install -I pyyaml==3.10
+
 # Instal vmtouch, used for paging graphs into RAM
 RUN cd /usr/share/ && \
     git clone https://github.com/hoytech/vmtouch.git && \
@@ -34,3 +36,6 @@ COPY example /root/tempest/example
 COPY install /root/tempest/install
 COPY README.md /root/tempest/README.md
 COPY target/scala-2.11 /root/tempest/target/scala-2.11
+
+# Add VOLUME to allow large databases
+VOLUME  ["/var/lib/postgresql"]

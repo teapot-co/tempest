@@ -88,7 +88,7 @@ Tempest was built by a team of Stanford PhDs---[Peter Lofgren](@plofgren) (lead 
 1. Tempest's dependencies (including postgres and java) are neatly packaged in a Docker container.  To
 use Tempest DB, install docker on your machine, then run
    
-   `docker run -t -i -v ~/:/mnt/home/ -p 127.0.0.1:10001:10001 teapotco/tempestdb:0.12.1 bash`
+   `docker run -t -i -v ~/:/mnt/home/ -p 127.0.0.1:10001:10001 teapotco/tempestdb:0.12.2 bash`
    (Mounting your home directory using `-v ~/:/mnt/home/` is optional, but could be useful for reading
    your graph files in docker.)  The docker image contains a built release of Tempest; if you'd like to run against
    a tempest repo you've checked out locally (say at ~/tempest), add `-v ~/tempest/:/root/tempest/` to the above command.
