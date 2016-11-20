@@ -149,7 +149,7 @@ database_caching_ram # This is RAM used by Postgres to cache node attributes.  A
 ## Using Tempest as a library
 
 ### Requirements
-Tempest depends on Java and [sbt](http://www.scala-sbt.org/download.html).
+Tempest depends on Java, [sbt](http://www.scala-sbt.org/download.html), and [thrift](https://thrift.apache.org/).  To install thrift on OS X, you can run `brew install thrift`, or for other platforms see their [install instructions](https://thrift.apache.org/docs/install/). Before compiling Tempest, you'll need to generate thrift files using `src/main/bash/generate_thrift.sh`.
 
 ### Converting a Graph to Tempest Format
 For large graphs, you will want to first convert your graph to the Tempest binary format.  The 
@@ -159,6 +159,7 @@ the test graph, for example, run:
 ```
 git clone https://github.com/teapot-co/tempest.git
 cd tempest
+src/main/bash/generate_thrift.sh
 bin/convert_graph_immutable.sh src/test/resources/test_graph.txt test_graph.dat
 ```
 ### Languages Supported by Tempest
