@@ -110,7 +110,7 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
                                 attributeName: String): collection.Map[Long, String] =
     withConnection { implicit connection =>
       // For security/safety, make sure attributeName is a valid identifier
-      if (! attributeName.matches("[a-zA-Z][a-zA-Z0-9_]*"))
+      if (! attributeName.matches("[a-zA-Z0-9_]*"))
         throw new UndefinedAttributeException (s"Invalid attribute name '$attributeName'")
       val idList = nodeIds.mkString("(", ",", ")")
       val sql =

@@ -72,8 +72,6 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
                              alternating: Boolean): util.List[lang.Long] = {
     validateNodeId(edgeType, sourceId)
     val targetNodeType = kStepNodeType(edgeType, edgeDir, k)
-    if (k > 4) // TODO (?): Limit the output size instead of limiting the distance
-      throw new InvalidArgumentException("For efficiency, this call is limited to 4 steps from the source")
     val effectiveGraph = edgeDir match {
       case EdgeDir.Out => graph(edgeType)
       case EdgeDir.In => graph(edgeType).transposeView
