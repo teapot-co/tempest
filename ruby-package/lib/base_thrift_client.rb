@@ -12,6 +12,7 @@ module Teapot
         @server = server
         @port = port
         @executor = init_executor(init_protocol())
+        @max_retries = 3
       end
 
       def init_protocol
@@ -32,6 +33,20 @@ module Teapot
         @executor
       end
 
+
+      def with_retries(&f)
+        (0..@max_retries).each do |retry_count|
+          begin
+            return f.call(get_executor)
+          rescue Thrift::TransportException, IOError
+            if retry_count == @max_retries then
+              raise # re-throw exception back to user
+            else
+              puts "Attempting to reconnect to #{@server}:#{@port}..."
+              @executor = init_executor(init_protocol())
+            end
+          end
+        end
+      end
     end
 end
-
