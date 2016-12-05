@@ -8,11 +8,11 @@ module Teapot
       @executor = nil
       @transport = nil
 
-      def initialize(server, port)
+      def initialize(server, port, max_retries = 3)
         @server = server
         @port = port
         @executor = init_executor(init_protocol())
-        @max_retries = 3
+        @max_retries = max_retries
       end
 
       def init_protocol
@@ -42,7 +42,7 @@ module Teapot
             if retry_count == @max_retries then
               raise # re-throw exception back to user
             else
-              puts "Attempting to reconnect to #{@server}:#{@port}..."
+              puts "For call #{caller[3][/`([^']*)'/, 1]}, attempting to reconnect to #{@server}:#{@port}..."
               @executor = init_executor(init_protocol())
             end
           end
