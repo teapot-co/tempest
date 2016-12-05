@@ -26,9 +26,17 @@ require 'base_thrift_client'
 
 module Teapot
   module TempestDB
-    class TempestClient < Teapot::BaseThriftClient
+    class TempestThriftClient < Teapot::BaseThriftClient
       def init_executor(protocol)
         Teapot::TempestDB::TempestDBService::Client.new(protocol)
+      end
+    end
+
+    class TempestClient
+      @thrift_client = nil
+
+      def initialize(server, port)
+        @thrift_client = Teapot::TempestDB::TempestThriftClient.new(server, port)
       end
 
       def TempestClient.jsonToValue(json_attribute)
@@ -46,28 +54,119 @@ module Teapot
         end
       end
 
-      def getMultiNodeAttribute(graphName, nodeIds, attributeName)
-        id_to_json = get_executor.getMultiNodeAttributeAsJSON(graphName, nodeIds, attributeName)
+      def get_multi_node_attribute(node_type, nodeIds, attribute_name)
+        id_to_json = @thrift_client.with_retries { |executor|
+          executor.getMultiNodeAttributeAsJSON(node_type, nodeIds, attribute_name)
+        }
         Hash[id_to_json.map{ |k,v| [k, TempestClient.jsonToValue(v)] }]
       end
 
-      def getNodeAttribute(graphName, nodeId, attributeName)
-        self.getMultiNodeAttribute(graphName, [nodeId], attributeName)[nodeId]
+      def get_node_attribute(node_type, nodeId, attribute_name)
+        self.get_multi_node_attribute(node_type, [nodeId], attribute_name)[nodeId]
       end
 
-      def kStepOutNeighborsFiltered(edgeType, sourceId, k, sqlClause: "", degreeFilter: {}, alternating: true)
-        get_executor.kStepOutNeighborsFiltered(edgeType, sourceId, k, sqlClause, degreeFilter, alternating)
-      end
-      def kStepInNeighborsFiltered(edgeType, sourceId, k, sqlClause: "", degreeFilter: {}, alternating: true)
-        get_executor.kStepInNeighborsFiltered(edgeType, sourceId, k, sqlClause, degreeFilter, alternating)
+      def k_step_out_neighbors_filtered(edge_type, source_id, k, sql_clause: "", degree_filter: {}, alternating: true)
+        @thrift_client.with_retries { |executor|
+          executor.kStepOutNeighborsFiltered(edge_type, source_id, k, sql_clause, degree_filter, alternating)
+        }
       end
 
-      # Delegate other methods to the thrift generated method
-      # Note: for autocomplete and documentation, we could improve usability by listing methods
-      # explicitly (as we do for python), but that would require manual changes whenever the thrift
-      # api changes, so for ruby we automatically delegate all other methods.
-      def method_missing(m, *args)
-        get_executor.send m, *args
+      def k_step_in_neighbors_filtered(edge_type, source_id, k, sql_clause: "", degree_filter: {}, alternating: true)
+        @thrift_client.with_retries { |executor|
+          executor.kStepInNeighborsFiltered(edge_type, source_id, k, sql_clause, degree_filter, alternating)
+        }
+      end
+
+      # Convenience method to return the unique node id satisfying a condition
+      def unique_node(node_type, sql_clause)
+        matching_nodes = @thrift_client.with_retries { |executor|
+          executor.nodes(node_type, sql_clause)
+        }
+        if matching_nodes.length != 1
+          raise "Error: clause '#{sql_clause}' had #{matching_nodes.length} results"
+        end
+        matching_nodes[0]
+      end
+
+
+      # TODO: For methods that only need to be included (for irb auto-complete) and converted from camelCase to
+      # snake_case, is there a simple way of automating this?
+      def out_degree(edge_type, id)
+        @thrift_client.with_retries { |executor|
+          executor.outDegree(edge_type, id)
+        }
+      end
+
+      def in_degree(edge_type, id)
+        @thrift_client.with_retries { |executor|
+          executor.inDegree(edge_type, id)
+        }
+      end
+
+      def out_neighbors(edge_type, id)
+        @thrift_client.with_retries { |executor|
+          executor.outNeighbors(edge_type, id)
+        }
+      end
+
+      def in_neighbors(edge_type, id)
+        @thrift_client.with_retries { |executor|
+          executor.inNeighbors(edge_type, id)
+        }
+      end
+
+      def out_neighbor(edge_type, id, i)
+        @thrift_client.with_retries { |executor|
+          executor.outNeighbor(edge_type, id, i)
+        }
+      end
+
+      def in_neighbor(edge_type, id, i)
+        @thrift_client.with_retries { |executor|
+          executor.inNeighbor(edge_type, id, i)
+        }
+      end
+
+      def max_node_id(edge_type)
+        @thrift_client.with_retries { |executor|
+          executor.maxNodeId(edge_type)
+        }
+      end
+
+      def node_count(edge_type)
+        @thrift_client.with_retries { |executor|
+          executor.nodeCount(edge_type)
+        }
+      end
+
+      def edge_count(edge_type)
+        @thrift_client.with_retries { |executor|
+          executor.edgeCount(edge_type)
+        }
+      end
+
+      def ppr_single_target(edge_type, seed_node_ids, target_node_id, bi_ppr_params)
+        @thrift_client.with_retries { |executor|
+          executor.pprSingleTarget(edge_type, seed_node_ids, target_node_id, bi_ppr_params)
+        }
+      end
+
+      def ppr(edge_type, seed_node_ids, mc_ppr_params)
+        @thrift_client.with_retries { |executor|
+          executor.ppr(edge_type, seed_node_ids, mc_ppr_params)
+        }
+      end
+
+      def nodes(node_type, sql_clause)
+        @thrift_client.with_retries { |executor|
+          executor.nodes(node_type, sql_clause)
+        }
+      end
+
+      def add_edges(edge_type, ids1, ids2)
+        @thrift_client.with_retries { |executor|
+          executor.addEdges(edge_type, ids1, ids2)
+        }
       end
     end
   end
