@@ -63,7 +63,7 @@ object TempestDBServerTest {
 
   def launch(args: Array[String]): Unit = {
     LogUtil.configureLog4j()
-    new TeapotThriftLauncher().launch(args, getProcessor, "config/tempest.yaml")
+    new TeapotThriftLauncher().launch(args, getProcessor, "src/test/resources/config/tempest.yaml")
   }
 
   def main(args: Array[String]): Unit = launch(args)

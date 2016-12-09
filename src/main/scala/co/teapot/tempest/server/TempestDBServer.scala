@@ -169,7 +169,7 @@ object TempestDBServer {
   def getProcessor(configFileName: String): TProcessor = {
     val config = ConfigLoader.loadConfig[TempestDBServerConfig](configFileName)
     // Not currently used: ConfigLoader.loadConfig[TempestDBServerConfig](configFileName)
-    val databaseConfigFile = "/root/tempest/config/database.yaml" // TODO: move db config to main config?
+    val databaseConfigFile = "/root/tempest/system/database.yaml" // TODO: move db config to main config?
     val databaseConfig = ConfigLoader.loadConfig[DatabaseConfig](databaseConfigFile)
     val databaseClient = new TempestSQLDatabaseClient(databaseConfig)
 
@@ -179,7 +179,7 @@ object TempestDBServer {
 
   def main(args: Array[String]): Unit = {
     LogUtil.configureLog4j()
-    new TeapotThriftLauncher().launch(args, getProcessor, "/root/tempest/config/tempest.yaml")
+    new TeapotThriftLauncher().launch(args, getProcessor, "/root/tempest/system/tempest.yaml")
   }
 }
 

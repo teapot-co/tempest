@@ -5,7 +5,7 @@ if [ "$#" -lt 1 ]; then
   exit 1
 fi
 NODE_TYPE="$1"
-CONFIG="/root/tempest/config/${NODE_TYPE}.yaml"
+CONFIG="/data/config/${NODE_TYPE}.yaml"
 
 if [ ! -f $CONFIG ]; then
   echo "File not found: $CONFIG - Please place config file in $CONFIG and retry."
@@ -13,7 +13,7 @@ if [ ! -f $CONFIG ]; then
 fi
 
 echo "Loading nodes..."
-python /root/tempest/install/generate_node_creation_sql.py $CONFIG > "/tmp/load_${NODE_TYPE}.sql"
+python /root/tempest/system/generate_node_creation_sql.py $CONFIG > "/tmp/load_${NODE_TYPE}.sql"
 
-service postgresql start
+/root/tempest/system/start_postgres.sh
 sudo -Hiu postgres psql tempest postgres -f "/tmp/load_${NODE_TYPE}.sql"

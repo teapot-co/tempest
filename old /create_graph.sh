@@ -10,9 +10,9 @@ CONFIG=$1
 
 
 DATABASE='tempest' # For simplicity we now require the database to be named tempest.
-export EDGE_FILE=`/root/tempest/install/get_yaml_field.py $CONFIG edge_file`
-export GRAPH=`/root/tempest/install/get_yaml_field.py $CONFIG graph_name`
-export SHARED_BUFFERS=`/root/tempest/install/get_yaml_field.py $CONFIG database_caching_ram`
+export EDGE_FILE=`/root/tempest/system/get_yaml_field.py $CONFIG edge_file`
+export GRAPH=`/root/tempest/system/get_yaml_field.py $CONFIG graph_name`
+export SHARED_BUFFERS=`/root/tempest/system/get_yaml_field.py $CONFIG database_caching_ram`
 
 # Set postgres RAM buffer size
 service postgresql start
@@ -20,13 +20,13 @@ sudo -u postgres psql -c "ALTER SYSTEM SET shared_buffers = '${SHARED_BUFFERS}'"
 service postgresql restart
 
 echo "Loading nodes..."
-python /root/tempest/install/generate_sql.py $CONFIG > /tmp/load_tables.sql
+python /root/tempest/system/generate_sql.py $CONFIG > /tmp/load_tables.sql
 
 sudo -Hiu postgres psql $DATABASE postgres -f /tmp/load_tables.sql
 #rm /tmp/load_tables.sql For debugging purposes, don't delete load_tables.sql
 
 echo "Renumbering edges to internal ids..."
-/root/tempest/install/map_edges_linux \
+/root/tempest/system/map_edges_linux \
   "/tmp/${GRAPH}_id_map.csv" \
   "${EDGE_FILE}" \
   "/tmp/${GRAPH}_mapped_edges.csv"
