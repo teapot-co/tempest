@@ -139,6 +139,7 @@ Tempest was built by a team of Stanford PhDs---[Peter Lofgren](@plofgren) (lead 
    `start_server.sh`
 6. Now you can connect to the server from inside or outside docker.  If outside docker, first run 
    `pip install tempest_db`. Then in `ipython` you can run, for example
+   
    ```
    import tempest_db
    c = tempest_db.TempestClient()
