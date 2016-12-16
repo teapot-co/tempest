@@ -8,6 +8,6 @@ if [ "$#" -ne 2 ]; then
   exit 1
 fi
 
-JAR_FILE="$TEMPEST_PATH/target/scala-2.11/tempest-assembly-0.12.0.jar"
+JAR_FILE="$TEMPEST_PATH/target/scala-2.11/tempest-assembly-0.13.0.jar"
 
 java -Xmx64g -cp $JAR_FILE co.teapot.tempest.graph.MemMappedDynamicDirectedGraphConverter $1 $2

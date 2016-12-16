@@ -13,11 +13,17 @@ if [ ! -d "/data/postgres" ]; then
   sed -i '1i local   all             tempest             trust' $HBA
 
   sudo -Hiu postgres /usr/lib/postgresql/9.5/bin/pg_ctl -D /data/postgres -l /data/postgres/logfile start
-  sudo -Hiu postgres /usr/lib/postgresql/9.5/bin/pg_isready --timeout=10 # Wait for postgres to finish starting
+  while ! sudo -Hiu postgres /usr/lib/postgresql/9.5/bin/pg_isready; do
+    sleep 1
+  done
+
   sudo -Hiu postgres createuser --createdb --no-createrole --no-superuser tempest && \
   sudo -Hiu postgres createdb tempest
 
 else
   chown postgres:postgres /data/postgres
   sudo -Hiu postgres /usr/lib/postgresql/9.5/bin/pg_ctl -D /data/postgres -l /data/postgres/logfile start
+  while ! sudo -Hiu postgres /usr/lib/postgresql/9.5/bin/pg_isready; do
+    sleep 1
+  done
 fi

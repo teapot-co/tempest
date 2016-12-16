@@ -42,11 +42,11 @@ end
 
 expect_equal(client.nodes("user", "login_count > 2 AND premium_subscriber = TRUE").sort, [3], "Wrong attribute values")
 
-expect_equal(client.k_step_in_neighbors_filtered("follows", 2, 1, sqlClause: "login_count > 3"), [1], "Wrong in neighbors with attribute")
-expect_equal(client.k_step_in_neighbors_filtered("follows", 2, 1, sqlClause: "premium_subscriber = TRUE").sort, [3], "Wrong in neighbors with attribute")
+expect_equal(client.k_step_in_neighbors_filtered("follows", 2, 1, sql_clause: "login_count > 3"), [1], "Wrong in neighbors with attribute")
+expect_equal(client.k_step_in_neighbors_filtered("follows", 2, 1, sql_clause: "premium_subscriber = TRUE").sort, [3], "Wrong in neighbors with attribute")
 
-expect_equal(client.k_step_out_neighbors_filtered("follows", 1, 2, degreeFilter: {Teapot::TempestDB::DegreeFilterTypes::INDEGREE_MIN => 1}), [3], "Wrong filtering")
-expect_equal(client.k_step_in_neighbors_filtered("follows", 2, 1, degreeFilter: {Teapot::TempestDB::DegreeFilterTypes::INDEGREE_MAX => 0}), [1], "Wrong filtering")
+expect_equal(client.k_step_out_neighbors_filtered("follows", 1, 2, degree_filter: {Teapot::TempestDB::DegreeFilterTypes::INDEGREE_MIN => 1}), [3], "Wrong filtering")
+expect_equal(client.k_step_in_neighbors_filtered("follows", 2, 1, degree_filter: {Teapot::TempestDB::DegreeFilterTypes::INDEGREE_MAX => 0}), [1], "Wrong filtering")
 
 expect_equal(client.get_node_attribute("user", 1, "name"), 'Alice Johnson', "String attribute failed")
 expect_equal(client.get_node_attribute("user", 1, "login_count"), 5, "Int attribute failed")
@@ -69,6 +69,6 @@ expect_equal(client.nodes("user", "id = 4"), [4], "Wrong nodes")
 expect_equal(client.nodes("book", "id = 4"), [], "Wrong book nodes")
 
 expect_equal(
-  client.k_step_out_neighbors_filtered("has_read", 1, 1, sqlClause: "title = 'The Lord of the Rings'").sort,
-  [1],
+  client.k_step_out_neighbors_filtered("has_read", 1, 1, sql_clause: "title = 'The Lord of the Rings'").sort,
+  [101],
   "Wrong out neighbors with attribute")

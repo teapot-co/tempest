@@ -10,7 +10,7 @@ fi
 GRAPH=$1
 PORT=${2:-10001}
 
-JAR_FILE="$TEMPEST_PATH/target/scala-2.11/tempest-assembly-0.12.0.jar"
+JAR_FILE="$TEMPEST_PATH/target/scala-2.11/tempest-assembly-0.13.0.jar"
 if [ ! -f "$JAR_FILE" ]; then
   echo "Building Tempest"
   sbt assembly

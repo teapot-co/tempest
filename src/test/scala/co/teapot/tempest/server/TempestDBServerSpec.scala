@@ -1,70 +1,47 @@
 package co.teapot.tempest.server
 
-import java.io.File
+import co.teapot.tempest.MonteCarloPageRankParams
+import co.teapot.tempest.util.{CollectionUtil, ConfigLoader}
+import org.scalatest.{FlatSpec, Matchers}
+import scala.collection.JavaConverters._
 
-import co.teapot.tempest.TempestDBService
-import co.teapot.tempest.util.{ConfigLoader, LogUtil}
-import co.teapot.thriftbase.TeapotThriftLauncher
-import org.apache.thrift.TProcessor
-import org.apache.thrift.server.TThreadPoolServer
-import org.apache.thrift.transport.TServerSocket
-import org.scalatest.{Matchers, FlatSpec}
-import scala.concurrent.Future
-import scala.sys.process.Process
-
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class TempestDBServerSpec extends FlatSpec with Matchers {
-
-  /**
-   * Starts a TempestDBServer and calls a ruby script that
-   * exercises the endpoint through the ruby clients in
-   * order to test the consistency of the ruby clients as well
-   * as the server.
-   */
-
-  "A thrift client " should "correctly connect and use the scala endpoint " in {
-    // Regenerate the ruby and python packages based on the current source code
-    Process("src/main/bash/package_zip.sh").!
-
-    val processor = TempestDBServerTest.getProcessor("example/example_database.yaml")
-    val serverTransport = new TServerSocket(10011)
-    val serverArgs = new TThreadPoolServer.Args(serverTransport).processor(processor)
-    val server = new TThreadPoolServer(serverArgs)
-    println("starting server at port " + 10011)
-
-    Future[Unit]{ server.serve() } //Start the server on a new thread
-
-    while(!server.isServing) { Thread.sleep(10) }
-
-    //This notation forwards the process output to stdout
-    val ret = Process("ruby -Iruby-package/lib src/test/ruby/tempest_local_test.rb").!
-    ret shouldEqual 0
-
-    val pythonResult = Process(
-      "src/test/python/tempest_local_test.py",
-      cwd=new File("."),
-      extraEnv=("PYTHONPATH", "python-package")).!
-    pythonResult shouldEqual 0
-
-    server.stop()
-  }
-}
-
-/** Launches a server using small graph and test database. */
-object TempestDBServerTest {
-  val databaseConfig = ConfigLoader.loadConfig[DatabaseConfig]("src/test/resources/config/database.yml")
-  def getProcessor(configFileName: String): TProcessor = {
-    val config = new TempestDBServerConfig() // ConfigLoader.loadConfig[TempestDBServerConfig](configFileName)
-    val databaseClient = new TempestSQLDatabaseClient(databaseConfig)
-    val server = new TempestDBServer( databaseClient, config)
-    new TempestDBService.Processor(server)
+  def make_server(): TempestDBServer = {
+    val configFileName = "src/test/resources/config/tempest.yaml"
+    val config = ConfigLoader.loadConfig[TempestDBServerConfig](configFileName)
+    val databaseClient: TempestDatabaseClient = null // TODO: Mock DB? = new TempestSQLDatabaseClient(databaseConfig)
+    new TempestDBServer( databaseClient, config)
   }
 
-  def launch(args: Array[String]): Unit = {
-    LogUtil.configureLog4j()
-    new TeapotThriftLauncher().launch(args, getProcessor, "src/test/resources/config/tempest.yaml")
-  }
+  "A TempestDB server" should "work on PPR calls" in {
+    val server = make_server()
+    server.outNeighbors("has_read", 1) should contain theSameElementsAs Seq(101, 103)
 
-  def main(args: Array[String]): Unit = launch(args)
+    val prParams = new MonteCarloPageRankParams(1000, 0.3)
+    val seeds = CollectionUtil.toJava(Seq(1L))
+    val pprToBooks = server.ppr("has_read", seeds, "user", "book", prParams)
+    pprToBooks.keySet() should contain theSameElementsAs Seq(101, 102, 103)
+    pprToBooks.asScala.maxBy(_._2)._1 shouldEqual 101
+
+    val pprToUser = server.ppr("has_read", seeds, "user", "user", prParams)
+    pprToUser.keySet() should contain theSameElementsAs Seq(1L, 2L, 3L)
+    pprToUser.asScala.maxBy(_._2)._1 shouldEqual 1
+
+    val pprUserFollowsRight = server.ppr("follows", seeds, "left", "right", prParams)
+    pprUserFollowsRight.keySet() should contain theSameElementsAs Seq(2L)
+
+    val pprUserFollowsLeft = server.ppr("follows", seeds, "left", "left", prParams)
+    pprUserFollowsLeft.keySet() should contain theSameElementsAs Seq(1L, 3L)
+
+    val pprUserFollowsAny = server.ppr("follows", seeds, "left", "any", prParams)
+    pprUserFollowsAny.keySet() should contain theSameElementsAs Seq(1L, 2L, 3L)
+    pprUserFollowsAny.get(1L).doubleValue should be > 0.1
+
+    // Test that non-alternating walk only follows out-edges
+    prParams.alternatingWalk = false
+    prParams.resetProbability = 0.00001
+    val pprUserFollowsAnyNonAlternating = server.ppr("follows", seeds, "left", "any", prParams)
+    pprUserFollowsAnyNonAlternating.get(1L).doubleValue should be < 0.01
+  }
 }

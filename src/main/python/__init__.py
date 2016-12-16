@@ -151,14 +151,15 @@ class TempestClient:
 
 
     # TempestDB methods
-    def ppr(self, edge_type, seeds, num_steps=100000, reset_probability=0.3, max_results = None):
+    def ppr(self, edge_type, seeds, seed_node_type, target_node_type, num_steps=100000, reset_probability=0.3, alternating = True, max_results = None):
         """Return a dictionary from node id to Personalized PageRank, personalized to the
         seed node ids.  Compute this by doing the given number of random
         walks."""
         params = MonteCarloPageRankParams(numSteps=num_steps, resetProbability=reset_probability)
+        params.alternatingWalk = alternating
         if max_results:
             params.maxResultCount = max_results
-        return self.__with_retries(lambda: self.__thrift_client.ppr(edge_type, seeds, params))
+        return self.__with_retries(lambda: self.__thrift_client.ppr(edge_type, seeds, seed_node_type, target_node_type, params))
 
     def nodes(self, graph_name, filter):
         """Return all node ids satisfying the given SQL-like filter clause"""
