@@ -1,0 +1,11 @@
+## To update the packages:
+python:
+(cd python-package; twine upload dist/*)
+
+ruby:
+(cd ruby-package; gem push tempest_db-0.13.0.gem)
+
+docker:
+docker build .
+docker tag <the tag printed by build> teapotco/tempestdb:0.13.0
+docker push teapotco/tempestdb:0.13.0
