@@ -7,7 +7,7 @@ if [ "$#" -ne 2 ]; then
   exit 1
 fi
 
-JAR_FILE="$TEMPEST_PATH/target/scala-2.11/tempest-assembly-0.13.0.jar"
+JAR_FILE="$TEMPEST_PATH/target/scala-2.11/tempest-assembly.jar"
 if [ ! -f "$JAR_FILE" ]; then
   echo "Building Tempest"
   sbt assembly

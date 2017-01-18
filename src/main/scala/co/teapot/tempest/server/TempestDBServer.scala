@@ -52,9 +52,11 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
     ConfigLoader.loadConfig[EdgeTypeConfig](edgeConfigFile)
   }
 
-  /** Returns the type of node reached after k steps along the given edge type. If the edge type
-    * is from nodeType1 to nodeType2, this will return nodeType1 if k is even, or nodeType2 if
-    * k is odd.
+  /** Returns the type of node reached after k steps along the given edge type starting with the given
+    * initial direction. If the edge type
+    * is from nodeType1 to nodeType2, and edgeDir is EdgeDirOut, this will return nodeType1 if k is even,
+    * or nodeType2 if
+    * k is odd.  The parity is swapped if edgeDir is EdgeDirIn.
     */
   def kStepNodeType(edgeType: String, edgeDir: EdgeDir, k: Int): String = {
     val edgeConfig = loadEdgeConfig(edgeType)

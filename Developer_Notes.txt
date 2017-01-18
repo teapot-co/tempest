@@ -8,4 +8,6 @@ ruby:
 docker:
 docker build .
 docker tag <the tag printed by build> teapotco/tempestdb:0.13.0
+docker tag <the tag printed by build> teapotco/tempestdb:latest
 docker push teapotco/tempestdb:0.13.0
+docker push teapotco/tempestdb:latest

@@ -4,7 +4,7 @@
 /root/tempest/system/start_postgres.sh
 
 # TODO: Read version number from file
-JAR_FILE="/root/tempest/target/scala-2.11/tempest-assembly-0.13.0.jar"
+JAR_FILE="/root/tempest/target/scala-2.11/tempest-assembly.jar"
 
 vmtouch -t /data/binary_graphs/*.dat &
 java -cp "$JAR_FILE" co.teapot.tempest.server.TempestDBServer &

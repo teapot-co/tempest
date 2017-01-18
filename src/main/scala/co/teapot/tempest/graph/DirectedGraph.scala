@@ -48,9 +48,9 @@ trait DirectedGraph {
     * */
   def inNeighbors(id: Int): IndexedSeq[Int]
 
-  def neighbors(id: Int, direction: EdgeDir): Int = direction match {
-    case EdgeDirOut => outDegree(id)
-    case EdgeDirIn => inDegree(id)
+  def neighbors(id: Int, direction: EdgeDir): IndexedSeq[Int] = direction match {
+    case EdgeDirOut => outNeighbors(id)
+    case EdgeDirIn => inNeighbors(id)
   }
 
   /** Returns the out-neighbors of the given id as a java.util.List.

@@ -41,3 +41,5 @@ javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 unmanagedSourceDirectories in Compile += baseDirectory.value / "src/gen/java"
 
 test in assembly := {} // Disable tests during assembly
+
+assemblyJarName in assembly := "tempest-assembly.jar" // By default, assembly appends a version number, which requires changing bash scripts that reference the jar

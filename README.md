@@ -90,7 +90,7 @@ Tempest was built by a team of Stanford PhDs---[Peter Lofgren](@plofgren) (lead 
    directory outside docker, so you can upgrade tempest without losing your data.  To
    use Tempest DB, install docker on your machine, then run
    
-   `docker run -t -i -v $YOUR_DATA_DIR:/data -v ~/:/mnt/home/ -p 127.0.0.1:10001:10001 teapotco/tempestdb:0.13.0 bash`
+   `docker run -t -i -v $YOUR_DATA_DIR:/data -v ~/:/mnt/home/ -p 127.0.0.1:10001:10001 teapotco/tempestdb:latest bash`
    (Mounting your home directory using `-v ~/:/mnt/home/` is optional, but could be useful for reading
    your graph files from docker.)  The docker image contains a built release of Tempest; if you'd like to run against
    a tempest repo you've checked out locally (say at ~/tempest), add `-v ~/tempest/:/root/tempest/` to the above command.

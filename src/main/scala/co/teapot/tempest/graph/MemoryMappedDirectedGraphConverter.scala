@@ -179,7 +179,7 @@ class MemoryMappedDirectedGraphConverter(val edgeListFile: File,
 
         // Store segment size
         val edgeCount = (distinctNeighborArrayLists map { _.size.toLong }).sum
-        if (dir == EdgeDirOut)
+        if (dir == EdgeDirOut) // avoid double counting both out and in edges
           distinctEdgeCount += edgeCount
         val segmentSize = (nodesPerSegment + 1) * BytesPerNodeOffset + edgeCount * BytesPerNeighbor
         require(segmentSize < Integer.MAX_VALUE, "Segment too large for Int indexing")

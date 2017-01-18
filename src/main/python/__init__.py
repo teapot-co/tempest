@@ -154,7 +154,13 @@ class TempestClient:
     def ppr(self, edge_type, seeds, seed_node_type, target_node_type, num_steps=100000, reset_probability=0.3, alternating = True, max_results = None):
         """Return a dictionary from node id to Personalized PageRank, personalized to the
         seed node ids.  Compute this by doing the given number of random
-        walks."""
+-        walks. Seed_node_type and target_node_type are the node types of the seeds and targets, and they must be one of
+        the node types related by the given edge_type.
+        Parameter alternating indicates the walk alternates between following out-edges and following in-edges.
+        For example, if alternating=False, and the graph is Twitter, the walk might go from a user Alice, to a user she
+        follows like Obama, to a user he follows like Biden.  Wheras if alternating=True, the walk might go from
+        Alice to Obama to some other person who follows Obama, say Bob.  For bipartite graphs it's mandatory that alternating=True.
+        See MonteCarloPPR.scala for a more detailed explanation of PPR parameters."""
         params = MonteCarloPageRankParams(numSteps=num_steps, resetProbability=reset_probability)
         params.alternatingWalk = alternating
         if max_results:
