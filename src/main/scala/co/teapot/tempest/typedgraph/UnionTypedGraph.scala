@@ -23,7 +23,9 @@ class UnionTypedGraph(typedGraphs: Seq[TypedGraph]) extends TypedGraph {
 }
 
 /*
-Alternate design, slightly less flexible, but more efficient for unions of many graphs:
+Alternate design, slightly less flexible, but more efficient for unions of many graphs. We should delete this code once
+we determine the above code has sufficient performance.
+
 class UnionTypedGraph(typedGraphs: Seq[SimpleTypedGraph]) extends TypedGraph {
   val outGraphsForType = new mutable.HashMap[String, mutable.Buffer[SimpleTypedGraph]]().withDefaultValue(mutable.Buffer.empty)
   val inGraphsForType = new mutable.HashMap[String, mutable.Buffer[SimpleTypedGraph]]().withDefaultValue(mutable.Buffer.empty)
@@ -49,4 +51,4 @@ class UnionTypedGraph(typedGraphs: Seq[SimpleTypedGraph]) extends TypedGraph {
     }
   }
 }
- */
+*/

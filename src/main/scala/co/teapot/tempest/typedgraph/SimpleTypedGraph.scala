@@ -7,6 +7,8 @@ import co.teapot.tempest.graph.DirectedGraph
 case class SimpleTypedGraph(sourceNodeType: String, targetNodeType: String, graph: DirectedGraph) extends TypedGraph {
   override def outNeighbors(node: Node): Traversable[Node] = new Traversable[Node] {
     def foreach[A](f: Node => A): Unit = {
+      // In use cases like the union graph, we might give this simple graph a node whose type doesn't match, in which
+      // case outNeighbors should do nothing.
       if (node.`type` == sourceNodeType) {
         for (v <- graph.outNeighbors(node.id)) {
           f(new Node(targetNodeType, v))

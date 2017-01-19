@@ -98,6 +98,9 @@ service TempestDBService extends tempest.TempestGraphService {
     throws (1: UndefinedGraphException error1, 2: tempest.InvalidNodeIdException error2,
             3: tempest.InvalidArgumentException error3)
 
+  # Returns the list of distinct nodes reachable from the given source along any of the given edgeTypes (using both in
+  # and out edges).  Uses breadth-first-search, and returns the first maxSize nodes reached.  Set maxSize to ((1 << 31) - 1)
+  # to get the entire component.
   list<Node> connectedComponent(1:Node source, 2:list<string> edgeTypes, 3:i32 maxSize)
     throws (1: UndefinedGraphException error1, 2: tempest.InvalidNodeIdException error2,
             3: tempest.InvalidArgumentException error3)

@@ -53,7 +53,6 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
     ConfigLoader.loadConfig[EdgeTypeConfig](edgeConfigFile)
   }
 
-
   def typedGraph(edgeType: String): SimpleTypedGraph = {
     val edgeConfig = loadEdgeConfig(edgeType)
     SimpleTypedGraph(edgeConfig.sourceNodeType, edgeConfig.targetNodeType, graph(edgeType))

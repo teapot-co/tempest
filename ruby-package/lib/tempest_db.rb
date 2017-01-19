@@ -157,7 +157,7 @@ module Teapot
         }
       end
 
-      def connected_component(source, edge_types, max_size)
+      def connected_component(source, edge_types, max_size = (1 << 31) - 1)
         @thrift_client.with_retries { |executor|
           executor.connectedComponent(source, edge_types, max_size)
         }
