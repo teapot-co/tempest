@@ -28,10 +28,10 @@ if [ -f $BINARY_EDGE_FILE ]; then
   fi
 fi
 
-NODE_TYPE1=$(/root/tempest/system/get_yaml_field.py $CONFIG nodeType1)
-NODE_TYPE2=$(/root/tempest/system/get_yaml_field.py $CONFIG nodeType2)
-NODE_IDENTIFIER1=$(/root/tempest/system/get_yaml_field.py $CONFIG nodeIdentifierField1)
-NODE_IDENTIFIER2=$(/root/tempest/system/get_yaml_field.py $CONFIG nodeIdentifierField2)
+NODE_TYPE1=$(/root/tempest/system/get_yaml_field.py $CONFIG sourceNodeType)
+NODE_TYPE2=$(/root/tempest/system/get_yaml_field.py $CONFIG targetNodeType)
+NODE_IDENTIFIER1=$(/root/tempest/system/get_yaml_field.py $CONFIG sourceNodeIdentifierField)
+NODE_IDENTIFIER2=$(/root/tempest/system/get_yaml_field.py $CONFIG targetNodeIdentifierField)
 CSV_FILE=$(/root/tempest/system/get_yaml_field.py $CONFIG csvFile)
 
 

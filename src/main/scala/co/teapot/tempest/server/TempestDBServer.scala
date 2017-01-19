@@ -54,17 +54,17 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
 
   /** Returns the type of node reached after k steps along the given edge type starting with the given
     * initial direction. If the edge type
-    * is from nodeType1 to nodeType2, and edgeDir is EdgeDirOut, this will return nodeType1 if k is even,
-    * or nodeType2 if
+    * is from sourceNodeType to targetNodeType, and edgeDir is EdgeDirOut, this will return sourceNodeType if k is even,
+    * or targetNodeType if
     * k is odd.  The parity is swapped if edgeDir is EdgeDirIn.
     */
   def kStepNodeType(edgeType: String, edgeDir: EdgeDir, k: Int): String = {
     val edgeConfig = loadEdgeConfig(edgeType)
     if ((edgeDir == EdgeDirOut && k % 2 == 0) ||
         (edgeDir == EdgeDirIn  && k % 2 == 1)) {
-      edgeConfig.getNodeType1
+      edgeConfig.getSourceNodeType
     } else {
-      edgeConfig.getNodeType2
+      edgeConfig.getTargetNodeType
     }
   }
 
@@ -124,9 +124,9 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
 
     val edgeConfig = loadEdgeConfig(edgeType)
     val firstStepDirection =
-      if (seedType == edgeConfig.getNodeType1 | seedType == "left")
+      if (seedType == edgeConfig.getSourceNodeType | seedType == "left")
         EdgeDirOut
-      else if (seedType == edgeConfig.getNodeType2 | seedType == "right")
+      else if (seedType == edgeConfig.getTargetNodeType | seedType == "right")
         EdgeDirIn
       else
         throw new InvalidArgumentException(s"Node type $seedType invalid for edge type $edgeType")

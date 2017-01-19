@@ -112,10 +112,10 @@ Tempest was built by a team of Stanford PhDs---[Peter Lofgren](@plofgren) (lead 
         in the same order as they appear in the node file.
    As in the example files `example/follows.yaml` and `example/has_read.yaml`, each `<edge_type>.yaml` file should have the following fields:
       - csvFile: the headerless csv file, for example '/mnt/home/data/has_read.csv'
-      - nodeType1: The type of node on the left of each edge, for example 'user'
-      - nodeType2: The type of node on the right of each edge, for example 'book'
-      - nodeIdentifierField1: the attribute in nodeType1 which this csv file uses to identify nodes, for example 'username'
-      - nodeIdentifierField2: the attribute in nodeType2 which this csv file uses to identify nodes, for example 'id'
+      - sourceNodeType: The type of node on the left of each edge, for example 'user'
+      - targetNodeType: The type of node on the right of each edge, for example 'book'
+      - sourceNodeIdentifierField: the attribute in sourceNodeType which this csv file uses to identify nodes, for example 'username'
+      - targetNodeIdentifierField: the attribute in targetNodeType which this csv file uses to identify nodes, for example 'id'
    Tempest internally refers to nodes using a 32-bit int `id` attribute.  If a node type already has
    an `id` field, Tempest will use that; otherwise Temepst will create an auto-incrementing `id` 
    attribute for that node type.  Node `id`s are only meaninful within a node type, for example,
