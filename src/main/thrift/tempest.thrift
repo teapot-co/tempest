@@ -18,6 +18,11 @@ namespace py tempest_graph
 typedef i32 int
 typedef i64 long
 
+struct Node {
+  1: required string type;
+  2: required string id;
+}
+
 exception InvalidNodeIdException {
   1:string message
 }
@@ -39,20 +44,21 @@ struct BidirectionalPPRParams {
 }
 
 service TempestGraphService {
-  int outDegree(1:string edgeType, 2:int id) throws (1:InvalidNodeIdException ex1, 2:InvalidArgumentException ex2)
-  int inDegree(1:string edgeType, 2:int id) throws (1:InvalidNodeIdException ex1, 2:InvalidArgumentException ex2)
+  int outDegree(1:string edgeType, 2:Node node) throws (1:InvalidNodeIdException ex1, 2:InvalidArgumentException ex2)
+  int inDegree(1:string edgeType, 2:Node node) throws (1:InvalidNodeIdException ex1, 2:InvalidArgumentException ex2)
 
-  list<int> outNeighbors(1:string edgeType, 2:int id) throws (1:InvalidNodeIdException ex1, 2:InvalidArgumentException ex2)
-  list<int> inNeighbors(1:string edgeType, 2:int id) throws (1:InvalidNodeIdException ex1, 2:InvalidArgumentException ex2)
+  list<Node> outNeighbors(1:string edgeType, 2:Node node) throws (1:InvalidNodeIdException ex1, 2:InvalidArgumentException ex2)
+  list<Node> inNeighbors(1:string edgeType, 2:Node node) throws (1:InvalidNodeIdException ex1, 2:InvalidArgumentException ex2)
 
   /* Returns the ith out-neighbor of the given node.
-     Throws an exception unless 0 <= i < outDegree(id).
+     Throws an exception unless 0 <= i < outDegree(node).
    */
-  int outNeighbor(1:string edgeType, 2:int id, 3:int i) throws (1:InvalidNodeIdException ex1, 2:InvalidIndexException ex2, 3:InvalidArgumentException ex3)
+  Node outNeighbor(1:string edgeType, 2:Node node, 3:int i) throws (1:InvalidNodeIdException ex1, 2:InvalidIndexException ex2, 3:InvalidArgumentException ex3)
+
   /* Returns the ith in-neighbor of the given node.
-       Throws an exception unless 0 <= i < inDegree(id).
+       Throws an exception unless 0 <= i < inDegree(node).
    */
-  int inNeighbor(1:string edgeType, 2:int id, 3:int i) throws (1:InvalidNodeIdException ex1, 2:InvalidIndexException ex2, 3:InvalidArgumentException ex3)
+  Node inNeighbor(1:string edgeType, 2:Node node, 3:int i) throws (1:InvalidNodeIdException ex1, 2:InvalidIndexException ex2, 3:InvalidArgumentException ex3)
 
   int maxNodeId(1:string edgeType) throws (1:InvalidArgumentException ex)
 
@@ -61,13 +67,14 @@ service TempestGraphService {
   long edgeCount(1:string edgeType) throws (1:InvalidArgumentException ex)
 
 
-  // Estimates the PPR of the given target personId personalized to the uniform distribution over
-  // the seed personIds.  If the PPR is significant (currently meaning >= 0.25 / maxNodeId), the
+  // Estimates the PPR of the given target node personalized to the uniform distribution over
+  // the seed nodes.  If the PPR is significant (currently meaning >= 0.25 / maxNodeId), the
   // estimate will have relative error less than the given relative error (in expectation).
   // If the PPR is not significant, returns 0.0.
   double pprSingleTarget(1:string edgeType,
-                         2:list<int> seedNodeIds,
-                         3:int targetNodeId,
+                         2:list<Node> seedNodes,
+                         3:Node targetNode,
                          4:BidirectionalPPRParams biPPRParams)
     throws (1:InvalidNodeIdException ex1, 2:InvalidArgumentException ex2)
 }
+

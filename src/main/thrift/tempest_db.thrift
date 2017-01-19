@@ -32,11 +32,6 @@ exception SQLException {
 
 exception UnequalListSizeException {}
 
-struct Node {
-  1: required string type;
-  2: required i32 id;
-}
-
 struct MonteCarloPageRankParams {
   1: required i32 numSteps; // The number of Monte Carlo steps
   2: required double resetProbability;
@@ -58,29 +53,31 @@ enum DegreeFilterTypes { // Filters to apply to the results of a call that retri
 
 typedef map<DegreeFilterTypes, i32> DegreeFilter
 
+typedef tempest.Node Node
+
 service TempestDBService extends tempest.TempestGraphService {
   # Returns a map from node id to attribute, with null attributes omitted.
   # Returns attributes in "JSON" format, meaning simply that strings are wrapped in double-quotes,
   # booleans are "true" or "false", and ints are returned as standard base-10 strings.
   # Our client wrappers should provide convenience methods to convert to natural client-side types,
   # and to allow a single nodeId argument.
-  map<i64, string> getMultiNodeAttributeAsJSON(1:string nodeType, 2:list<i64> nodeIds, 3:string attributeName)
+  map<Node, string> getMultiNodeAttributeAsJSON(1:list<Node> nodes, 2:string attributeName)
     throws (1: UndefinedGraphException error1, 2:UndefinedAttributeException error2)
 
   // TODO: re-enable setNodeAttribute once we enable mutable edges also
   //void setNodeAttribute(1:i64 nodeId, 2:string attributeName, 3:string attributeValue)
 
-  list<i64> nodes(1:string nodeType, 2:string sqlClause)
+  list<Node> nodes(1:string nodeType, 2:string sqlClause)
     throws (1: UndefinedGraphException error1, 2: SQLException error2)
 
-  list<i64> kStepOutNeighborsFiltered(1:string edgeType, 2:i64 sourceId, 3:i32 k,
+  list<Node> kStepOutNeighborsFiltered(1:string edgeType, 2:Node source, 3:i32 k,
                                       4:string sqlClause,
                                       5:DegreeFilter filter,
                                       6:bool alternating)
     throws (1: UndefinedGraphException error1, 2: tempest.InvalidArgumentException error2,
             3: SQLException error3, 4: tempest.InvalidNodeIdException error4)
 
-  list<i64> kStepInNeighborsFiltered(1:string edgeType, 2:i64 sourceId, 3:i32 k,
+  list<Node> kStepInNeighborsFiltered(1:string edgeType, 2:Node source, 3:i32 k,
                                      4:string sqlClause,
                                      5:DegreeFilter filter,
                                      6:bool alternating)
@@ -93,7 +90,7 @@ service TempestDBService extends tempest.TempestGraphService {
   # b) "left", meaning sourceNodeType for the given edgeType
   # c) "right", meaning targetNodeType for the given edgeType
   # d) "any" to allow any node (which only makes sense if the edgeType has the same sourceNodeType and targetNodeType)
-  map<i64, double> ppr(1:string edgeType, 2:list<i64> seeds, 3:string seedType, 4:string targetType,
+  map<Node, double> ppr(1:string edgeType, 2:list<Node> seeds,
                        5:MonteCarloPageRankParams pageRankParams)
     throws (1: UndefinedGraphException error1, 2: tempest.InvalidNodeIdException error2,
             3: tempest.InvalidArgumentException error3)
@@ -108,7 +105,7 @@ service TempestDBService extends tempest.TempestGraphService {
   // Add the given edges to the graph.
   // Since thrift doesn't have pairs, pass in parallel lists, which must have equal size or an
   // exception will be thrown.
-  void addEdges(1:string edgeType, 2:list<i64> ids1,
-                3:list<i64> ids2)
+  void addEdges(1:string edgeType, 2:list<string> ids1,
+                3:list<string> ids2)
     throws (1: UndefinedGraphException error1, 2: UnequalListSizeException error2);
 }
