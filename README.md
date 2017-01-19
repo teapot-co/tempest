@@ -110,16 +110,13 @@ Tempest was built by a team of Stanford PhDs---[Peter Lofgren](@plofgren) (lead 
       - nodeAttributes A list of name and type for each attribute in your csv file. Attributes type 
         may only be 'string', 'int' (32 bit), 'bigint' (64 bit), or 'boolean'. Enter the attributes
         in the same order as they appear in the node file.
+      - One of your nodeAttributes must be id with type string.  This id mut be unique across all nodes of this type, for example
+        username or unique book id.
    As in the example files `example/follows.yaml` and `example/has_read.yaml`, each `<edge_type>.yaml` file should have the following fields:
-      - csvFile: the headerless csv file, for example '/mnt/home/data/has_read.csv'
+      - csvFile: the headerless csv file, for example '/mnt/home/data/has_read.csv'.  Every line of this file must be a pair "sourceId,targetId"
+        where sourceId matches some id of sourceNodeType, and targetId matches the id of some node in targetNodeType
       - sourceNodeType: The type of node on the left of each edge, for example 'user'
       - targetNodeType: The type of node on the right of each edge, for example 'book'
-      - sourceNodeIdentifierField: the attribute in sourceNodeType which this csv file uses to identify nodes, for example 'username'
-      - targetNodeIdentifierField: the attribute in targetNodeType which this csv file uses to identify nodes, for example 'id'
-   Tempest internally refers to nodes using a 32-bit int `id` attribute.  If a node type already has
-   an `id` field, Tempest will use that; otherwise Temepst will create an auto-incrementing `id` 
-   attribute for that node type.  Node `id`s are only meaninful within a node type, for example,
-   user 3 and book 3 refer to completely different nodes.
 4. Convert your graph to binary and load your nodes and edges into Postgres by running
    `create_node_type.sh <node_type>` or `create_edge_type.sh <edge_type>` for each node or edge type.
    For example, to load the example graphs, from inside docker run

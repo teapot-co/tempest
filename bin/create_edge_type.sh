@@ -30,18 +30,16 @@ fi
 
 NODE_TYPE1=$(/root/tempest/system/get_yaml_field.py $CONFIG sourceNodeType)
 NODE_TYPE2=$(/root/tempest/system/get_yaml_field.py $CONFIG targetNodeType)
-NODE_IDENTIFIER1=$(/root/tempest/system/get_yaml_field.py $CONFIG sourceNodeIdentifierField)
-NODE_IDENTIFIER2=$(/root/tempest/system/get_yaml_field.py $CONFIG targetNodeIdentifierField)
 CSV_FILE=$(/root/tempest/system/get_yaml_field.py $CONFIG csvFile)
 
 
 echo "Creating edge identifier -> id files..."
-ID_MAP1="/tmp/${NODE_TYPE1}_${NODE_IDENTIFIER1}_id.csv"
-ID_MAP2="/tmp/${NODE_TYPE2}_${NODE_IDENTIFIER2}_id.csv"
-# TODO (optimization): Don't create id map if the node identifier field is already id
+ID_MAP1="/tmp/${NODE_TYPE1}_id_tempest_id.csv"
+ID_MAP2="/tmp/${NODE_TYPE2}_id_tempset_id.csv"
+
 /root/tempest/system/start_postgres.sh
-sudo -Hiu postgres psql tempest postgres -c "COPY (SELECT ${NODE_IDENTIFIER1}, id FROM ${NODE_TYPE1}_nodes) TO '${ID_MAP1}' DELIMITER ',' CSV"
-sudo -Hiu postgres psql tempest postgres -c "COPY (SELECT ${NODE_IDENTIFIER2}, id FROM ${NODE_TYPE2}_nodes)  TO '${ID_MAP2}' DELIMITER ',' CSV"
+sudo -Hiu postgres psql tempest postgres -c "COPY (SELECT id, tempest_id FROM ${NODE_TYPE1}_nodes) TO '${ID_MAP1}' DELIMITER ',' CSV"
+sudo -Hiu postgres psql tempest postgres -c "COPY (SELECT id, tempest_id FROM ${NODE_TYPE2}_nodes)  TO '${ID_MAP2}' DELIMITER ',' CSV"
 
 
 echo "Relabeling edges to ids..."

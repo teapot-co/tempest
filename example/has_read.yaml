@@ -2,5 +2,3 @@
 csvFile: /root/tempest/example/has_read.csv
 sourceNodeType: user
 targetNodeType: book
-sourceNodeIdentifierField: username
-targetNodeIdentifierField: id
