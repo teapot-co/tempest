@@ -167,6 +167,9 @@ class TempestClient:
             params.maxResultCount = max_results
         return self.__with_retries(lambda: self.__thrift_client.ppr(edge_type, seeds, seed_node_type, target_node_type, params))
 
+    def connected_component(self, source, edge_types, max_size = (1 << 31) - 1):
+        return self.__with_retries(lambda: self.__thrift_client.connectedComponent(source, edge_types, max_size))
+
     def nodes(self, graph_name, filter):
         """Return all node ids satisfying the given SQL-like filter clause"""
         return self.__with_retries(lambda: self.__thrift_client.nodes(graph_name, filter))

@@ -157,6 +157,12 @@ module Teapot
         }
       end
 
+      def connected_component(source, edge_types, max_size = (1 << 31) - 1)
+        @thrift_client.with_retries { |executor|
+          executor.connectedComponent(source, edge_types, max_size)
+        }
+      end
+
       def nodes(node_type, sql_clause)
         @thrift_client.with_retries { |executor|
           executor.nodes(node_type, sql_clause)
@@ -178,4 +184,12 @@ end
 
 def get_empty_filter()
   Hash.new
+end
+
+def node_to_pair(node)
+  [node.id, node.type]
+end
+
+def make_node(type, id)
+  Teapot::TempestDB::Node.new({'type': type, 'id': id})
 end

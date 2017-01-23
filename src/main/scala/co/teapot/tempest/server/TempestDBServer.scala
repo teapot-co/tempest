@@ -20,10 +20,12 @@ import java.{lang, util}
 import co.teapot.tempest._
 import co.teapot.tempest.algorithm.MonteCarloPPR
 import co.teapot.tempest.graph._
+import co.teapot.tempest.typedgraph.{SimpleTypedGraph, UnionTypedGraph}
 import co.teapot.tempest.util.{CollectionUtil, ConfigLoader, LogUtil}
 import co.teapot.thriftbase.TeapotThriftLauncher
 import org.apache.thrift.TProcessor
 
+import scala.collection.mutable
 import scala.collection.JavaConverters._
 
 /** Given a graph, this thrift server responds to requests about that graph. */
@@ -43,13 +45,17 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
   def nodes(graphName: String, sqlClause: String): util.List[lang.Long] =
     CollectionUtil.toJava(databaseClient.nodeIdsFiltered(graphName, sqlClause))
 
-
   def loadEdgeConfig(edgeType: String): EdgeTypeConfig = {
     val edgeConfigFile = new File(config.graphConfigDirectoryFile, s"$edgeType.yaml")
     if (! edgeConfigFile.exists()) {
       throw new UndefinedGraphException(s"Graph config file ${edgeConfigFile.getCanonicalPath} not found")
     }
     ConfigLoader.loadConfig[EdgeTypeConfig](edgeConfigFile)
+  }
+
+  def typedGraph(edgeType: String): SimpleTypedGraph = {
+    val edgeConfig = loadEdgeConfig(edgeType)
+    SimpleTypedGraph(edgeConfig.sourceNodeType, edgeConfig.targetNodeType, graph(edgeType))
   }
 
   /** Returns the type of node reached after k steps along the given edge type starting with the given
@@ -177,6 +183,26 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
     if (params.isSetMaxResultCount && params.maxResultCount <= 0) {
       throw new InvalidArgumentException("maxResultCount must be positive")
     }
+  }
+
+  override def connectedComponent(source: Node, edgeTypes: util.List[String], maxSize: Int): util.List[Node] = {
+    val typedGraphs = edgeTypes.asScala map typedGraph
+    val unionGraph = new UnionTypedGraph(typedGraphs)
+    val reachedNodes = new mutable.HashSet[Node]()
+    val nodesToVisit = new util.ArrayDeque[Node]()
+    reachedNodes += source
+    nodesToVisit.push(source)
+    while (! nodesToVisit.isEmpty && reachedNodes.size < maxSize) {
+      val u = nodesToVisit.pop()
+      for (v <- unionGraph.neighbors(u)) {
+        if (! reachedNodes.contains(v) && reachedNodes.size < maxSize) {
+          reachedNodes += v
+          nodesToVisit.push(v)
+        }
+      }
+    }
+
+    util.Arrays.asList(reachedNodes.toArray: _*)
   }
 
   override def addEdges(edgeType: String,
