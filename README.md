@@ -85,55 +85,67 @@ Tempest was built by a team of Stanford PhDs---[Peter Lofgren](@plofgren) (lead 
 
 
 ## Using Tempest DB (alpha)
-1. Tempest's dependencies (including postgres and java) are neatly packaged in a Docker container.  To
-use Tempest DB, install docker on your machine, then run
+1. Tempest's dependencies (including postgres and java) are neatly 
+   packaged in a Docker container.  Tempest stores your data in a given 
+   directory outside docker, so you can upgrade tempest without losing your data.  To
+   use Tempest DB, install docker on your machine, then run
    
-   `docker run -t -i -v ~/:/mnt/home/ -p 127.0.0.1:10001:10001 teapotco/tempestdb:v0.12.0 bash`
+   `docker run -t -i -v $YOUR_DATA_DIR:/data -v ~/:/mnt/home/ -p 127.0.0.1:10001:10001 teapotco/tempestdb:0.12.3 bash`
    (Mounting your home directory using `-v ~/:/mnt/home/` is optional, but could be useful for reading
-   your graph files in docker.)  Inside docker, if you've cloned tempest on the host file system, 
-   symlink `~/tempest` to the location under `/mnt/home/` where tempest is cloned.  Otherwise
-   inside docker run `cd; git clone https://github.com/teapot-co/tempest.git`.
-2. You need three files to fire up the Tempest server with your graph: 
-      a) a data file for nodes,
-      b) a data file for edges, and
-      c) a config file.
+   your graph files from docker.)  The docker image contains a built release of Tempest; if you'd like to run against
+   a tempest repo you've checked out locally (say at ~/tempest), add `-v ~/tempest/:/root/tempest/` to the above command.
+2. You need three types of file to fire up the Tempest server with your graph: 
+      a) a csv file for each node type,
+      b) a csv file for each edge type, and
+      c) a folder of config files (one file for each node type and each edge type).
 
-  Tempest expects a node file and an edge file in a csv format without headers. To see the format of 
-  the node file and the edge file expected by Tempest, look at `/root/tempest/example/example_nodes.csv`
-  and `/root/tempest/example/example_edges.csv`.
+  To see the format of the headerless node csv and the edge csv expected by Tempest, look at `example/users.csv`
+  and `follows.csv`.
   
-3. Once you have your nodes and edges in this format, copy the config file `/root/tempest/example/example_graph.yaml`
-   to a new file, for example `/root/users_graph.yaml`.   The following fields should be changed:
-```
-graph_name # This is the name of your new database. E.g. "users". Database and attribute names may contain alphanumeric characers and '_', and must start with an alphabet character (a-z).
-node_file # for example "/mnt/home/data/users.csv"
-node_attributes #Enter the name and type of each attribute in your node_file.csv. Attributes type may only be 'string', 'int' (32 bit), 'bigint' (64 bit), or 'boolean'. Enter the attributes in the same order as they appear in the node file.
-edge_file # for example "/mnt/home/data/edges.csv"
-node_identifier_field # This is the name of the attribute in the node file that is used to identify edges in the edge file. 
-For example, if your edge file looks like:
-        > alice,bob
-        > bob,carol
-        where, 'alice', 'bob', etc. are usernames from the node file, then the node_identifier_field should be set to 'username'.
-database_caching_ram # This is RAM used by Postgres to cache node attributes.  Additional RAM is used by Tempest to store the edges in RAM. Set it to roughly 1/4 of your system's RAM.
-```   
+3. Once you have your node and edge files in csv format, create a config file in `$YOUR_DATA_DIR/config/`
+   for each node and edge type.  The name of the config file must match the name of the node or edge type,
+   so for example if you have a node type called `user` there must be a file in `$YOUR_DATA_DIR/config/user.yaml`.
+   As in the example files `example/user.yaml` and `example/book.yaml`, each `<node_type>.yaml` file should have the following fields:
+      - csvFile: the headerless csv file, for example "/mnt/home/data/users.csv"
+      - nodeAttributes A list of name and type for each attribute in your csv file. Attributes type 
+        may only be 'string', 'int' (32 bit), 'bigint' (64 bit), or 'boolean'. Enter the attributes
+        in the same order as they appear in the node file.
+   As in the example files `example/follows.yaml` and `example/has_read.yaml`, each `<edge_type>.yaml` file should have the following fields:
+      - csvFile: the headerless csv file, for example '/mnt/home/data/has_read.csv'
+      - nodeType1: The type of node on the left of each edge, for example 'user'
+      - nodeType2: The type of node on the right of each edge, for example 'book'
+      - nodeIdentifierField1: the attribute in nodeType1 which this csv file uses to identify nodes, for example 'username'
+      - nodeIdentifierField2: the attribute in nodeType2 which this csv file uses to identify nodes, for example 'id'
+   Tempest internally refers to nodes using a 32-bit int `id` attribute.  If a node type already has
+   an `id` field, Tempest will use that; otherwise Temepst will create an auto-incrementing `id` 
+   attribute for that node type.  Node `id`s are only meaninful within a node type, for example,
+   user 3 and book 3 refer to completely different nodes.
 4. Convert your graph to binary and load your nodes and edges into Postgres by running
+   `create_node_type.sh <node_type>` or `create_edge_type.sh <edge_type>` for each node or edge type.
+   For example, to load the example graphs, from inside docker run
    
-   `create_graph.sh <your new config file>`
+   ```
+   # Note: normally you'd create config files outside docker, directly in $YOUR_DATA_DIR
+   mkdir /data/config/
+   cp /root/tempest/example/{user,book,follows,has_read}.yaml /data/config/
+   create_node_type.sh user
+   create_node_type.sh book
+   create_edge_type.sh follows
+   create_edge_type.sh has_read
+   ```
    
    Depending on the size of your initial graph, this step may take up to a few hours. For example, for a graph of 1B edges, this step will take about 4 hours. We realize that is a long time to wait to get your hands on Tempest, but this is one-time hassle: once Tempest is initialized, stopping/starting only takes a few seconds.
-
 5. Start the server
-   
-   `start_server.sh /root/tempest/config/graph.yaml`
-   
+   `start_server.sh`
 6. Now you can connect to the server from inside or outside docker.  If outside docker, first run 
    `pip install tempest_db`. Then in `ipython` you can run, for example
+   
    ```
    import tempest_db
    c = tempest_db.TempestClient()
-   alice_id = c.nodes("example", "username = 'alice'")[0]
-   alice_neighbors = c.out_neighbors(alice_id)
-   alice_neighbor_names = c.multi_node_attribute("example", alice_neighbors, "name")
+   alice_id = c.nodes("user", "username = 'alice'")[0]
+   alice_book_ids = c.out_neighbors("has_read", alice_id)
+   alice_book_titles = c.multi_node_attribute("book", alice_book_ids, "title")
    ```
 
 ### Recommended Machine Sizes
@@ -222,10 +234,10 @@ bin/start_graph_only_server.sh test_graph.dat
 ```
 The server runs by default on TCP port 10001, but you can change this, for example
 ```
-bin/start_server.sh test_graph.dat 12345
+bin/start_graph_only_server.shtest_graph.dat 12345
 ```
 
-Finally,  connect to the server from python.  First run `pip install tempest_db`.  Then
+Finally, connect to the server from python.  First run `pip install tempest_db`.  Then
 from the python console:
 ```
 >>> import tempest_db

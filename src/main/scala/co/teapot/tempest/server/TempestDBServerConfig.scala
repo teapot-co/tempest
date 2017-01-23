@@ -14,9 +14,15 @@
 
 package co.teapot.tempest.server
 
+import java.io.File
+
 import scala.beans.BeanProperty
 
-// We'll probably need this at some point, so we keep it for now as an empty class.
 class TempestDBServerConfig {
+  @BeanProperty var graphDirectory: String = ""
+  @BeanProperty var graphConfigDirectory: String = ""
 
+  // These are lazy vals to allow the config to load before they are evaluated.
+  lazy val graphDirectoryFile: File = new File(graphDirectory)
+  lazy val graphConfigDirectoryFile: File = new File(graphConfigDirectory)
 }

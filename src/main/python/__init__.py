@@ -104,40 +104,40 @@ class TempestClient:
         """ Return the number of nodes."""
         return self.__with_retries(lambda: self.__thrift_client.nodeCount())
 
-    def edge_count(self):
+    def edge_count(self, edge_type):
         """ Return the number of edges."""
-        return self.__with_retries(lambda: self.__thrift_client.edgeCount())
+        return self.__with_retries(lambda: self.__thrift_client.edgeCount(edge_type))
 
     def max_node_id(self):
         """ Return the largest node id."""
         return self.__with_retries(lambda: self.__thrift_client.maxNodeId())
 
-    def out_degree(self, node_id):
+    def out_degree(self, edge_type, node_id):
         """ Return the out-degree of the given node_id."""
-        return self.__with_retries(lambda: self.__thrift_client.outDegree(node_id))
+        return self.__with_retries(lambda: self.__thrift_client.outDegree(edge_type, node_id))
 
-    def out_neighbors(self, node_id):
+    def out_neighbors(self, edge_type, node_id):
         """ Return the out-neighbors of the given node_id."""
-        return self.__with_retries(lambda: self.__thrift_client.outNeighbors(node_id))
+        return self.__with_retries(lambda: self.__thrift_client.outNeighbors(edge_type, node_id))
 
-    def out_neighbor(self, node_id, i):
+    def out_neighbor(self, edge_type, node_id, i):
         """ Return the ith out-neighbor of the given node_id."""
-        return self.__with_retries(lambda: self.__thrift_client.outNeighbor(node_id, i))
+        return self.__with_retries(lambda: self.__thrift_client.outNeighbor(edge_type, node_id, i))
 
-    def in_degree(self, node_id):
+    def in_degree(self, edge_type, node_id):
         """ Return the in-degree of the given node_id."""
-        return self.__with_retries(lambda: self.__thrift_client.inDegree(node_id))
+        return self.__with_retries(lambda: self.__thrift_client.inDegree(edge_type, node_id))
 
-    def in_neighbors(self, node_id):
+    def in_neighbors(self, edge_type, node_id):
         """ Return the in-neighbors of the given node_id."""
-        return self.__with_retries(lambda: self.__thrift_client.inNeighbors(node_id))
+        return self.__with_retries(lambda: self.__thrift_client.inNeighbors(edge_type, node_id))
 
-    def in_neighbor(self, node_id, i):
+    def in_neighbor(self, edge_type, node_id, i):
         """ Return the ith in-neighbor of the given node_id."""
-        return self.__with_retries(lambda: self.__thrift_client.inNeighbor(node_id, i))
+        return self.__with_retries(lambda: self.__thrift_client.inNeighbor(edge_type, node_id, i))
 
     # Private for now
-    def _ppr_single_target(self, seeds, target, relative_error=0.1, reset_probability=0.3,
+    def _ppr_single_target(self, edge_type, seeds, target, relative_error=0.1, reset_probability=0.3,
                           min_probability=None):
         """Return the Personalized PageRank of the target node id personalized to the seed node ids.
         If the PPR is greater than min_probability (default 0.25 / node_count),
@@ -147,27 +147,28 @@ class TempestClient:
                                         resetProbability=reset_probability)
         if min_probability:
             params.minProbability = min_probability
-        return self.__with_retries(lambda: self.__thrift_client.pprSingleTarget(seeds, target, params))
+        return self.__with_retries(lambda: self.__thrift_client.pprSingleTarget(edge_type, seeds, target, params))
 
 
     # TempestDB methods
-    def ppr(self, graph_name, seeds, num_steps=100000, reset_probability=0.3, max_results = None):
+    def ppr(self, edge_type, seeds, num_steps=100000, reset_probability=0.3, max_results = None):
         """Return a dictionary from node id to Personalized PageRank, personalized to the
         seed node ids.  Compute this by doing the given number of random
         walks."""
         params = MonteCarloPageRankParams(numSteps=num_steps, resetProbability=reset_probability)
         if max_results:
             params.maxResultCount = max_results
-        return self.__with_retries(lambda: self.__thrift_client.ppr(graph_name, seeds, params))
+        return self.__with_retries(lambda: self.__thrift_client.ppr(edge_type, seeds, params))
 
     def nodes(self, graph_name, filter):
         """Return all node ids satisfying the given SQL-like filter clause"""
         return self.__with_retries(lambda: self.__thrift_client.nodes(graph_name, filter))
 
-    def multi_hop_out_neighbors(self, graph_name, source_id, max_hops, filter="",
+    def multi_hop_out_neighbors(self, edge_type, source_id, max_hops, filter="",
                                 max_out_degree=None, max_in_degree=None,
-                                min_out_degree=None, min_in_degree=None):
-        """ Return ids of all nodes within max_hops out-neighbor steps from the source id,
+                                min_out_degree=None, min_in_degree=None,
+                                alternating=True):
+        """ Return ids of all nodes which are max_hops out-neighbor steps from the source id,
         optionally filtered by the given SQL filter max/min degree bounds."""
         degreeFilter={}
         if max_out_degree: degreeFilter[DegreeFilterTypes.OUTDEGREE_MAX] = max_out_degree
@@ -175,12 +176,13 @@ class TempestClient:
         if max_in_degree: degreeFilter[DegreeFilterTypes.INDEGREE_MAX] = max_in_degree
         if min_in_degree: degreeFilter[DegreeFilterTypes.INDEGREE_MIN] = min_in_degree
         return self.__with_retries(lambda:
-            self.__thrift_client.outNeighborsWithinKStepsFiltered(graph_name, source_id, max_hops, filter, degreeFilter))
+            self.__thrift_client.kStepOutNeighborsFiltered(edge_type, source_id, max_hops, filter, degreeFilter, alternating))
 
-    def multi_hop_in_neighbors(self, graph_name, source_id, max_hops, filter="",
-                                max_out_degree=None, max_in_degree=None,
-                                min_out_degree=None, min_in_degree=None):
-        """ Return ids of all nodes within max_hops in-neighbor steps from the source id,
+    def multi_hop_in_neighbors(self, edge_type, source_id, max_hops, filter="",
+                               max_out_degree=None, max_in_degree=None,
+                               min_out_degree=None, min_in_degree=None,
+                               alternating=True):
+        """ Return ids of all nodes which are max_hops in-neighbor steps from the source id,
         optionally filtered by the given SQL filter max/min degree bounds."""
         degreeFilter={}
         if max_out_degree: degreeFilter[DegreeFilterTypes.OUTDEGREE_MAX] = max_out_degree
@@ -188,7 +190,7 @@ class TempestClient:
         if max_in_degree: degreeFilter[DegreeFilterTypes.INDEGREE_MAX] = max_in_degree
         if min_in_degree: degreeFilter[DegreeFilterTypes.INDEGREE_MIN] = min_in_degree
         return self.__with_retries(lambda:
-            self.__thrift_client.inNeighborsWithinKStepsFiltered(graph_name, source_id, max_hops, filter, degreeFilter))
+            self.__thrift_client.kStepInNeighborsFiltered(edge_type, source_id, max_hops, filter, degreeFilter, alternating))
 
     def node_attribute(self, graph_name, node_id, attribute_name):
         # get will return None if attribute_name isn't found (e.g. if it was null in the database)
@@ -205,13 +207,13 @@ class TempestClient:
         """Close the TCP connection to the server."""
         self.__thrift_client.close()
 
-    def add_edges(self, graph_name,  ids1, ids2):
+    def add_edges(self, edge_type,  ids1, ids2):
         """ Adds edges from corresponding items in the given parallel lists to the graph. """
-        self.__thrift_client.addEdges(graph_name, ids1, ids2)
+        self.__thrift_client.addEdges(edge_type, ids1, ids2)
 
-    def add_edge(self, graph_name,  id1, id2):
+    def add_edge(self, edge_type,  id1, id2):
         """ Adds the given edge to the graph. """
-        self.add_edges(graph_name, [id1], [id2])
+        self.add_edges(edge_type, [id1], [id2])
 
 
 def jsonToValue(json_attribute):

@@ -1,0 +1,8 @@
+# Must be a file of lines with white-space separated pairs, for example "alice,bob\nbob,carol" represents edges from alice to bob and from bob to carol
+csvFile: /root/tempest/example/follows.csv
+
+nodeType1: user
+nodeType2: user
+# nodeIdentifierField1 is the attribute in nodeType1 which this csv file uses to identify nodes
+nodeIdentifierField1: username
+nodeIdentifierField2: username

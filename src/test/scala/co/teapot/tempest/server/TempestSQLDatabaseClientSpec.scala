@@ -47,15 +47,15 @@ class TempestSQLDatabaseClientSpec extends FlatSpec with Matchers {
 
       // TODO: Eventually add and test support for adding new nodes
       //c.withConnection { implicit connection =>
-      //  SQL("DELETE FROM graph1_nodes WHERE tempest_id = 42").execute()
+      //  SQL("DELETE FROM graph1_nodes WHERE id = 42").execute()
       //}
 
       // Test edges creation TODO
       //c.addEdges("graph1", Array(10L, 20L), Array(11L, 21L))
       //c.withConnection { implicit connection =>
-      //  SQL("select tempest_id2 from edges WHERE tempest_id1 = 10").as(SqlParser.int(1).*) should contain (11)
-      //  SQL("select tempest_id1 from edges WHERE tempest_id2 = 21").as(SqlParser.int(1).*) should contain (20)
-      //  SQL("DELETE FROM edges WHERE tempest_id2 in (20, 21)").execute()
+      //  SQL("select id2 from edges WHERE id1 = 10").as(SqlParser.int(1).*) should contain (11)
+      //  SQL("select id1 from edges WHERE id2 = 21").as(SqlParser.int(1).*) should contain (20)
+      //  SQL("DELETE FROM edges WHERE id2 in (20, 21)").execute()
       //}
 
       // Test graph2 returns independent results
