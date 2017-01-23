@@ -92,7 +92,7 @@ object MonteCarloPPR {
                           threadCount: Int):
   collection.Map[Int, Double] = {
     val paramsForThread = params.deepCopy()
-    paramsForThread.setNumSteps(params.getNumSteps / threadCount) // Each thread will do it's share of the steps.
+    paramsForThread.setNumSteps(params.getNumSteps / threadCount) // Each thread will do its share of the steps.
     paramsForThread.setMinReportedVisits(0) // Threads shouldn't filter before counts have been averaged.
     val pprMapFutures = (0 until threadCount) map { i =>
       Future[collection.Map[Int, Double]] {
