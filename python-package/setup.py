@@ -24,7 +24,7 @@ setup(
         # the version across setup.py and the project code, see
         # https://packaging.python.org/en/latest/single_source_version.html
         # TODO: can we read this from a file to avoid repeating ourselves?
-        version='0.12.0',
+        version='0.13.0',
 
         description = 'Python client for the Tempest Graph Database.',
 

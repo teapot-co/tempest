@@ -32,6 +32,11 @@ exception SQLException {
 
 exception UnequalListSizeException {}
 
+struct Node {
+  1: required string type;
+  2: required i32 id;
+}
+
 struct MonteCarloPageRankParams {
   1: required i32 numSteps; // The number of Monte Carlo steps
   2: required double resetProbability;
@@ -40,8 +45,8 @@ struct MonteCarloPageRankParams {
   4: optional i32 minReportedVisits;
   5: optional i32 maxResultCount; // If set, only the top maxResultCount nodes will be returned.
 
-  // If true, treat graph as undirected; else use out-neighbors only
-  6: optional bool undirectGraph = false;
+  // If true, alternate between forward and reverse steps
+  6: optional bool alternatingWalk = true;
 }
 
 enum DegreeFilterTypes { // Filters to apply to the results of a call that retrieves node neighborhoods
@@ -83,8 +88,20 @@ service TempestDBService extends tempest.TempestGraphService {
             3: SQLException error3, 4: tempest.InvalidNodeIdException error4)
 
 
-  map<i64, double> ppr(1:string edgeType, 2:list<i64> seeds,
-                       3:MonteCarloPageRankParams pageRankParams)
+  # Note: seedType and targetType must be one of
+  # a) the name of the type of one of the endpoints of the given edgeType
+  # b) "left", meaning sourceNodeType for the given edgeType
+  # c) "right", meaning targetNodeType for the given edgeType
+  # d) "any" to allow any node (which only makes sense if the edgeType has the same sourceNodeType and targetNodeType)
+  map<i64, double> ppr(1:string edgeType, 2:list<i64> seeds, 3:string seedType, 4:string targetType,
+                       5:MonteCarloPageRankParams pageRankParams)
+    throws (1: UndefinedGraphException error1, 2: tempest.InvalidNodeIdException error2,
+            3: tempest.InvalidArgumentException error3)
+
+  # Returns the list of distinct nodes reachable from the given source along any of the given edgeTypes (using both in
+  # and out edges).  Uses breadth-first-search, and returns the first maxSize nodes reached.  Set maxSize to ((1 << 31) - 1)
+  # to get the entire component.
+  list<Node> connectedComponent(1:Node source, 2:list<string> edgeTypes, 3:i32 maxSize)
     throws (1: UndefinedGraphException error1, 2: tempest.InvalidNodeIdException error2,
             3: tempest.InvalidArgumentException error3)
 

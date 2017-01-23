@@ -28,7 +28,7 @@ expect_equal(client.out_degree("follows", 1), 1)
 expect_equal(client.out_neighbors("follows", 1), [2])
 
 # I haven't verified PPR_1[3] analytically, but 0.29 seems reasonable
-expect_approx_equal(client.ppr("follows", [1], num_steps=10000, reset_probability=0.3)[3], 0.29, 0.01)
+expect_approx_equal(client.ppr("follows", [1], "user", "any", num_steps=10000, reset_probability=0.3, alternating=False)[3], 0.29, 0.01)
 
 expect_equal(client.node_attribute("user", 1, "name"), "Alice Johnson")
 expect_equal(client.node_attribute("user", 1, "login_count"), 5)
@@ -94,8 +94,8 @@ expect_equal(client.in_degree("follows", 20), 1)
 expect_equal(client.in_neighbors("follows", 20), [1])
 
 client.add_edges("has_read", [1, 2], [100, 200])
-expect_equal(client.out_neighbors("has_read", 1), [1, 3, 100])
-expect_equal(client.out_neighbors("has_read", 2), [1, 2, 3, 200])
+expect_equal(client.out_neighbors("has_read", 1), [101, 103, 100])
+expect_equal(client.out_neighbors("has_read", 2), [101, 102, 103, 200])
 expect_equal(client.in_neighbors("has_read", 200), [2])
 
 

@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'tempest_db'
-  s.version     = '0.13.0' # TODO: Read from file somehow
+  s.version     = '0.13.2' # TODO: Read from file somehow
   #s.date        = '2010-04-28'
   s.summary     = "Client for Tempest Graph Database"
   s.description = "Client for Tempest Graph Database."

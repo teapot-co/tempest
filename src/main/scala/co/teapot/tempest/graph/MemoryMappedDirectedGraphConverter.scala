@@ -18,7 +18,6 @@ import java.io._
 import java.util.Date
 import java.util.regex.Pattern
 
-import co.teapot.tempest.graph.EdgeDir.EdgeDir
 import co.teapot.tempest.util.IntArrayUtil
 import it.unimi.dsi.fastutil.ints.IntArrayList
 import co.teapot.tempest.graph.MemoryMappedDirectedGraphConstants._
@@ -85,8 +84,8 @@ class MemoryMappedDirectedGraphConverter(val edgeListFile: File,
   var edgesReadCount = 0L
   var distinctEdgeCount = 0L
   val segmentSizes = mutable.Map[EdgeDir, Array[Int]](
-    EdgeDir.Out -> Array.fill(segmentCount)(0),
-    EdgeDir.In -> Array.fill(segmentCount)(0))
+    EdgeDirOut -> Array.fill(segmentCount)(0),
+    EdgeDirIn -> Array.fill(segmentCount)(0))
 
   private def nodesPerSegment: Int = nodeCount / segmentCount
 
@@ -132,7 +131,7 @@ class MemoryMappedDirectedGraphConverter(val edgeListFile: File,
     outputStream.writeLong(distinctEdgeCount)
     outputStream.writeInt(segmentCount)
     var segmentOffset: Long = OffsetToSegmentOffsets + (segmentCount + 1) * BytesPerSegmentOffset * 2
-    for (dir <- Seq(EdgeDir.Out, EdgeDir.In)) {
+    for (dir <- Seq(EdgeDirOut, EdgeDirIn)) {
       for (segmentI <- 0 until segmentCount) {
         outputStream.writeLong(segmentOffset)
         segmentOffset += segmentSizes(dir)(segmentI)
@@ -154,7 +153,7 @@ class MemoryMappedDirectedGraphConverter(val edgeListFile: File,
     // Skip over header (which we will write later)
     outputStream.write(Array.fill(headerSize)(0: Byte))
 
-    for (dir <- Seq(EdgeDir.Out, EdgeDir.In)) {
+    for (dir <- Seq(EdgeDirOut, EdgeDirIn)) {
       for (segmentI <- 0 until segmentCount) {
         val neighborArrayLists = Array.fill(nodesPerSegment)(new IntArrayList(4))
         val inStream = createInputStream(temporaryFilesInDirection(dir)(segmentI))
@@ -163,8 +162,8 @@ class MemoryMappedDirectedGraphConverter(val edgeListFile: File,
           val id1 = inStream.readInt()
           val id2 = inStream.readInt()
           dir match {
-            case EdgeDir.Out => neighborArrayLists(id1 / segmentCount).add(id2)
-            case EdgeDir.In => neighborArrayLists(id2 / segmentCount).add(id1)
+            case EdgeDirOut => neighborArrayLists(id1 / segmentCount).add(id2)
+            case EdgeDirIn => neighborArrayLists(id2 / segmentCount).add(id1)
           }
         }
         inStream.close()
@@ -180,7 +179,7 @@ class MemoryMappedDirectedGraphConverter(val edgeListFile: File,
 
         // Store segment size
         val edgeCount = (distinctNeighborArrayLists map { _.size.toLong }).sum
-        if (dir == EdgeDir.Out)
+        if (dir == EdgeDirOut) // avoid double counting both out and in edges
           distinctEdgeCount += edgeCount
         val segmentSize = (nodesPerSegment + 1) * BytesPerNodeOffset + edgeCount * BytesPerNeighbor
         require(segmentSize < Integer.MAX_VALUE, "Segment too large for Int indexing")
@@ -218,8 +217,8 @@ class MemoryMappedDirectedGraphConverter(val edgeListFile: File,
   }
 
   private def temporaryFilesInDirection(d: EdgeDir): Array[File] = d match {
-    case EdgeDir.Out => temporaryFilesById1
-    case EdgeDir.In => temporaryFilesById2
+    case EdgeDirOut => temporaryFilesById1
+    case EdgeDirIn => temporaryFilesById2
   }
 
   private def createTemporaryFile(): File = {
@@ -256,9 +255,4 @@ class MemoryMappedDirectedGraphConverter(val edgeListFile: File,
     * of k and n <= n' < n + k. Assumes n + k < pow(2, 31). */
   private def nextMultiple(n: Int, k: Int): Int =
     (n + k - 1) / k * k
-}
-
-private[teapot] object EdgeDir extends Enumeration {
-  type EdgeDir = Value
-  val Out, In = Value
 }

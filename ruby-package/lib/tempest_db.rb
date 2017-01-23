@@ -151,9 +151,15 @@ module Teapot
         }
       end
 
-      def ppr(edge_type, seed_node_ids, mc_ppr_params)
+      def ppr(edge_type, seed_node_ids, seed_node_type, target_node_type, mc_ppr_params)
         @thrift_client.with_retries { |executor|
-          executor.ppr(edge_type, seed_node_ids, mc_ppr_params)
+          executor.ppr(edge_type, seed_node_ids, seed_node_type, target_node_type, mc_ppr_params)
+        }
+      end
+
+      def connected_component(source, edge_types, max_size = (1 << 31) - 1)
+        @thrift_client.with_retries { |executor|
+          executor.connectedComponent(source, edge_types, max_size)
         }
       end
 
@@ -178,4 +184,12 @@ end
 
 def get_empty_filter()
   Hash.new
+end
+
+def node_to_pair(node)
+  [node.id, node.type]
+end
+
+def make_node(type, id)
+  Teapot::TempestDB::Node.new({'type': type, 'id': id})
 end

@@ -18,7 +18,6 @@ package co.teapot.tempest.graph
 import scala.util.Random
 import java.util
 import scala.collection.JavaConverters._
-import java.lang.Integer
 
 /**
   * A directed graph where nodes are identified by Int ids.  Implementations may or may not allow
@@ -36,6 +35,11 @@ trait DirectedGraph {
     * */
   def inDegree(id: Int): Int
 
+  def degree(id: Int, direction: EdgeDir): Int = direction match {
+    case EdgeDirOut => outDegree(id)
+    case EdgeDirIn => inDegree(id)
+  }
+
   /** Returns the out-neighbors of the given id.
     * */
   def outNeighbors(id: Int): IndexedSeq[Int]
@@ -43,6 +47,11 @@ trait DirectedGraph {
   /** Returns the in-neighbors of the given id.
     * */
   def inNeighbors(id: Int): IndexedSeq[Int]
+
+  def neighbors(id: Int, direction: EdgeDir): IndexedSeq[Int] = direction match {
+    case EdgeDirOut => outNeighbors(id)
+    case EdgeDirIn => inNeighbors(id)
+  }
 
   /** Returns the out-neighbors of the given id as a java.util.List.
     * */
@@ -66,6 +75,11 @@ trait DirectedGraph {
     * Throws IndexOutOfBoundsException unless 0 <= i < inDegree(id).
     * */
   def inNeighbor(id: Int, i: Int): Int = inNeighbors(id)(i)
+
+  def neighbor(id: Int, i:Int, direction: EdgeDir): Int = direction match {
+    case EdgeDirOut => outNeighbor(id, i)
+    case EdgeDirIn => inNeighbor(id, i)
+  }
 
   /** All nodeIds that exist in the graph. */
   def nodeIds: Iterable[Int]
@@ -165,6 +179,17 @@ object DirectedGraph {
   def apply(edges: Iterable[(Int, Int)]): DirectedGraph =
     ConcurrentHashMapDynamicGraph(edges)
 }
+
+sealed abstract class EdgeDir {
+  def flip: EdgeDir
+}
+case object EdgeDirOut extends EdgeDir {
+  def flip: EdgeDir = EdgeDirIn
+}
+case object EdgeDirIn extends EdgeDir{
+  def flip: EdgeDir = EdgeDirOut
+}
+
 
 // Provided for legacy code which uses Node objects
 class NodeWrapper(val graph: DirectedGraph, val id: Int) {
