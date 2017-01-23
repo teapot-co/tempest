@@ -1,0 +1,4 @@
+csvFile: /root/tempest/example/books.csv
+nodeAttributes:
+  - id: int
+  - title: string

@@ -1,0 +1,10 @@
+# Must be a csv file, with fields containing commas quoted with double quotes, and double-quote character escaped as \"
+csvFile: /root/tempest/example/users.csv
+
+# The names and types of node attributes, in the same order as the columns of the initial node csv file
+# Supported types: int (32 bit), bigint (64 bit), string, boolean
+nodeAttributes:
+  - name: string
+  - username: string
+  - login_count: int
+  - premium_subscriber: boolean

@@ -94,12 +94,12 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
       validateAttributeName(graphName, attributeName)
       val idList = nodeIds.mkString("(", ",", ")")
       val statement =
-        s"SELECT tempest_id, $attributeName FROM ${nodesTable(graphName)} WHERE tempest_id IN $idList"
+        s"SELECT id, $attributeName FROM ${nodesTable(graphName)} WHERE id IN $idList"
       // apply() here is deprecated, but it's easier to use than its replacements
       val idValuePairs = SQL(statement).apply().flatMap { row =>
         // Use flatMap and Option to omit null values
         row[Option[A]](attributeName) map { value: A =>
-          (row[Long]("tempest_id"), value)
+          (row[Long]("id"), value)
         }
       }
       idValuePairs.toMap
@@ -110,11 +110,11 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
                                 attributeName: String): collection.Map[Long, String] =
     withConnection { implicit connection =>
       // For security/safety, make sure attributeName is a valid identifier
-      if (! attributeName.matches("[a-zA-Z][a-zA-Z0-9_]*"))
+      if (! attributeName.matches("[a-zA-Z0-9_]*"))
         throw new UndefinedAttributeException (s"Invalid attribute name '$attributeName'")
       val idList = nodeIds.mkString("(", ",", ")")
       val sql =
-        s"SELECT tempest_id, $attributeName FROM ${nodesTable(graphName)} WHERE tempest_id IN $idList"
+        s"SELECT id, $attributeName FROM ${nodesTable(graphName)} WHERE id IN $idList"
       val result = new mutable.HashMap[Long, String]()
 
       // Use JDBC directly rather than ANorm to access column types
@@ -147,7 +147,7 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
       //if (attributeColumns.contains(attributeName)) {
         // Note, we quote/escape attributeValue to prevent SQL injection, but can't quote attributeName
         // because its a column name.
-        SQL(s"UPDATE ${nodesTable(graphName)} SET $attributeName = {attributeValue} WHERE tempest_id = $nodeId")
+        SQL(s"UPDATE ${nodesTable(graphName)} SET $attributeName = {attributeValue} WHERE id = $nodeId")
           .on("attributeValue" -> attributeValue).execute()
       //} else {
       //  ??? // TODO: Support ad-hoc attributes
@@ -159,7 +159,7 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
                                    attributeValue: String): Seq[Long] =
     withConnection { implicit connection =>
       validateAttributeName(graphName, attributeName)
-      SQL(s"SELECT tempest_id FROM ${nodesTable(graphName)} WHERE $attributeName = {attributeValue}")
+      SQL(s"SELECT id FROM ${nodesTable(graphName)} WHERE $attributeName = {attributeValue}")
         .on("attributeValue" -> attributeValue)
         .as(SqlParser.long(1).*)
       // TODO: Measure if the performance would improve if we somehow returned Array[Long]
@@ -169,7 +169,7 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
   def nodeIdsFiltered(graphName: String, sqlClause: String): Seq[Long] =
     withConnection { implicit connection =>
       rejectUnsafeSQL(sqlClause)
-      SQL(s"SELECT tempest_id FROM ${nodesTable(graphName)} WHERE $sqlClause")
+      SQL(s"SELECT id FROM ${nodesTable(graphName)} WHERE $sqlClause")
         .as(SqlParser.long(1).*)
       // TODO: Measure if the performance would improve if we somehow returned Array[Long]
       // instead of boxed Seq[Long]
@@ -182,8 +182,8 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
                                        attributeValue: String): Seq[Long] =
     withConnection { implicit connection =>
       validateAttributeName(graphName, attributeName)
-      SQL(s"SELECT tempest_id FROM ${nodesTable(graphName)} WHERE $attributeName = {attributeValue} AND " +
-          "tempest_id IN " + nodeIds.mkString("(", ", ", ")"))
+      SQL(s"SELECT id FROM ${nodesTable(graphName)} WHERE $attributeName = {attributeValue} AND " +
+          "id IN " + nodeIds.mkString("(", ", ", ")"))
         .on("attributeValue" -> attributeValue)
         .as(SqlParser.long(1).*)
     }
@@ -192,8 +192,8 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
   def filterNodeIds(graphName: String, nodeIds: Seq[Long], sqlClause: String): Seq[Long] =
     withConnection { implicit connection =>
       rejectUnsafeSQL(sqlClause)
-      SQL(s"SELECT tempest_id FROM ${nodesTable(graphName)} WHERE $sqlClause AND " +
-        "tempest_id IN " + nodeIds.mkString("(", ", ", ")"))
+      SQL(s"SELECT id FROM ${nodesTable(graphName)} WHERE $sqlClause AND " +
+        "id IN " + nodeIds.mkString("(", ", ", ")"))
         .as(SqlParser.long(1).*)
     }
 
@@ -207,7 +207,7 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
       val result = new mutable.HashSet[String]()
       while (nameResults.next())
         result += nameResults.getString(1)
-      result -= "tempest_id"
+      result -= "id"
       connection.close()
       result
     }
@@ -216,7 +216,7 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
     // TODO: Support multiple graphs
     val edgesString = (ids1 zip ids2).mkString(", ")
     withConnection { implicit connection =>
-      SQL(s"INSERT INTO edges (tempest_id1, tempest_id2) VALUES $edgesString").executeUpdate()
+      SQL(s"INSERT INTO edges (id1, id2) VALUES $edgesString").executeUpdate()
     }
   }
 

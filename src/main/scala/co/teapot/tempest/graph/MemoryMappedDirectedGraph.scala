@@ -20,7 +20,6 @@ import java.nio.channels.FileChannel
 import java.nio.channels.FileChannel.MapMode
 import java.nio.file.StandardOpenOption
 
-import co.teapot.tempest.graph.EdgeDir.EdgeDir
 import co.teapot.tempest.io.ByteBufferIntSlice
 
 // Make constants available
@@ -83,8 +82,8 @@ class MemoryMappedDirectedGraph(file: File) extends DirectedGraph {
   override val edgeCount = headerData.getLong(OffsetToEdgeCount)
   private val segmentCount = headerData.getInt(OffsetToSegmentCount)
 
-  private val outNeighborSegments: Array[Segment] = memoryMapSegments(EdgeDir.Out)
-  private val inNeighborSegments: Array[Segment] = memoryMapSegments(EdgeDir.In)
+  private val outNeighborSegments: Array[Segment] = memoryMapSegments(EdgeDirOut)
+  private val inNeighborSegments: Array[Segment] = memoryMapSegments(EdgeDirIn)
 
   override def maxNodeId = nodeCount - 1
 
@@ -154,8 +153,8 @@ class MemoryMappedDirectedGraph(file: File) extends DirectedGraph {
   private def memoryMapSegments(dir: EdgeDir): (Array[Segment]) = {
     (0 until segmentCount).toArray map { i =>
       val baseOffset = dir match {
-        case EdgeDir.Out => OffsetToSegmentOffsets
-        case EdgeDir.In => OffsetToSegmentOffsets + (segmentCount + 1) * BytesPerSegmentOffset
+        case EdgeDirOut => OffsetToSegmentOffsets
+        case EdgeDirIn => OffsetToSegmentOffsets + (segmentCount + 1) * BytesPerSegmentOffset
       }
       val offset = headerData.getLong(baseOffset + i * BytesPerSegmentOffset)
       val size = headerData.getLong(baseOffset + (i + 1) * BytesPerSegmentOffset) - offset

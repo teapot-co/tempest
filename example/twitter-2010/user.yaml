@@ -1,0 +1,10 @@
+# Must be a csv file, with fields containing commas quoted with double quotes, and double-quote character escaped as \
+csvFile: /mnt/home/datasets/twitter-2010-nodes.csv
+
+# The names and types of node attributes, in the same order as the columns of the initial node csv file
+# Supported types: int, string, boolean
+nodeAttributes:
+  - id: int
+  - uid: string
+  - username: string
+  - name: string

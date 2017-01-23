@@ -1,0 +1,2 @@
+graphDirectory: "src/test/resources/binary_graphs/"
+graphConfigDirectory: "example/"

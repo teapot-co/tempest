@@ -32,8 +32,8 @@ object TempestDBClient {
   def main(args: Array[String]) = {
     val client = new TempestDBClient("localhost", 10001)
     println ("Node  1 has indegree " +
-      client.getExecutor.inDegree(1) +
-      " and outdegree " + client.getExecutor.outDegree(1))
+      client.getExecutor.inDegree("example", 1) +
+      " and outdegree " + client.getExecutor.outDegree("example", 1))
     client.close()
   }
 }

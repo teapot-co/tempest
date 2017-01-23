@@ -1,0 +1,6 @@
+# Must be a file of lines with white-space separated pairs, for example "alice,bob\nbob,carol" represents edges from alice to bob and from bob to carol
+csvFile: /root/tempest/example/has_read.csv
+sourceNodeType: user
+targetNodeType: book
+sourceNodeIdentifierField: username
+targetNodeIdentifierField: id
