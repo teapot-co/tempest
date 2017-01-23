@@ -12,6 +12,11 @@ class DirectedGraphSpec extends FlatSpec with Matchers {
     outList.get(0) should equal (new Integer(2))
     outList.get(1) should equal (new Integer(3))
 
+    graph.neighbors(1, EdgeDirOut) should contain theSameElementsAs (Seq(2, 3))
+    graph.neighbors(1, EdgeDirIn) should contain theSameElementsAs (Seq.empty)
+    graph.neighbors(2, EdgeDirOut) should contain theSameElementsAs (Seq.empty)
+    graph.neighbors(2, EdgeDirIn) should contain theSameElementsAs (Seq(1))
+
     val inList = graph.inNeighborList(2)
     inList.size should equal (1)
     inList.get(0) should equal (new Integer(1))

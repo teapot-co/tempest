@@ -151,9 +151,9 @@ module Teapot
         }
       end
 
-      def ppr(edge_type, seed_node_ids, mc_ppr_params)
+      def ppr(edge_type, seed_node_ids, seed_node_type, target_node_type, mc_ppr_params)
         @thrift_client.with_retries { |executor|
-          executor.ppr(edge_type, seed_node_ids, mc_ppr_params)
+          executor.ppr(edge_type, seed_node_ids, seed_node_type, target_node_type, mc_ppr_params)
         }
       end
 

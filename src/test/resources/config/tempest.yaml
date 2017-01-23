@@ -1,2 +1,2 @@
-graphDirectory: "/data/binary_graphs/"
-graphConfigDirectory: "/data/config/"
+graphDirectory: "src/test/resources/binary_graphs/"
+graphConfigDirectory: "example/"

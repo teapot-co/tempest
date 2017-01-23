@@ -19,8 +19,7 @@ import java.{lang, util}
 
 import co.teapot.tempest._
 import co.teapot.tempest.algorithm.MonteCarloPPR
-import co.teapot.tempest.graph.EdgeDir.EdgeDir
-import co.teapot.tempest.graph.{DirectedGraphAlgorithms, DynamicDirectedGraph, EdgeDir, MemMappedDynamicDirectedGraph}
+import co.teapot.tempest.graph._
 import co.teapot.tempest.util.{CollectionUtil, ConfigLoader, LogUtil}
 import co.teapot.thriftbase.TeapotThriftLauncher
 import org.apache.thrift.TProcessor
@@ -44,22 +43,28 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
   def nodes(graphName: String, sqlClause: String): util.List[lang.Long] =
     CollectionUtil.toJava(databaseClient.nodeIdsFiltered(graphName, sqlClause))
 
-  /** Returns the type of node reached after k steps along the given edge type. If the edge type
-    * is from nodeType1 to nodeType2, this will return nodeType1 if k is even, or nodeType2 if
-    * k is odd.
-    */
-  def kStepNodeType(edgeType: String, edgeDir: EdgeDir, k: Int): String = {
+
+  def loadEdgeConfig(edgeType: String): EdgeTypeConfig = {
     val edgeConfigFile = new File(config.graphConfigDirectoryFile, s"$edgeType.yaml")
     if (! edgeConfigFile.exists()) {
       throw new UndefinedGraphException(s"Graph config file ${edgeConfigFile.getCanonicalPath} not found")
     }
-    val edgeConfig = ConfigLoader.loadConfig[EdgeTypeConfig](edgeConfigFile)
+    ConfigLoader.loadConfig[EdgeTypeConfig](edgeConfigFile)
+  }
 
-    if ((edgeDir == EdgeDir.Out && k % 2 == 0) ||
-        (edgeDir == EdgeDir.In  && k % 2 == 1)) {
-      edgeConfig.getNodeType1
+  /** Returns the type of node reached after k steps along the given edge type starting with the given
+    * initial direction. If the edge type
+    * is from sourceNodeType to targetNodeType, and edgeDir is EdgeDirOut, this will return sourceNodeType if k is even,
+    * or targetNodeType if
+    * k is odd.  The parity is swapped if edgeDir is EdgeDirIn.
+    */
+  def kStepNodeType(edgeType: String, edgeDir: EdgeDir, k: Int): String = {
+    val edgeConfig = loadEdgeConfig(edgeType)
+    if ((edgeDir == EdgeDirOut && k % 2 == 0) ||
+        (edgeDir == EdgeDirIn  && k % 2 == 1)) {
+      edgeConfig.getSourceNodeType
     } else {
-      edgeConfig.getNodeType2
+      edgeConfig.getTargetNodeType
     }
   }
 
@@ -73,8 +78,8 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
     validateNodeId(edgeType, sourceId)
     val targetNodeType = kStepNodeType(edgeType, edgeDir, k)
     val effectiveGraph = edgeDir match {
-      case EdgeDir.Out => graph(edgeType)
-      case EdgeDir.In => graph(edgeType).transposeView
+      case EdgeDirOut => graph(edgeType)
+      case EdgeDirIn => graph(edgeType).transposeView
     }
     val neighborhoodInts = DirectedGraphAlgorithms.kStepOutNeighbors(effectiveGraph, sourceId.toInt, k, alternating)
     val neighborhood = neighborhoodInts.toIntArray map Integer.toUnsignedLong
@@ -97,7 +102,7 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
                                          sqlClause: String,
                                          filter: java.util.Map[DegreeFilterTypes, Integer],
                                          alternating: Boolean): util.List[lang.Long] =
-    kStepNeighborsFiltered(edgeType, sourceId, k, sqlClause, EdgeDir.Out,
+    kStepNeighborsFiltered(edgeType, sourceId, k, sqlClause, EdgeDirOut,
                                        CollectionUtil.toScala(filter), alternating)
 
 
@@ -107,18 +112,41 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
                                         sqlClause: String,
                                         filter: java.util.Map[DegreeFilterTypes, Integer],
                                         alternating: Boolean): util.List[lang.Long] =
-    kStepNeighborsFiltered(edgeType, sourceId, k, sqlClause, EdgeDir.In,
+    kStepNeighborsFiltered(edgeType, sourceId, k, sqlClause, EdgeDirIn,
                            CollectionUtil.toScala(filter), alternating)
 
   override def ppr(edgeType: String,
                    seedsJava: util.List[lang.Long],
+                   seedType: String,
+                   targetType: String,
                    pageRankParams: MonteCarloPageRankParams): util.Map[lang.Long, lang.Double] = {
     validateMonteCarloParams(pageRankParams)
+
+    val edgeConfig = loadEdgeConfig(edgeType)
+    val firstStepDirection =
+      if (seedType == edgeConfig.getSourceNodeType | seedType == "left")
+        EdgeDirOut
+      else if (seedType == edgeConfig.getTargetNodeType | seedType == "right")
+        EdgeDirIn
+      else
+        throw new InvalidArgumentException(s"Node type $seedType invalid for edge type $edgeType")
+
+    val lengthConstraint =
+      if (targetType == "any")
+        MonteCarloPPR.AnyLength
+      else if (seedType == targetType) {
+        MonteCarloPPR.EvenLength
+      } else {
+        MonteCarloPPR.OddLength
+      }
+
     val seeds = CollectionUtil.toScala(seedsJava)
     for (id <- seeds)
       validateNodeId(edgeType, id)
     CollectionUtil.toJava(MonteCarloPPR.estimatePPR(graph(edgeType),
       seeds map { _.toInt },
+      firstStepDirection,
+      lengthConstraint,
       pageRankParams) map {case (id, ppr) => (Integer.toUnsignedLong(id), ppr) })
   }
 
