@@ -110,8 +110,7 @@ Tempest was built by a team of Stanford PhDs---[Peter Lofgren](@plofgren) (lead 
       - nodeAttributes A list of name and type for each attribute in your csv file. Attributes type 
         may only be 'string', 'int' (32 bit), 'bigint' (64 bit), or 'boolean'. Enter the attributes
         in the same order as they appear in the node file.
-      - One of your nodeAttributes must be id with type string.  This id mut be unique across all nodes of this type, for example
-        username or unique book id.
+      - One of your nodeAttributes must be called 'id'. This nodeAttribute must have type string, and must be unique across all nodes of this type.
    As in the example files `example/follows.yaml` and `example/has_read.yaml`, each `<edge_type>.yaml` file should have the following fields:
       - csvFile: the headerless csv file, for example '/mnt/home/data/has_read.csv'.  Every line of this file must be a pair "sourceId,targetId"
         where sourceId matches some id of sourceNodeType, and targetId matches the id of some node in targetNodeType
