@@ -39,9 +39,6 @@ struct MonteCarloPageRankParams {
   3: optional i32 maxIntermediateNodeDegree = 1000;
   4: optional i32 minReportedVisits;
   5: optional i32 maxResultCount; // If set, only the top maxResultCount nodes will be returned.
-
-  // If true, alternate between forward and reverse steps
-  6: optional bool alternatingWalk = true;
 }
 
 enum DegreeFilterTypes { // Filters to apply to the results of a call that retrieves node neighborhoods
@@ -84,13 +81,11 @@ service TempestDBService extends tempest.TempestGraphService {
     throws (1: UndefinedGraphException error1, 2: tempest.InvalidArgumentException error2,
             3: SQLException error3, 4: tempest.InvalidNodeIdException error4)
 
-
-  # Note: seedType and targetType must be one of
-  # a) the name of the type of one of the endpoints of the given edgeType
-  # b) "left", meaning sourceNodeType for the given edgeType
-  # c) "right", meaning targetNodeType for the given edgeType
-  # d) "any" to allow any node (which only makes sense if the edgeType has the same sourceNodeType and targetNodeType)
-  map<Node, double> ppr(1:string edgeType, 2:list<Node> seeds,
+  # Runs PPR on the union of the given edge types, treating them as undirected.  More precicely, at each step of the walk,
+  # considers all in-neighbors and out-neighbors of the given node across edge types, and chooses one uniformly at random.
+  # Parameters in pageRankParams control the length of the walk and parameters to only return the top-k nodes found,
+  # or those above a given threshold.
+  map<Node, double> pprUndirected(1:list<string> edgeTypes, 2:list<Node> seeds,
                        5:MonteCarloPageRankParams pageRankParams)
     throws (1: UndefinedGraphException error1, 2: tempest.InvalidNodeIdException error2,
             3: tempest.InvalidArgumentException error3)
@@ -102,10 +97,11 @@ service TempestDBService extends tempest.TempestGraphService {
     throws (1: UndefinedGraphException error1, 2: tempest.InvalidNodeIdException error2,
             3: tempest.InvalidArgumentException error3)
 
-  // Add the given edges to the graph.
+  // Add the given edges to the given graph.  Every source node must match the source type of the given edgeType,
+  // and similarly for targetNodes and the target type of the given edgeType.
   // Since thrift doesn't have pairs, pass in parallel lists, which must have equal size or an
   // exception will be thrown.
-  void addEdges(1:string edgeType, 2:list<string> ids1,
-                3:list<string> ids2)
+  void addEdges(1:string edgeType, 2:list<Node> sourceNodes,
+                3:list<Node> targetNodes)
     throws (1: UndefinedGraphException error1, 2: UnequalListSizeException error2);
 }

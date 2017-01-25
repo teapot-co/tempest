@@ -37,14 +37,11 @@ with open(config_filename, 'r') as config_file:
         if "id" not in node_attributes:
             print "Error: config file " + config_filename + " is missing an id column.  Please choose a column to" + \
                   " use as an id, and add \"id: string\" to the node attributes."
-        if "id" not in node_attributes:
-            print "Error: config file " + config_filename + " is missing an id column.  Please choose a column to" + \
-                  " use as an id, and add \"id: string\" to nodeAttributes."
             sys.exit(1)
         id_index = node_attributes.index("id")
         if node_attribute_types[id_index] != "string":
             print "Error: in " + config_filename + ", id must have type string"
-
+            sys.exit(1)
         print "DROP TABLE IF EXISTS " + table_name + ";"
         print "CREATE TABLE " + table_name + " ("
         print "    tempest_id SERIAL PRIMARY KEY,"

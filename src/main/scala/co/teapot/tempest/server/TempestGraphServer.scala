@@ -19,22 +19,23 @@ import java.util
 
 import co.teapot.tempest._
 import co.teapot.tempest.graph._
+import co.teapot.tempest.util.{ConfigLoader, LogUtil}
 import co.teapot.thriftbase.TeapotThriftLauncher
-import co.teapot.tempest.util.LogUtil
-import co.teapot.tempest.util.CollectionUtil
 import org.apache.thrift.TProcessor
 import soal.ppr.BidirectionalPPREstimator
 import soal.util.UniformDistribution
 
+import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.util.Random
 
 /** Given a graph, this thrift server responds to requests about that graph. */
-class TempestGraphServer(graphDirectory: File) extends TempestGraphService.Iface {
+class TempestGraphServer(databaseClient: TempestDatabaseClient, config: TempestDBServerConfig)
+    extends TempestGraphService.Iface {
   val graphMap = new mutable.HashMap[String, DynamicDirectedGraph]()
   def graph(edgeType: String): DynamicDirectedGraph = {
     if (! graphMap.contains(edgeType)) {
-      val graphFile = new File(graphDirectory, s"$edgeType.dat")
+      val graphFile = new File(config.graphDirectory, s"$edgeType.dat")
       if (graphFile.exists) {
         val graph = new MemMappedDynamicDirectedGraph(
           graphFile,
@@ -47,39 +48,65 @@ class TempestGraphServer(graphDirectory: File) extends TempestGraphService.Iface
     graphMap(edgeType)
   }
 
-  override def outDegree(edgeType: String, id: Int): Int = {
-    validateNodeId(edgeType, id)
-    graph(edgeType).outDegree(id)
+  def loadEdgeConfig(edgeType: String): EdgeTypeConfig = {
+    val edgeConfigFile = new File(config.graphConfigDirectoryFile, s"$edgeType.yaml")
+    if (! edgeConfigFile.exists()) {
+      throw new UndefinedGraphException(s"Graph config file ${edgeConfigFile.getCanonicalPath} not found")
+    }
+    ConfigLoader.loadConfig[EdgeTypeConfig](edgeConfigFile)
   }
 
-  override def inDegree(edgeType: String, id: Int): Int = {
-    validateNodeId(edgeType, id)
-    graph(edgeType).inDegree(id)
+  /** Returns the type of node reached by following the given direction (out-neighbors or in-neighbors) on the given
+    * edge type.
+    */
+  def edgeEndpointType(edgeType: String, direction: EdgeDir): String = {
+    val edgeConfig = loadEdgeConfig(edgeType)
+    direction match {
+      case EdgeDirOut => edgeConfig.targetNodeType
+      case EdgeDirIn => edgeConfig.sourceNodeType
+    }
   }
 
-  override def outNeighbors(edgeType: String, id: Int): util.List[Integer] = {
-    validateNodeId(edgeType, id)
-    graph(edgeType).outNeighborList(id)
+
+  override def outDegree(edgeType: String, node: Node): Int = {
+    val tempestId = databaseClient.nodeToTempestId(node)
+    graph(edgeType).outDegree(tempestId)
   }
 
-  override def inNeighbors(edgeType: String, id: Int): util.List[Integer] = {
-    validateNodeId(edgeType, id)
-    graph(edgeType).inNeighborList(id)
+  override def inDegree(edgeType: String, node: Node): Int = {
+    val tempestId = databaseClient.nodeToTempestId(node)
+    graph(edgeType).inDegree(tempestId)
   }
 
-  override def outNeighbor(edgeType: String, id: Int, i: Int): Int = {
-    validateNodeId(edgeType, id)
-    if (i >= graph(edgeType).outDegree(id))
-      throw new InvalidIndexException(s"Invalid index $i for node $id with out-degree ${graph(edgeType).outDegree(id)}")
-    graph(edgeType).outNeighbor(id, i)
+  def neighbors(edgeType: String, node: Node, direction: EdgeDir): util.List[Node] = {
+    val tempestId = databaseClient.nodeToTempestId(node)
+    val resultType = edgeEndpointType(edgeType, direction)
+    val neighborTempestIds = graph(edgeType).neighbors(tempestId, direction)
+    databaseClient.tempestIdToNodeMulti(resultType, neighborTempestIds).asJava
   }
 
-  override def inNeighbor(edgeType: String, id: Int, i: Int): Int = {
-    validateNodeId(edgeType, id)
-    if (i >= graph(edgeType).inDegree(id))
-      throw new InvalidIndexException(s"Invalid index $i for node $id with in-degree ${graph(edgeType).inDegree(id)}")
-    graph(edgeType).inNeighbor(id, i)
+  override def outNeighbors(edgeType: String, node: Node): util.List[Node] =
+    neighbors(edgeType, node, EdgeDirOut)
+
+  override def inNeighbors(edgeType: String, node: Node): util.List[Node] =
+    neighbors(edgeType, node, EdgeDirIn)
+
+  def neighbor(edgeType: String, node: Node, i: Int, direction: EdgeDir): Node = {
+    val tempestId = databaseClient.nodeToTempestId(node)
+    val degree = graph(edgeType).degree(tempestId, direction)
+    if (i >= degree)
+      throw new InvalidIndexException(s"Invalid index $i for node $node with degree $degree")
+
+    val resultType = edgeEndpointType(edgeType, direction)
+    val neighborTempestId = graph(edgeType).neighbor(tempestId, i, direction)
+    databaseClient.tempestIdToNode(resultType, neighborTempestId)
   }
+
+  override def outNeighbor(edgeType: String, node: Node, i: Int): Node =
+    neighbor(edgeType, node, i, EdgeDirOut)
+
+  override def inNeighbor(edgeType: String, node: Node, i: Int): Node =
+    neighbor(edgeType, node, i, EdgeDirIn)
 
   override def edgeCount(edgeType: String): Long = graph(edgeType).edgeCount
 
@@ -88,17 +115,23 @@ class TempestGraphServer(graphDirectory: File) extends TempestGraphService.Iface
 
   override def maxNodeId(edgeType: String): Int = graph(edgeType).maxNodeId
 
-  override def pprSingleTarget(edgeType: String, seedPersonIdsJava: util.List[Integer],
-                               targetPersonId: Int,
+  override def pprSingleTarget(edgeType: String, seedNodesJava: util.List[Node],
+                               targetNode: Node,
                                params: BidirectionalPPRParams): Double = {
-    val seedPersonIds = CollectionUtil.integersToScala(seedPersonIdsJava)
-    for (id <- seedPersonIds)
-      validateNodeId(edgeType, id)
-    validateNodeId(edgeType, targetPersonId)
+    val seedIntNodes = databaseClient.nodeToIntNodeMap(seedNodesJava.asScala).values
+
+    val expectedSeedType = loadEdgeConfig(edgeType).sourceNodeType
+    for (u <- seedIntNodes) {
+      if (u.`type` != expectedSeedType)
+        throw new InvalidArgumentException(s"Invalid seed type ${u.`type`} for edge type $edgeType")
+    }
+
+    val seedTempestIds = seedIntNodes map (_.tempestId)
+    val targetTempestId = databaseClient.nodeToTempestId(targetNode)
     validateBidirectionalPPRParams(params)
 
     val estimator = new BidirectionalPPREstimator(graph(edgeType), params.resetProbability.toFloat)
-    val startDistribution = new UniformDistribution(seedPersonIds, new Random())
+    val startDistribution = new UniformDistribution(seedTempestIds.toArray[Int], new Random())
     val minimumPPR = if (params.isSetMinProbability)
       params.minProbability.toFloat
     else
@@ -107,19 +140,13 @@ class TempestGraphServer(graphDirectory: File) extends TempestGraphService.Iface
     // TODO: Modify estimator to incorporate maxIntermediateNodeId if it ever becomes an issue
     val estimate = estimator.estimatePPR(
       startDistribution,
-      targetPersonId,
+      targetTempestId,
       minimumPPR,
       params.relativeError.toFloat)
     if (estimate >= minimumPPR)
       estimate
     else
       0.0 // Return a clean 0.0 rather than noise if PPR value is too small
-  }
-
-  def validateNodeId(edgeType: String, id: Int): Unit = {
-    if (!graph(edgeType).existsNode(id)) {
-      throw new InvalidNodeIdException(s"Invalid node id $id")
-    }
   }
 
   def validateBidirectionalPPRParams(params: BidirectionalPPRParams): Unit = {
@@ -136,6 +163,7 @@ class TempestGraphServer(graphDirectory: File) extends TempestGraphService.Iface
 }
 
 object TempestGraphServer {
+  /* TODO: Restore this after merging TempestGraphServer with TempestServer
   def getProcessor(graphDirectory: String): TProcessor = {
     val server = new TempestGraphServer(new File(graphDirectory))
     new TempestGraphService.Processor(server)
@@ -145,4 +173,5 @@ object TempestGraphServer {
     LogUtil.configureLog4j()
     new TeapotThriftLauncher().launch(args, getProcessor, "")
   }
+  */
 }

@@ -17,64 +17,121 @@ package co.teapot.tempest.server
 import java.sql.{Connection, Types}
 
 import anorm._
-import co.teapot.tempest.{InvalidArgumentException, SQLException, UndefinedAttributeException}
+import co.teapot.tempest._
+import co.teapot.tempest.typedgraph.IntNode
 import org.postgresql.util.PSQLException
 
 import scala.collection.mutable
 
+/**
+  * A TempestDatabaseClient providems methods to query attributes of nodes, find nodes matching a given query, and
+  * convert between thrift Node objects (which have a string id chosen by the user) and internal IntNode opbjects
+  * (which have an Int tempestId assigned by tempest). */
+
 trait TempestDatabaseClient {
-  /** Returns a map from node id to attribute value for the the given attribute name.  Any nodes
-    * with null attribute value will be omitted from the resulting map.
-    * The implicit anorm.Column[A] parameter just means that A must be some type which Anorm
-    * can extract from a JDBC row. */
-  def getMultiNodeAttribute[A](graphName: String, nodeIds: Seq[Long], attributeName: String)
-                              (implicit c : anorm.Column[A]): collection.Map[Long, A]  // TODO: Delete method
 
-  def getMultiNodeAttributeAsJSON(graphName: String, nodeIds: Seq[Long], attributeName: String): collection.Map[Long, String]
+  def nodeToIntNode(node: Node): IntNode = {
+    nodeToIntNodeOption(node).getOrElse(
+      throw new InvalidNodeIdException(s"No node in ${node.`type`} has id ${node.id}")
+    )
+  }
 
-  def getNodeAttribute[A](graphName: String, nodeId: Long, attributeName: String)
-                         (implicit c : anorm.Column[A]): Option[A] =
-    getMultiNodeAttribute(graphName, Seq(nodeId), attributeName).get(nodeId)
+  def nodeToTempestId(node: Node): Int =
+    nodeToIntNode(node).tempestId
 
-  def getNodeAttributeAsJSON(graphName: String, nodeId: Long, attributeName: String): String =
-    getMultiNodeAttributeAsJSON(graphName, Seq(nodeId), attributeName).getOrElse(nodeId, "null")
+  def nodeToIntNodeOption(node: Node): Option[IntNode] = {
+    val tempestIdOption = getTempestIdsWithAttributeValue(node.`type`, "id", node.id).headOption
+    tempestIdOption map { i => IntNode(node.`type`, i) }
+  }
 
-  /*  If we create a mock database, we might need to go back to these methods:
-    def getNodeStringAttribute(nodeId: Long, attributeName: String): String =
-    getNodeAttribute(nodeId, attributeName, SqlParser.str(1))
-  def getNodeLongAttribute(nodeId: Long, attributeName: String): Long =
-    getNodeAttribute(nodeId, attributeName, SqlParser.long(1))
-  def getNodeBooleanAttribute(nodeId: Long, attributeName: String): Boolean =
-    getNodeAttribute(nodeId, attributeName, SqlParser.bool(1))
-   */
-  def setNodeAttribute(graphName: String,
-                       nodeId: Long,
+  def nodeToIntNodeMap(sourceNodes: Iterable[Node]): collection.Map[Node, IntNode] = {
+    val result = new mutable.AnyRefMap[Node, IntNode]()
+    val nodesByType = sourceNodes groupBy { node => node.`type` }
+    for ((nodeType, nodes) <- nodesByType) {
+      val ids = nodes map (_.id)
+      val idToTempestIdString = getSingleTypeNodeAttributeAsJSON(nodeType, ids.toSeq, "tempest_id")
+      for (node <- nodes) {
+        val tempestId = idToTempestIdString.getOrElse(node.id,
+                                                      throw new InvalidNodeIdException(s"Invalid node $node")
+        ).toInt
+        result(node) = IntNode(nodeType, tempestId)
+      }
+    }
+    result
+  }
+
+
+  def tempestIdToNode(nodeType: String, tempestId: Int): Node = {
+    tempestIdToNodeMulti(nodeType, Seq(tempestId)).head
+  }
+
+  def tempestIdToIdPairMulti(nodeType: String, tempestIds: Iterable[Int]): List[(Int, String)]
+
+  def tempestIdToNodeMulti(nodeType: String, tempestIds: Seq[Int]): Seq[Node] = {
+    val ids = nodeIdsMatchingClause(nodeType, "tempest_id in " + tempestIds.mkString("(", ",", ")"))
+    ids map { id =>
+      new Node(nodeType, id)
+    }
+  }
+
+  def intNodeToNodeMap(intNodes: Iterable[IntNode]): collection.Map[IntNode, Node] = {
+    val result = new mutable.AnyRefMap[IntNode, Node]()
+    val intNodesByType = intNodes groupBy { node => node.`type` }
+    for ((nodeType, intNodes) <- intNodesByType) {
+      val tempestIds = intNodes map (_.tempestId)
+      val tempestIdToIdMap = tempestIdToIdPairMulti(nodeType, tempestIds)
+      for ((tempestId, id) <- tempestIdToIdMap) {
+        result(IntNode(nodeType, tempestId)) = new Node(nodeType, id)
+      }
+    }
+    result
+  }
+
+  def getNodeAttributeAsJSON(nodeType: String, nodeId: String, attributeName: String): String =
+    getSingleTypeNodeAttributeAsJSON(nodeType, Seq(nodeId), attributeName).getOrElse(nodeId, "null")
+
+  def getSingleTypeNodeAttributeAsJSON(nodeType: String, nodeIds: Seq[String], attributeName: String): collection.Map[String, String]
+
+  def getMultiNodeAttributeAsJSON(nodes: Seq[Node], attributeName: String): collection.Map[Node, String] = {
+    val nodeByType = nodes groupBy { node => node.`type` }
+    val nodeToAttribute = new mutable.HashMap[Node, String]()
+    for ((nodeType, nodes) <- nodeByType) {
+      val ids = nodes map (_.id)
+      val idToJson = getSingleTypeNodeAttributeAsJSON(nodeType, ids, attributeName)
+      for ((id, value) <- idToJson) {
+        nodeToAttribute(new Node(nodeType, id)) = value
+      }
+    }
+    nodeToAttribute
+  }
+
+  def setNodeAttribute(node: Node,
                        attributeName: String,
                        attributeValue: String): Unit
 
-  def getNodeIdsWithAttributeValue(graphName: String,
-                                   attributeName: String,
-                                   attributeValue: String): Seq[Long]
+  def getTempestIdsWithAttributeValue(nodeType: String,
+                                      attributeName: String,
+                                      attributeValue: String): Seq[Int]
 
-  def filterNodeIdsUsingAttributeValue(graphName: String,
-                                       nodeIds: Seq[Long],
+  def filterNodeIdsUsingAttributeValue(nodeType: String,
+                                       nodeIds: Seq[String],
                                        attributeName: String,
-                                       attributeValue: String): Seq[Long]
+                                       attributeValue: String): Seq[String]
 
-  def filterNodeIds(graphName: String, nodeIds: Seq[Long], sqlClause: String): Seq[Long]
+  def filterNodeIds(nodeType: String, nodeIds: Seq[String], sqlClause: String): Seq[String]
 
-  def nodeIdsFiltered(graphName: String, sqlClause: String): Seq[Long]
+  def tempestIdsMatchingClause(nodeType: String, sqlClause: String): Seq[Int]
 
-  def addEdges(graphName: String, ids1: Seq[Long], ids2: Seq[Long]): Unit
+  def nodeIdsMatchingClause(nodeType: String, sqlClause: String): Seq[String]
+
+  def addEdges(nodeType: String, ids1: Seq[String], ids2: Seq[String]): Unit
 }
 
 class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseClient {
   val connectionSource = config.createConnectionSource()
 
-  val attributeColumns = new mutable.HashMap[String, collection.Set[String]]()
-
-  def nodesTable(graphName: String): String =
-    graphName + "_nodes"
+  def nodesTable(nodeType: String): String =
+    nodeType + "_nodes"
 
   def withConnection[A](body: Connection => A): A = {
     implicit val connection = connectionSource.getConnection()
@@ -88,34 +145,53 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
     }
   }
 
-  def getMultiNodeAttribute[A](graphName: String, nodeIds: Seq[Long], attributeName: String)
-                              (implicit c : anorm.Column[A]): collection.Map[Long, A] =
+  def idToTempestId(node: Node): Option[Int] =
     withConnection { implicit connection =>
-      validateAttributeName(graphName, attributeName)
+      val statement =
+        SQL(s"SELECT tempest_id FROM ${nodesTable(node.`type`)} WHERE id = {id}").on("id" -> node.id)
+      statement.as(SqlParser.int("tempest_id").singleOpt)
+  }
+
+  def tempestIdToIdPairMulti(nodeType: String, tempestIds: Iterable[Int]): List[(Int, String)] =
+    withConnection { implicit connection =>
+      val statement =
+        SQL(s"SELECT tempest_id, id FROM ${nodesTable(nodeType)} WHERE tempest_id in (${tempestIds.mkString(",")})")
+      val rowParser = SqlParser.int("tempest_id") ~ SqlParser.str("id") map { case x ~ y => (x, y)}
+      statement.as(rowParser.*)
+    }
+
+  def getMultiNodeAttribute[A](nodeType: String, nodeIds: Seq[String], attributeName: String)
+                              (implicit c : anorm.Column[A]): collection.Map[String, A] =
+    withConnection { implicit connection =>
+      validateAttributeName(attributeName)
+      for (id <- nodeIds) {
+        validateId(id)
+      }
       val idList = nodeIds.mkString("(", ",", ")")
       val statement =
-        s"SELECT id, $attributeName FROM ${nodesTable(graphName)} WHERE id IN $idList"
+        s"SELECT id, $attributeName FROM ${nodesTable(nodeType)} WHERE id IN $idList"
       // apply() here is deprecated, but it's easier to use than its replacements
       val idValuePairs = SQL(statement).apply().flatMap { row =>
         // Use flatMap and Option to omit null values
         row[Option[A]](attributeName) map { value: A =>
-          (row[Long]("id"), value)
+          (row[String]("id"), value)
         }
       }
       idValuePairs.toMap
     }
 
-  def getMultiNodeAttributeAsJSON(graphName: String,
-                                nodeIds: Seq[Long],
-                                attributeName: String): collection.Map[Long, String] =
+  def getSingleTypeNodeAttributeAsJSON(nodeType: String,
+                                       nodeIds: Seq[String],
+                                       attributeName: String): collection.Map[String, String] =
     withConnection { implicit connection =>
-      // For security/safety, make sure attributeName is a valid identifier
-      if (! attributeName.matches("[a-zA-Z0-9_]*"))
-        throw new UndefinedAttributeException (s"Invalid attribute name '$attributeName'")
+      validateAttributeName(attributeName)
+      for (id <- nodeIds) {
+        validateId(id)
+      }
       val idList = nodeIds.mkString("(", ",", ")")
       val sql =
-        s"SELECT id, $attributeName FROM ${nodesTable(graphName)} WHERE id IN $idList"
-      val result = new mutable.HashMap[Long, String]()
+        s"SELECT id, $attributeName FROM ${nodesTable(nodeType)} WHERE id IN $idList"
+      val result = new mutable.HashMap[String, String]()
 
       // Use JDBC directly rather than ANorm to access column types
       val s = connection.createStatement()
@@ -123,10 +199,10 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
       val resultSet = s.executeQuery(sql)
       val resultType = resultSet.getMetaData.getColumnType(2)
       while (resultSet.next()) {
-        val id = resultSet.getLong(1)
+        val id = resultSet.getString(1)
         val valueJSON: String = resultType match {
           case Types.INTEGER => resultSet.getInt(2).toString
-          case Types.BIGINT => resultSet.getLong(2).toString
+          case Types.BIGINT => resultSet.getString(2).toString
           case Types.VARCHAR => "\"" + resultSet.getString(2) + "\""
           case Types.BOOLEAN | Types.BIT => resultSet.getBoolean(2).toString
           case unexpectedCode: Int => throw new SQLException(s"Unknown column type code $unexpectedCode from DB")
@@ -140,85 +216,72 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
       result
     }
 
-
-  def setNodeAttribute(graphName: String, nodeId: Long, attributeName: String, attributeValue: String): Unit =
+  def setNodeAttribute(node: Node, attributeName: String, attributeValue: String): Unit =
     withConnection { implicit connection =>
-      validateAttributeName(graphName, attributeName)
-      //if (attributeColumns.contains(attributeName)) {
-        // Note, we quote/escape attributeValue to prevent SQL injection, but can't quote attributeName
-        // because its a column name.
-        SQL(s"UPDATE ${nodesTable(graphName)} SET $attributeName = {attributeValue} WHERE id = $nodeId")
-          .on("attributeValue" -> attributeValue).execute()
-      //} else {
-      //  ??? // TODO: Support ad-hoc attributes
-        // Example: UPDATE ${nodesTable(graphName)} SET json_attributes=jsonb_set(json_attributes, '{favorite_color}', '"Royal Blue"', true) where id=2;
-      //}
+      validateAttributeName(attributeName)
+      // Note, we quote/escape attributeValue to prevent SQL injection, but can't quote attributeName
+      // because its a column name.
+      SQL(s"UPDATE ${nodesTable(node.`type`)} SET $attributeName = {attributeValue} WHERE id = ${node.id}")
+        .on("attributeValue" -> attributeValue).execute()
     }
 
-  def getNodeIdsWithAttributeValue(graphName: String, attributeName: String,
-                                   attributeValue: String): Seq[Long] =
+  def getTempestIdsWithAttributeValue(nodeType: String, attributeName: String,
+                                      attributeValue: String): Seq[Int] =
     withConnection { implicit connection =>
-      validateAttributeName(graphName, attributeName)
-      SQL(s"SELECT id FROM ${nodesTable(graphName)} WHERE $attributeName = {attributeValue}")
+      validateAttributeName(attributeName)
+      SQL(s"SELECT tempest_id FROM ${nodesTable(nodeType)} WHERE $attributeName = {attributeValue}")
         .on("attributeValue" -> attributeValue)
-        .as(SqlParser.long(1).*)
-      // TODO: Measure if the performance would improve if we somehow returned Array[Long]
-      // instead of boxed Seq[Long]
+        .as(SqlParser.int(1).*)
     }
 
-  def nodeIdsFiltered(graphName: String, sqlClause: String): Seq[Long] =
+  def tempestIdsMatchingClause(nodeType: String, sqlClause: String): Seq[Int] =
     withConnection { implicit connection =>
       rejectUnsafeSQL(sqlClause)
-      SQL(s"SELECT id FROM ${nodesTable(graphName)} WHERE $sqlClause")
-        .as(SqlParser.long(1).*)
-      // TODO: Measure if the performance would improve if we somehow returned Array[Long]
-      // instead of boxed Seq[Long]
+      SQL(s"SELECT id FROM ${nodesTable(nodeType)} WHERE $sqlClause")
+        .as(SqlParser.int(1).*)
+    }
+
+  def nodeIdsMatchingClause(nodeType: String, sqlClause: String): Seq[String] =
+    withConnection { implicit connection =>
+      rejectUnsafeSQL(sqlClause)
+      SQL(s"SELECT tempest_id FROM ${nodesTable(nodeType)} WHERE $sqlClause")
+        .as(SqlParser.str(1).*)
     }
 
   /** Returns all node ids in the given Seq which have the given attribute value. */
-  def filterNodeIdsUsingAttributeValue(graphName: String,
-                                       nodeIds: Seq[Long],
+  def filterNodeIdsUsingAttributeValue(nodeType: String,
+                                       nodeIds: Seq[String],
                                        attributeName: String,
-                                       attributeValue: String): Seq[Long] =
+                                       attributeValue: String): Seq[String] =
     withConnection { implicit connection =>
-      validateAttributeName(graphName, attributeName)
-      SQL(s"SELECT id FROM ${nodesTable(graphName)} WHERE $attributeName = {attributeValue} AND " +
+      validateAttributeName(attributeName)
+      SQL(s"SELECT id FROM ${nodesTable(nodeType)} WHERE $attributeName = {attributeValue} AND " +
           "id IN " + nodeIds.mkString("(", ", ", ")"))
         .on("attributeValue" -> attributeValue)
-        .as(SqlParser.long(1).*)
+        .as(SqlParser.str(1).*)
     }
 
   /** Returns all node ids in the given Seq which have the given attribute value. */
-  def filterNodeIds(graphName: String, nodeIds: Seq[Long], sqlClause: String): Seq[Long] =
+  def filterNodeIds(nodeType: String, nodeIds: Seq[String], sqlClause: String): Seq[String] =
     withConnection { implicit connection =>
       rejectUnsafeSQL(sqlClause)
-      SQL(s"SELECT id FROM ${nodesTable(graphName)} WHERE $sqlClause AND " +
+      SQL(s"SELECT id FROM ${nodesTable(nodeType)} WHERE $sqlClause AND " +
         "id IN " + nodeIds.mkString("(", ", ", ")"))
-        .as(SqlParser.long(1).*)
+        .as(SqlParser.str(1).*)
     }
 
-  // TODO: Read schema from config file (?)
-  def getAttributeColumnsFromDB(graphName: String): collection.Set[String] = {
-      // TODO: If we keep this after the first release, convert it to use Anorm for consistency.
-      val connection = connectionSource.getConnection
-      val s = connection.prepareStatement("select column_name from information_schema.columns where " +
-        "table_name='${nodesTable(graphName)}'")
-      val nameResults = s.executeQuery()
-      val result = new mutable.HashSet[String]()
-      while (nameResults.next())
-        result += nameResults.getString(1)
-      result -= "id"
-      connection.close()
-      result
-    }
-
-  def addEdges(graphName: String, ids1: Seq[Long], ids2: Seq[Long]): Unit = {
-    // TODO: Support multiple graphs
-    val edgesString = (ids1 zip ids2).mkString(", ")
-    withConnection { implicit connection =>
-      SQL(s"INSERT INTO edges (id1, id2) VALUES $edgesString").executeUpdate()
-    }
+  def addEdges(edgeType: String, ids1: Seq[String], ids2: Seq[String]): Unit = ???
+  // TODO: Revive this in the future if we want to store new edges in the DB
+  /*
+  withConnection { implicit connection =>
+    val idList = ids1.mkString("(", ",", ")")
+    val sql =
+      s"SELECT id, tempest_id FROM ${nodesTable(nodeType)} WHERE id IN $idList"
+    val edgesString = (tempestIds1 zip tempestIds2).mkString(", ")
+    SQL(s"INSERT INTO edges (id1, id2) VALUES $edgesString").executeUpdate()
   }
+}
+*/
 
   def rejectUnsafeSQL(sqlClause: String): Unit = {
     // TODO: Improve SQL injection defense
@@ -226,10 +289,15 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
       throw new InvalidArgumentException(s"Malformed sql clause: '$sqlClause'")
   }
 
-  def validateAttributeName(graphName: String, attributeName: String): Unit = {
-    // TODO: Add support for multiple graphs, then restore this
-    //if (! attributeColumns.contains(attributeName)) {
-    //  throw new UndefinedAttributeException (s"Undefined attribute $attributeName")
-    //}
+  def validateId(id: String): Unit = {
+    if (! id.matches("[a-zA-Z0-9_ ]*")) {
+      throw new InvalidArgumentException(s"Invalid id '$id'")
+    }
+  }
+
+  /** For security/safety, make sure attributeName is a valid identifier */
+  def validateAttributeName(attributeName: String): Unit = {
+    if (! attributeName.matches("[a-zA-Z0-9_]*"))
+      throw new UndefinedAttributeException (s"Invalid attribute name '$attributeName'")
   }
 }
