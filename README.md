@@ -90,10 +90,14 @@ Tempest was built by a team of Stanford PhDs---[Peter Lofgren](@plofgren) (lead 
    directory outside docker, so you can upgrade tempest without losing your data.  To
    use Tempest DB, install docker on your machine, then run
    
-   `docker run -t -i -v $YOUR_DATA_DIR:/data -v ~/:/mnt/home/ -p 127.0.0.1:10001:10001 teapotco/tempestdb:latest bash`
-   (Mounting your home directory using `-v ~/:/mnt/home/` is optional, but could be useful for reading
-   your graph files from docker.)  The docker image contains a built release of Tempest; if you'd like to run against
+   `docker run -t -i -v $YOUR_DATA_DIR:/data -p 127.0.0.1:10001:10001 teapotco/tempestdb:latest bash`
+   You can make additional directories available to docker as needed, 
+   for example, to make your home directory available from inside docker, add `-v ~/:/mnt/home/` to the above command. 
+   The docker image contains a built release of Tempest. 
+   If you're a developer and would like to run against
    a tempest repo you've checked out locally (say at ~/tempest), add `-v ~/tempest/:/root/tempest/` to the above command.
+   For development, you should also add `-p 5432:5432` to the above command, and follow the below instructions
+   for creating the test node and edge types, so that your tests can run outside docker against the postgres database inside docker.
 2. You need three types of file to fire up the Tempest server with your graph: 
       a) a csv file for each node type,
       b) a csv file for each edge type, and
@@ -101,7 +105,6 @@ Tempest was built by a team of Stanford PhDs---[Peter Lofgren](@plofgren) (lead 
 
   To see the format of the headerless node csv and the edge csv expected by Tempest, look at `example/users.csv`
   and `follows.csv`.
-  
 3. Once you have your node and edge files in csv format, create a config file in `$YOUR_DATA_DIR/config/`
    for each node and edge type.  The name of the config file must match the name of the node or edge type,
    so for example if you have a node type called `user` there must be a file in `$YOUR_DATA_DIR/config/user.yaml`.

@@ -113,11 +113,6 @@ trait TempestDatabaseClient {
                                       attributeName: String,
                                       attributeValue: String): Seq[Int]
 
-  def filterNodeIdsUsingAttributeValue(nodeType: String,
-                                       nodeIds: Seq[String],
-                                       attributeName: String,
-                                       attributeValue: String): Seq[String]
-
   def filterNodeIds(nodeType: String, nodeIds: Seq[String], sqlClause: String): Seq[String]
 
   def tempestIdsMatchingClause(nodeType: String, sqlClause: String): Seq[Int]
@@ -167,7 +162,7 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
       for (id <- nodeIds) {
         validateId(id)
       }
-      val idList = nodeIds.mkString("(", ",", ")")
+      val idList = stringsToPostgresSet(nodeIds)
       val statement =
         s"SELECT id, $attributeName FROM ${nodesTable(nodeType)} WHERE id IN $idList"
       // apply() here is deprecated, but it's easier to use than its replacements
@@ -188,9 +183,10 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
       for (id <- nodeIds) {
         validateId(id)
       }
-      val idList = nodeIds.mkString("(", ",", ")")
+      val idList = stringsToPostgresSet(nodeIds)
       val sql =
         s"SELECT id, $attributeName FROM ${nodesTable(nodeType)} WHERE id IN $idList"
+      println(s"Temporary: sql $sql")
       val result = new mutable.HashMap[String, String]()
 
       // Use JDBC directly rather than ANorm to access column types
@@ -202,7 +198,7 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
         val id = resultSet.getString(1)
         val valueJSON: String = resultType match {
           case Types.INTEGER => resultSet.getInt(2).toString
-          case Types.BIGINT => resultSet.getString(2).toString
+          case Types.BIGINT => resultSet.getString(2)
           case Types.VARCHAR => "\"" + resultSet.getString(2) + "\""
           case Types.BOOLEAN | Types.BIT => resultSet.getBoolean(2).toString
           case unexpectedCode: Int => throw new SQLException(s"Unknown column type code $unexpectedCode from DB")
@@ -244,20 +240,7 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
   def nodeIdsMatchingClause(nodeType: String, sqlClause: String): Seq[String] =
     withConnection { implicit connection =>
       rejectUnsafeSQL(sqlClause)
-      SQL(s"SELECT tempest_id FROM ${nodesTable(nodeType)} WHERE $sqlClause")
-        .as(SqlParser.str(1).*)
-    }
-
-  /** Returns all node ids in the given Seq which have the given attribute value. */
-  def filterNodeIdsUsingAttributeValue(nodeType: String,
-                                       nodeIds: Seq[String],
-                                       attributeName: String,
-                                       attributeValue: String): Seq[String] =
-    withConnection { implicit connection =>
-      validateAttributeName(attributeName)
-      SQL(s"SELECT id FROM ${nodesTable(nodeType)} WHERE $attributeName = {attributeValue} AND " +
-          "id IN " + nodeIds.mkString("(", ", ", ")"))
-        .on("attributeValue" -> attributeValue)
+      SQL(s"SELECT id FROM ${nodesTable(nodeType)} WHERE $sqlClause")
         .as(SqlParser.str(1).*)
     }
 
@@ -266,7 +249,7 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
     withConnection { implicit connection =>
       rejectUnsafeSQL(sqlClause)
       SQL(s"SELECT id FROM ${nodesTable(nodeType)} WHERE $sqlClause AND " +
-        "id IN " + nodeIds.mkString("(", ", ", ")"))
+        "id IN " + stringsToPostgresSet(nodeIds))
         .as(SqlParser.str(1).*)
     }
 
@@ -294,6 +277,9 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
       throw new InvalidArgumentException(s"Invalid id '$id'")
     }
   }
+
+  def stringsToPostgresSet(strings: Iterable[String]): String =
+    strings.mkString("('", "','", "')")
 
   /** For security/safety, make sure attributeName is a valid identifier */
   def validateAttributeName(attributeName: String): Unit = {
