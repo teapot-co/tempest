@@ -67,6 +67,9 @@ class TempestGraphServer(databaseClient: TempestDatabaseClient, config: TempestD
     }
   }
 
+  def doesNodeTypeHaveAttribute(nodeType: String, attributeName: String): Boolean = {
+    true // TODO
+  }
 
   override def outDegree(edgeType: String, node: Node): Int = {
     val tempestId = databaseClient.nodeToTempestId(node)

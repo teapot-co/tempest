@@ -54,30 +54,30 @@ module Teapot
         end
       end
 
-      def get_multi_node_attribute(node_type, nodeIds, attribute_name)
-        id_to_json = @thrift_client.with_retries { |executor|
-          executor.getMultiNodeAttributeAsJSON(node_type, nodeIds, attribute_name)
+      def get_multi_node_attribute(nodes, attribute_name)
+        node_to_json = @thrift_client.with_retries { |executor|
+          executor.getMultiNodeAttributeAsJSON(nodes, attribute_name)
         }
-        Hash[id_to_json.map{ |k,v| [k, TempestClient.jsonToValue(v)] }]
+        Hash[node_to_json.map{ |k,v| [k, TempestClient.jsonToValue(v)] }]
       end
 
-      def get_node_attribute(node_type, nodeId, attribute_name)
-        self.get_multi_node_attribute(node_type, [nodeId], attribute_name)[nodeId]
+      def get_node_attribute(node, attribute_name)
+        self.get_multi_node_attribute([node], attribute_name)[node]
       end
 
-      def k_step_out_neighbors_filtered(edge_type, source_id, k, sql_clause: "", degree_filter: {}, alternating: true)
+      def k_step_out_neighbors_filtered(edge_type, source_node, k, sql_clause: "", degree_filter: {}, alternating: true)
         @thrift_client.with_retries { |executor|
-          executor.kStepOutNeighborsFiltered(edge_type, source_id, k, sql_clause, degree_filter, alternating)
+          executor.kStepOutNeighborsFiltered(edge_type, source_node, k, sql_clause, degree_filter, alternating)
         }
       end
 
-      def k_step_in_neighbors_filtered(edge_type, source_id, k, sql_clause: "", degree_filter: {}, alternating: true)
+      def k_step_in_neighbors_filtered(edge_type, source_node, k, sql_clause: "", degree_filter: {}, alternating: true)
         @thrift_client.with_retries { |executor|
-          executor.kStepInNeighborsFiltered(edge_type, source_id, k, sql_clause, degree_filter, alternating)
+          executor.kStepInNeighborsFiltered(edge_type, source_node, k, sql_clause, degree_filter, alternating)
         }
       end
 
-      # Convenience method to return the unique node id satisfying a condition
+      # Convenience method to return the unique node node satisfying a condition
       def unique_node(node_type, sql_clause)
         matching_nodes = @thrift_client.with_retries { |executor|
           executor.nodes(node_type, sql_clause)
@@ -91,43 +91,43 @@ module Teapot
 
       # TODO: For methods that only need to be included (for irb auto-complete) and converted from camelCase to
       # snake_case, is there a simple way of automating this?
-      def out_degree(edge_type, id)
+      def out_degree(edge_type, node)
         @thrift_client.with_retries { |executor|
-          executor.outDegree(edge_type, id)
+          executor.outDegree(edge_type, node)
         }
       end
 
-      def in_degree(edge_type, id)
+      def in_degree(edge_type, node)
         @thrift_client.with_retries { |executor|
-          executor.inDegree(edge_type, id)
+          executor.inDegree(edge_type, node)
         }
       end
 
-      def out_neighbors(edge_type, id)
+      def out_neighbors(edge_type, node)
         @thrift_client.with_retries { |executor|
-          executor.outNeighbors(edge_type, id)
+          executor.outNeighbors(edge_type, node)
         }
       end
 
-      def in_neighbors(edge_type, id)
+      def in_neighbors(edge_type, node)
         @thrift_client.with_retries { |executor|
-          executor.inNeighbors(edge_type, id)
+          executor.inNeighbors(edge_type, node)
         }
       end
 
-      def out_neighbor(edge_type, id, i)
+      def out_neighbor(edge_type, node, i)
         @thrift_client.with_retries { |executor|
-          executor.outNeighbor(edge_type, id, i)
+          executor.outNeighbor(edge_type, node, i)
         }
       end
 
-      def in_neighbor(edge_type, id, i)
+      def in_neighbor(edge_type, node, i)
         @thrift_client.with_retries { |executor|
-          executor.inNeighbor(edge_type, id, i)
+          executor.inNeighbor(edge_type, node, i)
         }
       end
 
-      def max_node_id(edge_type)
+      def max_node_node(edge_type)
         @thrift_client.with_retries { |executor|
           executor.maxNodeId(edge_type)
         }
@@ -145,15 +145,15 @@ module Teapot
         }
       end
 
-      def ppr_single_target(edge_type, seed_node_ids, target_node_id, bi_ppr_params)
+      def ppr_single_target(edge_type, seed_nodes, target_node, bi_ppr_params)
         @thrift_client.with_retries { |executor|
-          executor.pprSingleTarget(edge_type, seed_node_ids, target_node_id, bi_ppr_params)
+          executor.pprSingleTarget(edge_type, seed_nodes, target_node, bi_ppr_params)
         }
       end
 
-      def ppr(edge_type, seed_node_ids, seed_node_type, target_node_type, mc_ppr_params)
+      def ppr_undirected(edge_types, seed_nodes, mc_ppr_params)
         @thrift_client.with_retries { |executor|
-          executor.ppr(edge_type, seed_node_ids, seed_node_type, target_node_type, mc_ppr_params)
+          executor.ppr(edge_types, seed_nodes, mc_ppr_params)
         }
       end
 
@@ -169,9 +169,9 @@ module Teapot
         }
       end
 
-      def add_edges(edge_type, ids1, ids2)
+      def add_edges(edge_type, source_nodes, target_nodes)
         @thrift_client.with_retries { |executor|
-          executor.addEdges(edge_type, ids1, ids2)
+          executor.addEdges(edge_type, source_nodes, target_nodes)
         }
       end
     end
@@ -187,9 +187,9 @@ def get_empty_filter()
 end
 
 def node_to_pair(node)
-  [node.id, node.type]
+  [node.type, node.id]
 end
 
 def make_node(type, id)
-  Teapot::TempestDB::Node.new({'type': type, 'id': id})
+  Node.new({'type': type, 'id': id})
 end

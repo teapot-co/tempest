@@ -33,6 +33,12 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
 
   type DegreeFilter = collection.Map[DegreeFilterTypes, Int]
   override def getMultiNodeAttributeAsJSON(nodesJava: util.List[Node], attributeName: String): util.Map[Node, String] = {
+    val nodeTypes = (nodesJava.asScala map (_.`type`)).toSet
+    for (nodeType <- nodeTypes) {
+      if (! doesNodeTypeHaveAttribute(nodeType, attributeName)) {
+        throw new InvalidArgumentException(s"Node type $nodeType does not have an attribute named $attributeName")
+      }
+    }
     databaseClient.getMultiNodeAttributeAsJSON(nodesJava.asScala, attributeName).asJava
   }
 

@@ -186,7 +186,6 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
       val idList = stringsToPostgresSet(nodeIds)
       val sql =
         s"SELECT id, $attributeName FROM ${nodesTable(nodeType)} WHERE id IN $idList"
-      println(s"Temporary: sql $sql")
       val result = new mutable.HashMap[String, String]()
 
       // Use JDBC directly rather than ANorm to access column types
@@ -233,7 +232,7 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
   def tempestIdsMatchingClause(nodeType: String, sqlClause: String): Seq[Int] =
     withConnection { implicit connection =>
       rejectUnsafeSQL(sqlClause)
-      SQL(s"SELECT id FROM ${nodesTable(nodeType)} WHERE $sqlClause")
+      SQL(s"SELECT tempest_id FROM ${nodesTable(nodeType)} WHERE $sqlClause")
         .as(SqlParser.int(1).*)
     }
 
