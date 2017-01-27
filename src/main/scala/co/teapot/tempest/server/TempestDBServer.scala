@@ -85,7 +85,7 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
       case EdgeDirIn => graph(edgeType).transposeView
     }
     val neighborhood = DirectedGraphAlgorithms.kStepOutNeighbors(effectiveGraph, sourceTempestId, k, alternating).toIntArray
-    val resultPreFilter: Seq[Int] = if (sqlClause.isEmpty) {
+    val resultPreFilter: Seq[Int] = if (sqlClause.isEmpty || neighborhood.isEmpty) {
       neighborhood
     } else {
       if (neighborhood.size < TempestServerConstants.MaxNeighborhoodAttributeQuerySize) {

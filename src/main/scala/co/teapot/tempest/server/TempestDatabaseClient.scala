@@ -68,6 +68,8 @@ trait TempestDatabaseClient {
   def tempestIdToIdPairMulti(nodeType: String, tempestIds: Iterable[Int]): List[(Int, String)]
 
   def tempestIdToNodeMulti(nodeType: String, tempestIds: Seq[Int]): Seq[Node] = {
+    if (tempestIds.isEmpty)
+      return Seq.empty
     val ids = nodeIdsMatchingClause(nodeType, "tempest_id in " + tempestIds.mkString("(", ",", ")"))
     ids map { id =>
       new Node(nodeType, id)
@@ -149,6 +151,9 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
 
   def tempestIdToIdPairMulti(nodeType: String, tempestIds: Iterable[Int]): List[(Int, String)] =
     withConnection { implicit connection =>
+      if (tempestIds.isEmpty)
+        return List.empty
+
       val statement =
         SQL(s"SELECT tempest_id, id FROM ${nodesTable(nodeType)} WHERE tempest_id in (${tempestIds.mkString(",")})")
       val rowParser = SqlParser.int("tempest_id") ~ SqlParser.str("id") map { case x ~ y => (x, y)}
@@ -158,10 +163,13 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
   def getMultiNodeAttribute[A](nodeType: String, nodeIds: Seq[String], attributeName: String)
                               (implicit c : anorm.Column[A]): collection.Map[String, A] =
     withConnection { implicit connection =>
+      if (nodeIds.isEmpty)
+        return Map.empty
       validateAttributeName(attributeName)
       for (id <- nodeIds) {
         validateId(id)
       }
+
       val idList = stringsToPostgresSet(nodeIds)
       val statement =
         s"SELECT id, $attributeName FROM ${nodesTable(nodeType)} WHERE id IN $idList"
@@ -179,10 +187,13 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
                                        nodeIds: Seq[String],
                                        attributeName: String): collection.Map[String, String] =
     withConnection { implicit connection =>
+      if (nodeIds.isEmpty)
+        return Map.empty
       validateAttributeName(attributeName)
       for (id <- nodeIds) {
         validateId(id)
       }
+
       val idList = stringsToPostgresSet(nodeIds)
       val sql =
         s"SELECT id, $attributeName FROM ${nodesTable(nodeType)} WHERE id IN $idList"
@@ -246,6 +257,8 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
   /** Returns all node ids in the given Seq which have the given attribute value. */
   def filterNodeIds(nodeType: String, nodeIds: Seq[String], sqlClause: String): Seq[String] =
     withConnection { implicit connection =>
+      if (nodeIds.isEmpty)
+        return Seq.empty
       rejectUnsafeSQL(sqlClause)
       SQL(s"SELECT id FROM ${nodesTable(nodeType)} WHERE $sqlClause AND " +
         "id IN " + stringsToPostgresSet(nodeIds))

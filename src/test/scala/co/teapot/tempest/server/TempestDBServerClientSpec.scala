@@ -42,15 +42,15 @@ class TempestDBServerClientSpec extends FlatSpec with Matchers {
     while(!server.isServing) { Thread.sleep(10) }
 
     //This notation forwards the process output to stdout
-    val ret = Process("ruby -Iruby-package/lib src/test/ruby/tempest_local_test.rb").!
+    val ret = Process("ruby -Iruby-package/lib src/test/ruby/tempest_test.rb").!
     ret shouldEqual 0
-/* TODO
+
     val pythonResult = Process(
-      "src/test/python/tempest_local_test.py",
+      "src/test/python/tempest_test.py",
       cwd=new File("."),
       extraEnv=("PYTHONPATH", "python-package")).!
     pythonResult shouldEqual 0
-*/
+
     server.stop()
   }
 }
