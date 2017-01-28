@@ -17,7 +17,7 @@ package co.teapot.tempest.server
 import java.sql.{Connection, Types}
 
 import anorm._
-import co.teapot.tempest._
+import co.teapot.tempest.{Node => ThriftNode, _}
 import co.teapot.tempest.typedgraph.IntNode
 import org.postgresql.util.PSQLException
 
@@ -30,22 +30,22 @@ import scala.collection.mutable
 
 trait TempestDatabaseClient {
 
-  def nodeToIntNode(node: Node): IntNode = {
+  def nodeToIntNode(node: ThriftNode): IntNode = {
     nodeToIntNodeOption(node).getOrElse(
       throw new InvalidNodeIdException(s"No node in ${node.`type`} has id ${node.id}")
     )
   }
 
-  def nodeToTempestId(node: Node): Int =
+  def nodeToTempestId(node: ThriftNode): Int =
     nodeToIntNode(node).tempestId
 
-  def nodeToIntNodeOption(node: Node): Option[IntNode] = {
+  def nodeToIntNodeOption(node: ThriftNode): Option[IntNode] = {
     val tempestIdOption = getTempestIdsWithAttributeValue(node.`type`, "id", node.id).headOption
     tempestIdOption map { i => IntNode(node.`type`, i) }
   }
 
-  def nodeToIntNodeMap(sourceNodes: Iterable[Node]): collection.Map[Node, IntNode] = {
-    val result = new mutable.AnyRefMap[Node, IntNode]()
+  def nodeToIntNodeMap(sourceNodes: Iterable[ThriftNode]): collection.Map[ThriftNode, IntNode] = {
+    val result = new mutable.AnyRefMap[ThriftNode, IntNode]()
     val nodesByType = sourceNodes groupBy { node => node.`type` }
     for ((nodeType, nodes) <- nodesByType) {
       val ids = nodes map (_.id)
@@ -61,29 +61,29 @@ trait TempestDatabaseClient {
   }
 
 
-  def tempestIdToNode(nodeType: String, tempestId: Int): Node = {
+  def tempestIdToNode(nodeType: String, tempestId: Int): ThriftNode = {
     tempestIdToNodeMulti(nodeType, Seq(tempestId)).head
   }
 
   def tempestIdToIdPairMulti(nodeType: String, tempestIds: Iterable[Int]): List[(Int, String)]
 
-  def tempestIdToNodeMulti(nodeType: String, tempestIds: Seq[Int]): Seq[Node] = {
+  def tempestIdToNodeMulti(nodeType: String, tempestIds: Seq[Int]): Seq[ThriftNode] = {
     if (tempestIds.isEmpty)
       return Seq.empty
     val ids = nodeIdsMatchingClause(nodeType, "tempest_id in " + tempestIds.mkString("(", ",", ")"))
     ids map { id =>
-      new Node(nodeType, id)
+      new ThriftNode(nodeType, id)
     }
   }
 
-  def intNodeToNodeMap(intNodes: Iterable[IntNode]): collection.Map[IntNode, Node] = {
-    val result = new mutable.AnyRefMap[IntNode, Node]()
+  def intNodeToNodeMap(intNodes: Iterable[IntNode]): collection.Map[IntNode, ThriftNode] = {
+    val result = new mutable.AnyRefMap[IntNode, ThriftNode]()
     val intNodesByType = intNodes groupBy { node => node.`type` }
     for ((nodeType, intNodes) <- intNodesByType) {
       val tempestIds = intNodes map (_.tempestId)
       val tempestIdToIdMap = tempestIdToIdPairMulti(nodeType, tempestIds)
       for ((tempestId, id) <- tempestIdToIdMap) {
-        result(IntNode(nodeType, tempestId)) = new Node(nodeType, id)
+        result(IntNode(nodeType, tempestId)) = new ThriftNode(nodeType, id)
       }
     }
     result
@@ -94,20 +94,20 @@ trait TempestDatabaseClient {
 
   def getSingleTypeNodeAttributeAsJSON(nodeType: String, nodeIds: Seq[String], attributeName: String): collection.Map[String, String]
 
-  def getMultiNodeAttributeAsJSON(nodes: Seq[Node], attributeName: String): collection.Map[Node, String] = {
+  def getMultiNodeAttributeAsJSON(nodes: Seq[ThriftNode], attributeName: String): collection.Map[ThriftNode, String] = {
     val nodeByType = nodes groupBy { node => node.`type` }
-    val nodeToAttribute = new mutable.HashMap[Node, String]()
+    val nodeToAttribute = new mutable.HashMap[ThriftNode, String]()
     for ((nodeType, nodes) <- nodeByType) {
       val ids = nodes map (_.id)
       val idToJson = getSingleTypeNodeAttributeAsJSON(nodeType, ids, attributeName)
       for ((id, value) <- idToJson) {
-        nodeToAttribute(new Node(nodeType, id)) = value
+        nodeToAttribute(new ThriftNode(nodeType, id)) = value
       }
     }
     nodeToAttribute
   }
 
-  def setNodeAttribute(node: Node,
+  def setNodeAttribute(node: ThriftNode,
                        attributeName: String,
                        attributeValue: String): Unit
 
@@ -142,7 +142,7 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
     }
   }
 
-  def idToTempestId(node: Node): Option[Int] =
+  def idToTempestId(node: ThriftNode): Option[Int] =
     withConnection { implicit connection =>
       val statement =
         SQL(s"SELECT tempest_id FROM ${nodesTable(node.`type`)} WHERE id = {id}").on("id" -> node.id)
@@ -222,7 +222,7 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
       result
     }
 
-  def setNodeAttribute(node: Node, attributeName: String, attributeValue: String): Unit =
+  def setNodeAttribute(node: ThriftNode, attributeName: String, attributeValue: String): Unit =
     withConnection { implicit connection =>
       validateAttributeName(attributeName)
       // Note, we quote/escape attributeValue to prevent SQL injection, but can't quote attributeName

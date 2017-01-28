@@ -2,7 +2,7 @@ package co.teapot.tempest.server
 
 import co.teapot.tempest.typedgraph.IntNode
 import co.teapot.tempest.util.ConfigLoader
-import co.teapot.tempest.{Node, SQLException}
+import co.teapot.tempest.{Node => ThriftNode, SQLException}
 import com.zaxxer.hikari.pool.HikariPool.PoolInitializationException
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -36,10 +36,10 @@ class TempestSQLDatabaseClientSpec extends FlatSpec with Matchers {
     }
 
     c.getTempestIdsWithAttributeValue("user", "name", "Alice Johnson") should contain theSameElementsAs (Seq(1))
-    c.nodeToIntNode(new Node("user", "alice")) shouldEqual (IntNode("user", 1))
+    c.nodeToIntNode(new ThriftNode("user", "alice")) shouldEqual (IntNode("user", 1))
     c.intNodeToNodeMap(Seq(IntNode("user", 1), IntNode("user", 3))) should contain theSameElementsAs
-      Map(IntNode("user", 1) -> new Node("user", "alice"),
-        IntNode("user", 3) -> new Node("user", "carol"))
+      Map(IntNode("user", 1) -> new ThriftNode("user", "alice"),
+        IntNode("user", 3) -> new ThriftNode("user", "carol"))
 
     c.nodeIdsMatchingClause("user", "login_count > 2") should contain theSameElementsAs (Seq("alice", "carol"))
 
@@ -75,8 +75,8 @@ class TempestSQLDatabaseClientSpec extends FlatSpec with Matchers {
     c.getNodeAttributeAsJSON("book", "103", "title") shouldEqual "\"Roots\""
     c.nodeIdsMatchingClause("book", "title = 'Roots'") should contain theSameElementsAs (Seq("103"))
     c.getTempestIdsWithAttributeValue("book", "title", "Roots") should contain theSameElementsAs (Seq(3))
-    c.nodeToIntNodeMap(Seq(new Node("book", "101") , new Node("book", "103") )) should contain theSameElementsAs
-      Map(new Node("book", "101") -> IntNode("book", 1),
-        new Node("book", "103") -> IntNode("book", 3))
+    c.nodeToIntNodeMap(Seq(new ThriftNode("book", "101") , new ThriftNode("book", "103") )) should contain theSameElementsAs
+      Map(new ThriftNode("book", "101") -> IntNode("book", 1),
+        new ThriftNode("book", "103") -> IntNode("book", 3))
   }
 }

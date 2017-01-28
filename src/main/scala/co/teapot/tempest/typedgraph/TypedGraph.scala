@@ -1,7 +1,5 @@
 package co.teapot.tempest.typedgraph
 
-import co.teapot.tempest.Node
-
 import scala.util.Random
 
 sealed case class IntNode(`type`: String, tempestId: Int)
