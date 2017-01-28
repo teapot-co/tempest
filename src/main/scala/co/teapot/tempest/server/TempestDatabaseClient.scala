@@ -18,7 +18,7 @@ import java.sql.{Connection, Types}
 
 import anorm._
 import co.teapot.tempest.{Node => ThriftNode, _}
-import co.teapot.tempest.typedgraph.IntNode
+import co.teapot.tempest.typedgraph.Node
 import org.postgresql.util.PSQLException
 
 import scala.collection.mutable
@@ -30,7 +30,7 @@ import scala.collection.mutable
 
 trait TempestDatabaseClient {
 
-  def nodeToIntNode(node: ThriftNode): IntNode = {
+  def nodeToIntNode(node: ThriftNode): Node = {
     nodeToIntNodeOption(node).getOrElse(
       throw new InvalidNodeIdException(s"No node in ${node.`type`} has id ${node.id}")
     )
@@ -39,13 +39,13 @@ trait TempestDatabaseClient {
   def nodeToTempestId(node: ThriftNode): Int =
     nodeToIntNode(node).tempestId
 
-  def nodeToIntNodeOption(node: ThriftNode): Option[IntNode] = {
+  def nodeToIntNodeOption(node: ThriftNode): Option[Node] = {
     val tempestIdOption = getTempestIdsWithAttributeValue(node.`type`, "id", node.id).headOption
-    tempestIdOption map { i => IntNode(node.`type`, i) }
+    tempestIdOption map { i => Node(node.`type`, i) }
   }
 
-  def nodeToIntNodeMap(sourceNodes: Iterable[ThriftNode]): collection.Map[ThriftNode, IntNode] = {
-    val result = new mutable.AnyRefMap[ThriftNode, IntNode]()
+  def nodeToIntNodeMap(sourceNodes: Iterable[ThriftNode]): collection.Map[ThriftNode, Node] = {
+    val result = new mutable.AnyRefMap[ThriftNode, Node]()
     val nodesByType = sourceNodes groupBy { node => node.`type` }
     for ((nodeType, nodes) <- nodesByType) {
       val ids = nodes map (_.id)
@@ -54,7 +54,7 @@ trait TempestDatabaseClient {
         val tempestId = idToTempestIdString.getOrElse(node.id,
                                                       throw new InvalidNodeIdException(s"Invalid node $node")
         ).toInt
-        result(node) = IntNode(nodeType, tempestId)
+        result(node) = Node(nodeType, tempestId)
       }
     }
     result
@@ -76,14 +76,14 @@ trait TempestDatabaseClient {
     }
   }
 
-  def intNodeToNodeMap(intNodes: Iterable[IntNode]): collection.Map[IntNode, ThriftNode] = {
-    val result = new mutable.AnyRefMap[IntNode, ThriftNode]()
+  def intNodeToNodeMap(intNodes: Iterable[Node]): collection.Map[Node, ThriftNode] = {
+    val result = new mutable.AnyRefMap[Node, ThriftNode]()
     val intNodesByType = intNodes groupBy { node => node.`type` }
     for ((nodeType, intNodes) <- intNodesByType) {
       val tempestIds = intNodes map (_.tempestId)
       val tempestIdToIdMap = tempestIdToIdPairMulti(nodeType, tempestIds)
       for ((tempestId, id) <- tempestIdToIdMap) {
-        result(IntNode(nodeType, tempestId)) = new ThriftNode(nodeType, id)
+        result(Node(nodeType, tempestId)) = new ThriftNode(nodeType, id)
       }
     }
     result

@@ -16,21 +16,21 @@
 package co.teapot.tempest.algorithm
 
 import co.teapot.tempest.MonteCarloPageRankParams
-import co.teapot.tempest.typedgraph.{IntNode, TypedGraph}
+import co.teapot.tempest.typedgraph.{Node, TypedGraph}
 
 import scala.collection.mutable
 import scala.util.Random
 
 object MonteCarloPPRTyped {
   def estimatePPR(graph: TypedGraph,
-                  seeds: IndexedSeq[IntNode],
+                  seeds: IndexedSeq[Node],
                   params: MonteCarloPageRankParams,
                   random: Random = new Random()):
-  collection.Map[IntNode, Double] = {
+  collection.Map[Node, Double] = {
     // Note: For efficiency, a future version could group nodes by type, and implement a Map[IntNode, Double] using
     // mutable.AnyRefMap[String, HashIntIntMap]
-    val pprs = new mutable.AnyRefMap[IntNode, Double]().withDefaultValue(0.0)
-    def randomStart(): IntNode = seeds(random.nextInt(seeds.size))
+    val pprs = new mutable.AnyRefMap[Node, Double]().withDefaultValue(0.0)
+    def randomStart(): Node = seeds(random.nextInt(seeds.size))
 
     var v = randomStart()
 

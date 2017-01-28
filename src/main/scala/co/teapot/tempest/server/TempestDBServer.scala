@@ -20,7 +20,7 @@ import java.{lang, util}
 import co.teapot.tempest.{Node => ThriftNode, _}
 import co.teapot.tempest.algorithm.MonteCarloPPRTyped
 import co.teapot.tempest.graph._
-import co.teapot.tempest.typedgraph.{BipartiteTypedGraph, IntNode, TypedGraphUnion}
+import co.teapot.tempest.typedgraph.{BipartiteTypedGraph, Node, TypedGraphUnion}
 import co.teapot.tempest.util.{CollectionUtil, ConfigLoader, LogUtil}
 import co.teapot.thriftbase.TeapotThriftLauncher
 import org.apache.thrift.TProcessor
@@ -130,8 +130,8 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
     val typedGraphs = edgeTypes.asScala map typedGraph
     val unionGraph = new TypedGraphUnion(typedGraphs)
 
-    val reachedNodes = new mutable.HashSet[IntNode]()
-    val nodesToVisit = new util.ArrayDeque[IntNode]()
+    val reachedNodes = new mutable.HashSet[Node]()
+    val nodesToVisit = new util.ArrayDeque[Node]()
     reachedNodes += source
     nodesToVisit.push(source)
     while (! nodesToVisit.isEmpty && reachedNodes.size < maxSize) {
