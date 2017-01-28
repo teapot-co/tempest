@@ -82,38 +82,38 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
 
 
 
-  override def outDegree(edgeType: String, node: ThriftNode): Int = {
-    val tempestId = databaseClient.nodeToTempestId(node)
+  override def outDegree(edgeType: String, thriftNode: ThriftNode): Int = {
+    val tempestId = databaseClient.toNode(thriftNode).tempestId
     graph(edgeType).outDegree(tempestId)
   }
 
-  override def inDegree(edgeType: String, node: ThriftNode): Int = {
-    val tempestId = databaseClient.nodeToTempestId(node)
+  override def inDegree(edgeType: String, thriftNode: ThriftNode): Int = {
+    val tempestId = databaseClient.toNode(thriftNode).tempestId
     graph(edgeType).inDegree(tempestId)
   }
 
-  def neighbors(edgeType: String, node: ThriftNode, direction: EdgeDir): util.List[ThriftNode] = {
-    val tempestId = databaseClient.nodeToTempestId(node)
+  def neighbors(edgeType: String, thriftNode: ThriftNode, direction: EdgeDir): util.List[ThriftNode] = {
+    val tempestId = databaseClient.toNode(thriftNode).tempestId
     val resultType = edgeEndpointType(edgeType, direction)
     val neighborTempestIds = graph(edgeType).neighbors(tempestId, direction)
-    databaseClient.tempestIdToNodeMulti(resultType, neighborTempestIds).asJava
+    databaseClient.tempestIdToThriftNodeMulti(resultType, neighborTempestIds).asJava
   }
 
-  override def outNeighbors(edgeType: String, node: ThriftNode): util.List[ThriftNode] =
-    neighbors(edgeType, node, EdgeDirOut)
+  override def outNeighbors(edgeType: String, thriftNode: ThriftNode): util.List[ThriftNode] =
+    neighbors(edgeType, thriftNode, EdgeDirOut)
 
-  override def inNeighbors(edgeType: String, node: ThriftNode): util.List[ThriftNode] =
-    neighbors(edgeType, node, EdgeDirIn)
+  override def inNeighbors(edgeType: String, thriftNode: ThriftNode): util.List[ThriftNode] =
+    neighbors(edgeType, thriftNode, EdgeDirIn)
 
-  def neighbor(edgeType: String, node: ThriftNode, i: Int, direction: EdgeDir): ThriftNode = {
-    val tempestId = databaseClient.nodeToTempestId(node)
+  def neighbor(edgeType: String, thriftNode: ThriftNode, i: Int, direction: EdgeDir): ThriftNode = {
+    val tempestId = databaseClient.toNode(thriftNode).tempestId
     val degree = graph(edgeType).degree(tempestId, direction)
     if (i >= degree)
-      throw new InvalidIndexException(s"Invalid index $i for node $node with degree $degree")
+      throw new InvalidIndexException(s"Invalid index $i for node $thriftNode with degree $degree")
 
     val resultType = edgeEndpointType(edgeType, direction)
     val neighborTempestId = graph(edgeType).neighbor(tempestId, i, direction)
-    databaseClient.tempestIdToNode(resultType, neighborTempestId)
+    databaseClient.toThriftNode(Node(resultType, neighborTempestId))
   }
 
   override def outNeighbor(edgeType: String, node: ThriftNode, i: Int): ThriftNode =
@@ -125,7 +125,7 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
 
 
   override def connectedComponent(sourceNode: ThriftNode, edgeTypes: util.List[String], maxSize: Int): util.List[ThriftNode] = {
-    val source = databaseClient.nodeToIntNode(sourceNode)
+    val source = databaseClient.toNode(sourceNode)
 
     val typedGraphs = edgeTypes.asScala map typedGraph
     val unionGraph = new TypedGraphUnion(typedGraphs)
@@ -143,7 +143,7 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
         }
       }
     }
-    val resultNodes = databaseClient.intNodeToNodeMap(reachedNodes).values
+    val resultNodes = databaseClient.nodeToThriftNodeMap(reachedNodes).values
     new util.ArrayList(resultNodes.asJavaCollection)
   }
 
@@ -187,7 +187,7 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
                              edgeDir: EdgeDir,
                              degreeFilter: DegreeFilter,
                              alternating: Boolean): util.List[ThriftNode] = {
-    val sourceTempestId = databaseClient.nodeToTempestId(source)
+    val sourceTempestId = databaseClient.toNode(source).tempestId
     val targetNodeType = kStepNodeType(edgeType, edgeDir, k)
     val effectiveGraph = edgeDir match {
       case EdgeDirOut => graph(edgeType)
@@ -205,7 +205,7 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
       }
     }
     val resultTempestIds = resultPreFilter filter { id => satisfiesFilters(edgeType, id, degreeFilter) }
-    val resultNodes = databaseClient.tempestIdToNodeMulti(targetNodeType, resultTempestIds)
+    val resultNodes = databaseClient.tempestIdToThriftNodeMulti(targetNodeType, resultTempestIds)
     resultNodes.asJava
   }
 
@@ -245,12 +245,12 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
                              pageRankParams: MonteCarloPageRankParams): util.Map[ThriftNode, lang.Double] = {
     validateMonteCarloParams(pageRankParams)
     val seedNodes = seedNodesJava.asScala
-    val seeds = databaseClient.nodeToIntNodeMap(seedNodes).values.toIndexedSeq
+    val seeds = databaseClient.thiftNodeToNodeMap(seedNodes).values.toIndexedSeq
 
     val typedGraphs = edgeTypes.asScala map typedGraph
     val unionGraph = new TypedGraphUnion(typedGraphs)
     val pprMap = MonteCarloPPRTyped.estimatePPR(unionGraph, seeds, pageRankParams)
-    val intNodeToNodeMap = databaseClient.intNodeToNodeMap(pprMap.keys)
+    val intNodeToNodeMap = databaseClient.nodeToThriftNodeMap(pprMap.keys)
     (pprMap map { case (intNode, value) =>
       (intNodeToNodeMap(intNode), new lang.Double(value))
     }).asJava
@@ -258,9 +258,9 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
 
 
   override def pprSingleTarget(edgeType: String, seedNodesJava: util.List[ThriftNode],
-                               targetNode: ThriftNode,
+                               targetThriftNode: ThriftNode,
                                params: BidirectionalPPRParams): Double = {
-    val seedIntNodes = databaseClient.nodeToIntNodeMap(seedNodesJava.asScala).values
+    val seedIntNodes = databaseClient.thiftNodeToNodeMap(seedNodesJava.asScala).values
 
     val expectedSeedType = loadEdgeConfig(edgeType).sourceNodeType
     for (u <- seedIntNodes) {
@@ -269,7 +269,7 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
     }
 
     val seedTempestIds = seedIntNodes map (_.tempestId)
-    val targetTempestId = databaseClient.nodeToTempestId(targetNode)
+    val targetTempestId = databaseClient.toNode(targetThriftNode).tempestId
     validateBidirectionalPPRParams(params)
 
     val estimator = new BidirectionalPPREstimator(graph(edgeType), params.resetProbability.toFloat)
@@ -339,7 +339,7 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
     val sourceNodes = sourceNodesJava.asScala
     val targetNodes = targetNodesJava.asScala
 
-    val nodeToIntNodeMap = databaseClient.nodeToIntNodeMap(sourceNodes ++ targetNodes)
+    val nodeToIntNodeMap = databaseClient.thiftNodeToNodeMap(sourceNodes ++ targetNodes)
     val sourceTempestIds = sourceNodes map { node: ThriftNode => nodeToIntNodeMap(node).tempestId }
     val targetTempestIds = targetNodes map { node: ThriftNode => nodeToIntNodeMap(node).tempestId }
 

@@ -36,8 +36,8 @@ class TempestSQLDatabaseClientSpec extends FlatSpec with Matchers {
     }
 
     c.getTempestIdsWithAttributeValue("user", "name", "Alice Johnson") should contain theSameElementsAs (Seq(1))
-    c.nodeToIntNode(new ThriftNode("user", "alice")) shouldEqual (Node("user", 1))
-    c.intNodeToNodeMap(Seq(Node("user", 1), Node("user", 3))) should contain theSameElementsAs
+    c.toNode(new ThriftNode("user", "alice")) shouldEqual (Node("user", 1))
+    c.nodeToThriftNodeMap(Seq(Node("user", 1), Node("user", 3))) should contain theSameElementsAs
       Map(Node("user", 1) -> new ThriftNode("user", "alice"),
         Node("user", 3) -> new ThriftNode("user", "carol"))
 
@@ -75,7 +75,7 @@ class TempestSQLDatabaseClientSpec extends FlatSpec with Matchers {
     c.getNodeAttributeAsJSON("book", "103", "title") shouldEqual "\"Roots\""
     c.nodeIdsMatchingClause("book", "title = 'Roots'") should contain theSameElementsAs (Seq("103"))
     c.getTempestIdsWithAttributeValue("book", "title", "Roots") should contain theSameElementsAs (Seq(3))
-    c.nodeToIntNodeMap(Seq(new ThriftNode("book", "101") , new ThriftNode("book", "103") )) should contain theSameElementsAs
+    c.thiftNodeToNodeMap(Seq(new ThriftNode("book", "101") , new ThriftNode("book", "103") )) should contain theSameElementsAs
       Map(new ThriftNode("book", "101") -> Node("book", 1),
         new ThriftNode("book", "103") -> Node("book", 3))
   }

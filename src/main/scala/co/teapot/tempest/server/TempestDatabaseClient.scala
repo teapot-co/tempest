@@ -30,21 +30,18 @@ import scala.collection.mutable
 
 trait TempestDatabaseClient {
 
-  def nodeToIntNode(node: ThriftNode): Node = {
-    nodeToIntNodeOption(node).getOrElse(
+  def toNode(node: ThriftNode): Node = {
+    toNodeOption(node).getOrElse(
       throw new InvalidNodeIdException(s"No node in ${node.`type`} has id ${node.id}")
     )
   }
 
-  def nodeToTempestId(node: ThriftNode): Int =
-    nodeToIntNode(node).tempestId
-
-  def nodeToIntNodeOption(node: ThriftNode): Option[Node] = {
+  def toNodeOption(node: ThriftNode): Option[Node] = {
     val tempestIdOption = getTempestIdsWithAttributeValue(node.`type`, "id", node.id).headOption
     tempestIdOption map { i => Node(node.`type`, i) }
   }
 
-  def nodeToIntNodeMap(sourceNodes: Iterable[ThriftNode]): collection.Map[ThriftNode, Node] = {
+  def thiftNodeToNodeMap(sourceNodes: Iterable[ThriftNode]): collection.Map[ThriftNode, Node] = {
     val result = new mutable.AnyRefMap[ThriftNode, Node]()
     val nodesByType = sourceNodes groupBy { node => node.`type` }
     for ((nodeType, nodes) <- nodesByType) {
@@ -60,14 +57,9 @@ trait TempestDatabaseClient {
     result
   }
 
-
-  def tempestIdToNode(nodeType: String, tempestId: Int): ThriftNode = {
-    tempestIdToNodeMulti(nodeType, Seq(tempestId)).head
-  }
-
   def tempestIdToIdPairMulti(nodeType: String, tempestIds: Iterable[Int]): List[(Int, String)]
 
-  def tempestIdToNodeMulti(nodeType: String, tempestIds: Seq[Int]): Seq[ThriftNode] = {
+  def tempestIdToThriftNodeMulti(nodeType: String, tempestIds: Seq[Int]): Seq[ThriftNode] = {
     if (tempestIds.isEmpty)
       return Seq.empty
     val ids = nodeIdsMatchingClause(nodeType, "tempest_id in " + tempestIds.mkString("(", ",", ")"))
@@ -76,7 +68,11 @@ trait TempestDatabaseClient {
     }
   }
 
-  def intNodeToNodeMap(intNodes: Iterable[Node]): collection.Map[Node, ThriftNode] = {
+  def toThriftNode(node: Node): ThriftNode = {
+    tempestIdToThriftNodeMulti(node.`type`, Seq(node.tempestId)).head
+  }
+
+  def nodeToThriftNodeMap(intNodes: Iterable[Node]): collection.Map[Node, ThriftNode] = {
     val result = new mutable.AnyRefMap[Node, ThriftNode]()
     val intNodesByType = intNodes groupBy { node => node.`type` }
     for ((nodeType, intNodes) <- intNodesByType) {
