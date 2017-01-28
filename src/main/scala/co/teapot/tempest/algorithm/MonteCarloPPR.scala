@@ -29,7 +29,7 @@ import scala.util.Random
   * They are generalized in a few different ways:
   *   - LengthConstraint specifies that the walk have even, odd, or any length.
   *   - firstStepDirection can specify an out-neighbor or in-neighbor is followed first.
-  *   - params.alternating specifies whether the walk keeps following out-neighbors (PPR) or alternates between out
+  *   - alternating specifies whether the walk keeps following out-neighbors (PPR) or alternates between out
   *     and in-neighbors (SALSA)
   *  As examples, on Twitter if you have a tweet producer like Obama and want to find similar tweet producers,
   *     you likely want to use an even-length alternating walk, starting with EdgeDir.In (to first find followers of Obama).

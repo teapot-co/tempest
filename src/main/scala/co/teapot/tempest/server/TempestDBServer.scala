@@ -245,7 +245,7 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
                              pageRankParams: MonteCarloPageRankParams): util.Map[ThriftNode, lang.Double] = {
     validateMonteCarloParams(pageRankParams)
     val seedNodes = seedNodesJava.asScala
-    val seeds = databaseClient.thiftNodeToNodeMap(seedNodes).values.toIndexedSeq
+    val seeds = databaseClient.thriftNodeToNodeMap(seedNodes).values.toIndexedSeq
 
     val typedGraphs = edgeTypes.asScala map typedGraph
     val unionGraph = new TypedGraphUnion(typedGraphs)
@@ -260,7 +260,7 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
   override def pprSingleTarget(edgeType: String, seedNodesJava: util.List[ThriftNode],
                                targetThriftNode: ThriftNode,
                                params: BidirectionalPPRParams): Double = {
-    val seedIntNodes = databaseClient.thiftNodeToNodeMap(seedNodesJava.asScala).values
+    val seedIntNodes = databaseClient.thriftNodeToNodeMap(seedNodesJava.asScala).values
 
     val expectedSeedType = loadEdgeConfig(edgeType).sourceNodeType
     for (u <- seedIntNodes) {
@@ -339,7 +339,7 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
     val sourceNodes = sourceNodesJava.asScala
     val targetNodes = targetNodesJava.asScala
 
-    val nodeToIntNodeMap = databaseClient.thiftNodeToNodeMap(sourceNodes ++ targetNodes)
+    val nodeToIntNodeMap = databaseClient.thriftNodeToNodeMap(sourceNodes ++ targetNodes)
     val sourceTempestIds = sourceNodes map { node: ThriftNode => nodeToIntNodeMap(node).tempestId }
     val targetTempestIds = targetNodes map { node: ThriftNode => nodeToIntNodeMap(node).tempestId }
 

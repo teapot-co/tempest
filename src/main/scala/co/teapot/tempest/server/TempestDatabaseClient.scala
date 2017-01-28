@@ -24,24 +24,21 @@ import org.postgresql.util.PSQLException
 import scala.collection.mutable
 
 /**
-  * A TempestDatabaseClient providems methods to query attributes of nodes, find nodes matching a given query, and
-  * convert between thrift Node objects (which have a string id chosen by the user) and internal IntNode opbjects
+  * A TempestDatabaseClient provides methods to query attributes of nodes, find nodes matching a given query, and
+  * convert between ThriftNode objects (which have a string id chosen by the user) and internal Node objects
   * (which have an Int tempestId assigned by tempest). */
 
 trait TempestDatabaseClient {
-
   def toNode(node: ThriftNode): Node = {
     toNodeOption(node).getOrElse(
       throw new InvalidNodeIdException(s"No node in ${node.`type`} has id ${node.id}")
     )
   }
 
-  def toNodeOption(node: ThriftNode): Option[Node] = {
-    val tempestIdOption = getTempestIdsWithAttributeValue(node.`type`, "id", node.id).headOption
-    tempestIdOption map { i => Node(node.`type`, i) }
-  }
+  def toNodeOption(node: ThriftNode): Option[Node] =
+    thriftNodeToNodeMap(Seq(node)).get(node)
 
-  def thiftNodeToNodeMap(sourceNodes: Iterable[ThriftNode]): collection.Map[ThriftNode, Node] = {
+  def thriftNodeToNodeMap(sourceNodes: Iterable[ThriftNode]): collection.Map[ThriftNode, Node] = {
     val result = new mutable.AnyRefMap[ThriftNode, Node]()
     val nodesByType = sourceNodes groupBy { node => node.`type` }
     for ((nodeType, nodes) <- nodesByType) {

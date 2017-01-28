@@ -21,6 +21,7 @@ import co.teapot.tempest.typedgraph.{Node, TypedGraph}
 import scala.collection.mutable
 import scala.util.Random
 
+/** Computes PPR on a typed graph (which may be a union of graphs, as in the pprUndirected thrift call). */
 object MonteCarloPPRTyped {
   def estimatePPR(graph: TypedGraph,
                   seeds: IndexedSeq[Node],

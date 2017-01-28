@@ -75,7 +75,7 @@ class TempestSQLDatabaseClientSpec extends FlatSpec with Matchers {
     c.getNodeAttributeAsJSON("book", "103", "title") shouldEqual "\"Roots\""
     c.nodeIdsMatchingClause("book", "title = 'Roots'") should contain theSameElementsAs (Seq("103"))
     c.getTempestIdsWithAttributeValue("book", "title", "Roots") should contain theSameElementsAs (Seq(3))
-    c.thiftNodeToNodeMap(Seq(new ThriftNode("book", "101") , new ThriftNode("book", "103") )) should contain theSameElementsAs
+    c.thriftNodeToNodeMap(Seq(new ThriftNode("book", "101") , new ThriftNode("book", "103") )) should contain theSameElementsAs
       Map(new ThriftNode("book", "101") -> Node("book", 1),
         new ThriftNode("book", "103") -> Node("book", 3))
   }
