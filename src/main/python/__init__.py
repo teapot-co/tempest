@@ -10,7 +10,7 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 
-# The __init__.py file for tempest_graph.  Contains the get_client method.
+# The __init__.py file for tempest_db.  Contains the get_client method.
 
 # Because thrift gen replaces __init__.py with its own, we store this here and copy it after running
 # thrift gen.
@@ -18,7 +18,7 @@
 
 # Example:
 #   graph = get_client(host='localhost', port=10001)
-#   print('alice's outneighbors: ' + str(graph.out_neighbors(make_node("user", "alice")))
+#   print('alice's outneighbors: ' + str(graph.out_neighbors(Node("user", "alice")))
 #   graph.close() # Close the TCP connection
 # See tests in src/test/python for more examples.
 
@@ -28,28 +28,27 @@ __all__ = [
     'client',
     'Node',
     'BidirectionalPPRParams',
+
     'UndefinedAttributeException',
     'SQLException',
     'UndefinedGraphException',
     'InvalidNodeIdException',
-    'tempest_db.InvalidIndexException',
-    'tempest_graph',
+    'InvalidIndexException',
+
     'twitter_2010_example']
 
 import ttypes
-import tempest_graph
-import tempest_graph.ttypes
 from tempest_db import TempestDBService
 MonteCarloPageRankParams = ttypes.MonteCarloPageRankParams
-BidirectionalPPRParams = tempest_graph.ttypes.BidirectionalPPRParams
+BidirectionalPPRParams = ttypes.BidirectionalPPRParams
 DegreeFilterTypes = ttypes.DegreeFilterTypes
 UndefinedAttributeException = ttypes.UndefinedAttributeException
 SQLException = ttypes.SQLException
 UndefinedGraphException = ttypes.UndefinedGraphException
-InvalidNodeIdException = tempest_graph.ttypes.InvalidNodeIdException
-InvalidIndexException = tempest_graph.ttypes.InvalidIndexException
-BidirectionalPPRParams = tempest_graph.ttypes.BidirectionalPPRParams
-Node = tempest_graph.ttypes.Node
+InvalidNodeIdException = ttypes.InvalidNodeIdException
+InvalidIndexException = ttypes.InvalidIndexException
+BidirectionalPPRParams = ttypes.BidirectionalPPRParams
+Node = ttypes.Node
 
 import twitter_2010_example
 

@@ -29,7 +29,7 @@ class TempestDBServerSpec extends FlatSpec with Matchers {
     val prParams = new MonteCarloPageRankParams(1000, 0.3)
     val seeds = Seq(aliceNode).asJava
     val pprMap = server.pprUndirected(util.Arrays.asList("has_read"), seeds, prParams).asScala
-    println(s"pprMap: $pprMap")
+
     pprMap(new Node("user", "alice")) should be > pprMap(new Node("user", "bob"))
     pprMap(new Node("book", "101")) should be > pprMap(new Node("book", "103"))
     pprMap(new Node("book", "103")) should be > pprMap(new Node("book", "102"))

@@ -1,7 +1,6 @@
 package co.teapot.tempest.server
 
 import co.teapot.tempest.TempestDBService
-import co.teapot.tempest.server.{DatabaseConfig, TempestDBServer, TempestDBServerConfig, TempestSQLDatabaseClient}
 import co.teapot.tempest.util.{ConfigLoader, LogUtil}
 import co.teapot.thriftbase.TeapotThriftLauncher
 import org.apache.thrift.TProcessor

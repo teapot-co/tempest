@@ -18,8 +18,8 @@
 $:.push(File.expand_path(File.join(File.dirname(__FILE__),"gen")))
 
 require 'tempest_d_b_service'
-require 'tempest_db_constants'
-require 'tempest_db_types'
+require 'tempest_constants'
+require 'tempest_types'
 require 'base_thrift_client'
 
 # May also require the types and the constants for more complex services
@@ -191,5 +191,5 @@ def node_to_pair(node)
 end
 
 def make_node(type, id)
-  Node.new({'type': type, 'id': id})
+  Teapot::TempestDB::Node.new({'type': type, 'id': id})
 end

@@ -14,6 +14,7 @@
 
 package co.teapot.tempest.server
 
+import java.io.File
 import java.{lang, util}
 
 import co.teapot.tempest._
@@ -23,37 +24,130 @@ import co.teapot.tempest.typedgraph.{BipartiteTypedGraph, IntNode, TypedGraphUni
 import co.teapot.tempest.util.{CollectionUtil, ConfigLoader, LogUtil}
 import co.teapot.thriftbase.TeapotThriftLauncher
 import org.apache.thrift.TProcessor
+import soal.ppr.BidirectionalPPREstimator
+import soal.util.UniformDistribution
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
+import scala.util.Random
 
 /** Given a graph, this thrift server responds to requests about that graph. */
 class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBServerConfig)
-    extends TempestGraphServer(databaseClient, config) with TempestDBService.Iface {
+    extends TempestDBService.Iface {
 
-  type DegreeFilter = collection.Map[DegreeFilterTypes, Int]
-  override def getMultiNodeAttributeAsJSON(nodesJava: util.List[Node], attributeName: String): util.Map[Node, String] = {
-    val nodeTypes = (nodesJava.asScala map (_.`type`)).toSet
-    for (nodeType <- nodeTypes) {
-      if (! doesNodeTypeHaveAttribute(nodeType, attributeName)) {
-        throw new InvalidArgumentException(s"Node type $nodeType does not have an attribute named $attributeName")
+  // Load Graphs
+  val graphMap = new mutable.HashMap[String, DynamicDirectedGraph]()
+  def graph(edgeType: String): DynamicDirectedGraph = {
+    if (! graphMap.contains(edgeType)) {
+      val graphFile = new File(config.graphDirectory, s"$edgeType.dat")
+      if (graphFile.exists) {
+        val graph = new MemMappedDynamicDirectedGraph(
+          graphFile,
+          syncAllWrites = false /* Graph persistence is handled by database.*/)
+        graphMap(edgeType) = graph
+      } else {
+        throw new InvalidArgumentException(s"Invalid edge type $edgeType")
       }
     }
-    databaseClient.getMultiNodeAttributeAsJSON(nodesJava.asScala, attributeName).asJava
+    graphMap(edgeType)
   }
 
-  def setNodeAttribute(node: Node, attributeName: String, attributeValue: String): Unit =
-    databaseClient.setNodeAttribute(node, attributeName, attributeValue)
-
-  def nodes(nodeType: String, sqlClause: String): util.List[Node] = {
-    val nodeIds = databaseClient.nodeIdsMatchingClause(nodeType, sqlClause)
-    (nodeIds map { id => new Node(nodeType, id)}).asJava
+  def loadEdgeConfig(edgeType: String): EdgeTypeConfig = {
+    val edgeConfigFile = new File(config.graphConfigDirectoryFile, s"$edgeType.yaml")
+    if (! edgeConfigFile.exists()) {
+      throw new UndefinedGraphException(s"Graph config file ${edgeConfigFile.getCanonicalPath} not found")
+    }
+    ConfigLoader.loadConfig[EdgeTypeConfig](edgeConfigFile)
   }
 
   def typedGraph(edgeType: String): BipartiteTypedGraph = {
     val edgeConfig = loadEdgeConfig(edgeType)
     BipartiteTypedGraph(edgeConfig.sourceNodeType, edgeConfig.targetNodeType, graph(edgeType))
   }
+
+  /** Returns the type of node reached by following the given direction (out-neighbors or in-neighbors) on the given
+    * edge type.
+    */
+  def edgeEndpointType(edgeType: String, direction: EdgeDir): String = {
+    val edgeConfig = loadEdgeConfig(edgeType)
+    direction match {
+      case EdgeDirOut => edgeConfig.targetNodeType
+      case EdgeDirIn => edgeConfig.sourceNodeType
+    }
+  }
+
+  def doesNodeTypeHaveAttribute(nodeType: String, attributeName: String): Boolean = {
+    true // TODO
+  }
+
+
+
+  override def outDegree(edgeType: String, node: Node): Int = {
+    val tempestId = databaseClient.nodeToTempestId(node)
+    graph(edgeType).outDegree(tempestId)
+  }
+
+  override def inDegree(edgeType: String, node: Node): Int = {
+    val tempestId = databaseClient.nodeToTempestId(node)
+    graph(edgeType).inDegree(tempestId)
+  }
+
+  def neighbors(edgeType: String, node: Node, direction: EdgeDir): util.List[Node] = {
+    val tempestId = databaseClient.nodeToTempestId(node)
+    val resultType = edgeEndpointType(edgeType, direction)
+    val neighborTempestIds = graph(edgeType).neighbors(tempestId, direction)
+    databaseClient.tempestIdToNodeMulti(resultType, neighborTempestIds).asJava
+  }
+
+  override def outNeighbors(edgeType: String, node: Node): util.List[Node] =
+    neighbors(edgeType, node, EdgeDirOut)
+
+  override def inNeighbors(edgeType: String, node: Node): util.List[Node] =
+    neighbors(edgeType, node, EdgeDirIn)
+
+  def neighbor(edgeType: String, node: Node, i: Int, direction: EdgeDir): Node = {
+    val tempestId = databaseClient.nodeToTempestId(node)
+    val degree = graph(edgeType).degree(tempestId, direction)
+    if (i >= degree)
+      throw new InvalidIndexException(s"Invalid index $i for node $node with degree $degree")
+
+    val resultType = edgeEndpointType(edgeType, direction)
+    val neighborTempestId = graph(edgeType).neighbor(tempestId, i, direction)
+    databaseClient.tempestIdToNode(resultType, neighborTempestId)
+  }
+
+  override def outNeighbor(edgeType: String, node: Node, i: Int): Node =
+    neighbor(edgeType, node, i, EdgeDirOut)
+
+  override def inNeighbor(edgeType: String, node: Node, i: Int): Node =
+    neighbor(edgeType, node, i, EdgeDirIn)
+
+
+
+  override def connectedComponent(sourceNode: Node, edgeTypes: util.List[String], maxSize: Int): util.List[Node] = {
+    val source = databaseClient.nodeToIntNode(sourceNode)
+
+    val typedGraphs = edgeTypes.asScala map typedGraph
+    val unionGraph = new TypedGraphUnion(typedGraphs)
+
+    val reachedNodes = new mutable.HashSet[IntNode]()
+    val nodesToVisit = new util.ArrayDeque[IntNode]()
+    reachedNodes += source
+    nodesToVisit.push(source)
+    while (! nodesToVisit.isEmpty && reachedNodes.size < maxSize) {
+      val u = nodesToVisit.pop()
+      for (v <- unionGraph.neighbors(u)) {
+        if (! reachedNodes.contains(v) && reachedNodes.size < maxSize) {
+          reachedNodes += v
+          nodesToVisit.push(v)
+        }
+      }
+    }
+    val resultNodes = databaseClient.intNodeToNodeMap(reachedNodes).values
+    new util.ArrayList(resultNodes.asJavaCollection)
+  }
+
+  type DegreeFilter = collection.Map[DegreeFilterTypes, Int]
 
   /** Returns the type of node reached after k steps along the given edge type starting with the given
     * initial direction. If the edge type
@@ -70,6 +164,21 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
       edgeConfig.getTargetNodeType
     }
   }
+
+  def satisfiesFilters(edgeType: String, nodeId: Long, degreeFilter: DegreeFilter): Boolean =
+    degreeFilter.forall {case(filterType, filterValue) =>
+      satisfiesSingleFilter(edgeType, nodeId, filterType, filterValue)
+    }
+
+  def satisfiesSingleFilter(edgeType: String, nodeId: Long, filterType: DegreeFilterTypes, filterValue: Int): Boolean =
+    filterType match { // TODO: Support multiple graphs here
+      case DegreeFilterTypes.INDEGREE_MAX => graph(edgeType).inDegree(nodeId.toInt) <= filterValue
+      case DegreeFilterTypes.INDEGREE_MIN => graph(edgeType).inDegree(nodeId.toInt) >= filterValue
+      case DegreeFilterTypes.OUTDEGREE_MAX => graph(edgeType).outDegree(nodeId.toInt) <= filterValue
+      case DegreeFilterTypes.OUTDEGREE_MIN => graph(edgeType).outDegree(nodeId.toInt) >= filterValue
+      case default => true
+    }
+
 
   def kStepNeighborsFiltered(edgeType: String,
                              source: Node,
@@ -119,6 +228,18 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
     kStepNeighborsFiltered(edgeType, source, k, sqlClause, EdgeDirIn,
                            CollectionUtil.toScala(filter), alternating)
 
+  def validateMonteCarloParams(params: MonteCarloPageRankParams): Unit = {
+    if (params.resetProbability >= 1.0 || params.resetProbability <= 0.0) {
+      throw new InvalidArgumentException("resetProbability must be between 0.0 and 1.0")
+    }
+    if (params.numSteps <= 0) {
+      throw new InvalidArgumentException("numSteps must be positive")
+    }
+    if (params.isSetMaxResultCount && params.maxResultCount <= 0) {
+      throw new InvalidArgumentException("maxResultCount must be positive")
+    }
+  }
+
   override def pprUndirected(edgeTypes: util.List[String],
                              seedNodesJava: util.List[Node],
                              pageRankParams: MonteCarloPageRankParams): util.Map[Node, lang.Double] = {
@@ -135,54 +256,79 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
     }).asJava
   }
 
-  def satisfiesFilters(edgeType: String, nodeId: Long, degreeFilter: DegreeFilter): Boolean =
-    degreeFilter.forall {case(filterType, filterValue) =>
-      satisfiesSingleFilter(edgeType, nodeId, filterType, filterValue)
+
+  override def pprSingleTarget(edgeType: String, seedNodesJava: util.List[Node],
+                               targetNode: Node,
+                               params: BidirectionalPPRParams): Double = {
+    val seedIntNodes = databaseClient.nodeToIntNodeMap(seedNodesJava.asScala).values
+
+    val expectedSeedType = loadEdgeConfig(edgeType).sourceNodeType
+    for (u <- seedIntNodes) {
+      if (u.`type` != expectedSeedType)
+        throw new InvalidArgumentException(s"Invalid seed type ${u.`type`} for edge type $edgeType")
     }
 
-  def satisfiesSingleFilter(edgeType: String, nodeId: Long, filterType: DegreeFilterTypes, filterValue: Int): Boolean =
-    filterType match { // TODO: Support multiple graphs here
-      case DegreeFilterTypes.INDEGREE_MAX => graph(edgeType).inDegree(nodeId.toInt) <= filterValue
-      case DegreeFilterTypes.INDEGREE_MIN => graph(edgeType).inDegree(nodeId.toInt) >= filterValue
-      case DegreeFilterTypes.OUTDEGREE_MAX => graph(edgeType).outDegree(nodeId.toInt) <= filterValue
-      case DegreeFilterTypes.OUTDEGREE_MIN => graph(edgeType).outDegree(nodeId.toInt) >= filterValue
-      case default => true
-    }
+    val seedTempestIds = seedIntNodes map (_.tempestId)
+    val targetTempestId = databaseClient.nodeToTempestId(targetNode)
+    validateBidirectionalPPRParams(params)
 
-  def validateMonteCarloParams(params: MonteCarloPageRankParams): Unit = {
+    val estimator = new BidirectionalPPREstimator(graph(edgeType), params.resetProbability.toFloat)
+    val startDistribution = new UniformDistribution(seedTempestIds.toArray[Int], new Random())
+    val minimumPPR = if (params.isSetMinProbability)
+      params.minProbability.toFloat
+    else
+      0.25f / graph(edgeType).maxNodeId // nodeCount would be more natural but isn't available for GraphUnion
+
+    // TODO: Modify estimator to incorporate maxIntermediateNodeId if it ever becomes an issue
+    val estimate = estimator.estimatePPR(
+      startDistribution,
+      targetTempestId,
+      minimumPPR,
+      params.relativeError.toFloat)
+    if (estimate >= minimumPPR)
+      estimate
+    else
+      0.0 // Return a clean 0.0 rather than noise if PPR value is too small
+  }
+
+  def validateBidirectionalPPRParams(params: BidirectionalPPRParams): Unit = {
     if (params.resetProbability >= 1.0 || params.resetProbability <= 0.0) {
       throw new InvalidArgumentException("resetProbability must be between 0.0 and 1.0")
     }
-    if (params.numSteps <= 0) {
-      throw new InvalidArgumentException("numSteps must be positive")
+    if (params.relativeError <= 0.0) {
+      throw new InvalidArgumentException("relativeError must be positive")
     }
-    if (params.isSetMaxResultCount && params.maxResultCount <= 0) {
-      throw new InvalidArgumentException("maxResultCount must be positive")
+    if (params.isSetMinProbability && params.minProbability <= 0.0) {
+      throw new InvalidArgumentException("minProbability must be positive")
     }
   }
 
-  override def connectedComponent(sourceNode: Node, edgeTypes: util.List[String], maxSize: Int): util.List[Node] = {
-    val source = databaseClient.nodeToIntNode(sourceNode)
 
-    val typedGraphs = edgeTypes.asScala map typedGraph
-    val unionGraph = new TypedGraphUnion(typedGraphs)
 
-    val reachedNodes = new mutable.HashSet[IntNode]()
-    val nodesToVisit = new util.ArrayDeque[IntNode]()
-    reachedNodes += source
-    nodesToVisit.push(source)
-    while (! nodesToVisit.isEmpty && reachedNodes.size < maxSize) {
-      val u = nodesToVisit.pop()
-      for (v <- unionGraph.neighbors(u)) {
-        if (! reachedNodes.contains(v) && reachedNodes.size < maxSize) {
-          reachedNodes += v
-          nodesToVisit.push(v)
-        }
+  override def nodeCount(edgeType: String): Int = graph(edgeType).nodeCountOption.getOrElse(
+    throw new InvalidArgumentException("nodeCount not supported on this graph type"))
+
+  override def edgeCount(edgeType: String): Long = graph(edgeType).edgeCount
+
+  def nodes(nodeType: String, sqlClause: String): util.List[Node] = {
+    val nodeIds = databaseClient.nodeIdsMatchingClause(nodeType, sqlClause)
+    (nodeIds map { id => new Node(nodeType, id)}).asJava
+  }
+
+  override def getMultiNodeAttributeAsJSON(nodesJava: util.List[Node], attributeName: String): util.Map[Node, String] = {
+    val nodeTypes = (nodesJava.asScala map (_.`type`)).toSet
+    for (nodeType <- nodeTypes) {
+      if (! doesNodeTypeHaveAttribute(nodeType, attributeName)) {
+        throw new InvalidArgumentException(s"Node type $nodeType does not have an attribute named $attributeName")
       }
     }
-    val resultNodes = databaseClient.intNodeToNodeMap(reachedNodes).values
-    new util.ArrayList(resultNodes.asJavaCollection)
+    databaseClient.getMultiNodeAttributeAsJSON(nodesJava.asScala, attributeName).asJava
   }
+
+
+
+  def setNodeAttribute(node: Node, attributeName: String, attributeValue: String): Unit =
+    databaseClient.setNodeAttribute(node, attributeName, attributeValue)
 
   override def addEdges(edgeType: String,
                         sourceNodesJava: util.List[Node],
@@ -205,6 +351,8 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
   }
 }
 
+
+
 object TempestDBServer {
   def getProcessor(configFileName: String): TProcessor = {
     val config = ConfigLoader.loadConfig[TempestDBServerConfig](configFileName)
@@ -224,5 +372,6 @@ object TempestDBServer {
 }
 
 object TempestServerConstants {
+  // Note: This should be moved to a config file.
   val MaxNeighborhoodAttributeQuerySize = 1000 * 1000
 }
