@@ -88,7 +88,7 @@ invalid_book = make_node("book", "foo")
 expect_equal(client.get_node_attribute(book101, "title"), 'The Lord of the Rings', "String attribute failed")
 expect_equal(client.get_multi_node_attribute([book101, invalid_book], "title")[invalid_book], nil, "null attribute failed")
 
-expect_exception(Thrift::ApplicationException) do # TODO: This should be a declared exception, not ApplicationException
+expect_exception(Teapot::TempestDB::InvalidArgumentException) do
   client.get_node_attribute(alice, "title")
 end
 

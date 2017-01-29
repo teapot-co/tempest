@@ -289,6 +289,6 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
   /** For security/safety, make sure attributeName is a valid identifier */
   def validateAttributeName(attributeName: String): Unit = {
     if (! attributeName.matches("[a-zA-Z0-9_]*"))
-      throw new UndefinedAttributeException (s"Invalid attribute name '$attributeName'")
+      throw new InvalidArgumentException(s"Invalid attribute name '$attributeName'")
   }
 }

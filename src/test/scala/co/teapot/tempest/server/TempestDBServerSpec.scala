@@ -21,6 +21,10 @@ class TempestDBServerSpec extends FlatSpec with Matchers {
 
   "A TempestDB server" should "work on PPR calls" in {
     val server = make_server()
+
+    server.doesNodeTypeHaveAttribute("user", "name") shouldEqual (true)
+    server.doesNodeTypeHaveAttribute("user", "foo") shouldEqual (false)
+
     val aliceNode = new ThriftNode("user", "alice")
     server.outNeighbors("has_read", aliceNode).asScala should contain theSameElementsAs Seq(
       new ThriftNode("book", "101"),

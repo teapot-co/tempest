@@ -52,6 +52,14 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
     graphMap(edgeType)
   }
 
+  def loadNodeConfig(nodeType: String): NodeTypeConfig = {
+    val nodeConfigFile = new File(config.graphConfigDirectoryFile, s"$nodeType.yaml")
+    if (! nodeConfigFile.exists()) {
+      throw new UndefinedGraphException(s"Graph config file ${nodeConfigFile.getCanonicalPath} not found")
+    }
+    ConfigLoader.loadConfig[NodeTypeConfig](nodeConfigFile)
+  }
+
   def loadEdgeConfig(edgeType: String): EdgeTypeConfig = {
     val edgeConfigFile = new File(config.graphConfigDirectoryFile, s"$edgeType.yaml")
     if (! edgeConfigFile.exists()) {
@@ -77,7 +85,8 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
   }
 
   def doesNodeTypeHaveAttribute(nodeType: String, attributeName: String): Boolean = {
-    true // TODO
+    val nodeConfig = loadNodeConfig(nodeType)
+    nodeConfig.attributeSet.contains(attributeName)
   }
 
 

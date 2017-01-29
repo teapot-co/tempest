@@ -29,7 +29,7 @@ __all__ = [
     'Node',
     'BidirectionalPPRParams',
 
-    'UndefinedAttributeException',
+    'InvalidArgumentException',
     'SQLException',
     'UndefinedGraphException',
     'InvalidNodeIdException',
@@ -42,7 +42,7 @@ from tempest_db import TempestDBService
 MonteCarloPageRankParams = ttypes.MonteCarloPageRankParams
 BidirectionalPPRParams = ttypes.BidirectionalPPRParams
 DegreeFilterTypes = ttypes.DegreeFilterTypes
-UndefinedAttributeException = ttypes.UndefinedAttributeException
+InvalidArgumentException = ttypes.InvalidArgumentException
 SQLException = ttypes.SQLException
 UndefinedGraphException = ttypes.UndefinedGraphException
 InvalidNodeIdException = ttypes.InvalidNodeIdException

@@ -63,10 +63,6 @@ exception InvalidArgumentException {
   1:string message
 }
 
-exception UndefinedAttributeException {
-  1:string message
-}
-
 exception UndefinedGraphException {
   1:string message
 }
@@ -156,7 +152,7 @@ service TempestDBService {
      and to allow a single nodeId argument.
   */
   map<Node, string> getMultiNodeAttributeAsJSON(1:list<Node> nodes, 2:string attributeName)
-    throws (1: UndefinedGraphException error1, 2:UndefinedAttributeException error2)
+    throws (1: UndefinedGraphException error1, 2:InvalidArgumentException error2)
 
 
 
