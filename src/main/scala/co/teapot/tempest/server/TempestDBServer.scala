@@ -43,7 +43,11 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
       if (graphFile.exists) {
         val graph = new MemMappedDynamicDirectedGraph(
           graphFile,
-          syncAllWrites = false /* Graph persistence is handled by database.*/)
+          syncAllWrites = false /* Graph persistence is handled by database.*/) {
+            // If we add a node, it won't exist in the graph until we add edges to it,
+            // so assume nodes that don't exist in the graph have no neighbors.
+            override def defaultNeighbors(id: Int): IndexedSeq[Int] = IndexedSeq.empty
+        }
         graphMap(edgeType) = graph
       } else {
         throw new InvalidArgumentException(s"Invalid edge type $edgeType")
@@ -334,7 +338,9 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
     databaseClient.getMultiNodeAttributeAsJSON(nodesJava.asScala, attributeName).asJava
   }
 
-
+  override def addNode(node: ThriftNode): Unit = {
+    databaseClient.addNode(node)
+  }
 
   def setNodeAttribute(node: ThriftNode, attributeName: String, attributeValue: String): Unit =
     databaseClient.setNodeAttribute(node, attributeName, attributeValue)

@@ -155,9 +155,14 @@ service TempestDBService {
     throws (1: UndefinedGraphException error1, 2:InvalidArgumentException error2)
 
 
+  /* Adds the given node to the attribute store, so it's attributes can be set, and edges can be added to it.
+    Throws SQLException if the node already exists.
+   */
+  void addNode(1:Node node)
+    throws (1: UndefinedGraphException error1, 2:InvalidArgumentException error2, 3:SQLException error3)
 
-  // TODO: re-enable setNodeAttribute once we enable mutable edges also
-  //void setNodeAttribute(1:i64 nodeId, 2:string attributeName, 3:string attributeValue)
+  void setNodeAttribute(1:Node node, 2:string attributeName, 3:string attributeValue)
+    throws (1: UndefinedGraphException error1, 2:InvalidArgumentException error2, 3:SQLException error3)
 
   /* Add the given edges to the given graph.  Every source node must match the source type of the given edgeType,
      and similarly for targetNodes and the target type of the given edgeType.

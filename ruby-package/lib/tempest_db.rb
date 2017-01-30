@@ -169,10 +169,26 @@ module Teapot
         }
       end
 
+      def add_node(node)
+        @thrift_client.with_retries { |executor|
+          executor.addNode(node)
+        }
+      end
+
+      def set_node_attribute(node, attribute_name, attribute_value)
+        @thrift_client.with_retries { |executor|
+          executor.setNodeAttribute(node, attribute_name, attribute_value)
+        }
+      end
+
       def add_edges(edge_type, source_nodes, target_nodes)
         @thrift_client.with_retries { |executor|
           executor.addEdges(edge_type, source_nodes, target_nodes)
         }
+      end
+
+      def add_edge(edge_type, source_node, target_node)
+        add_edges(edge_type, [source_node], [target_node])
       end
     end
   end

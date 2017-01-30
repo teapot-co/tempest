@@ -100,6 +100,8 @@ trait TempestDatabaseClient {
     nodeToAttribute
   }
 
+  def addNode(node: ThriftNode): Unit
+
   def setNodeAttribute(node: ThriftNode,
                        attributeName: String,
                        attributeValue: String): Unit
@@ -215,13 +217,19 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
       result
     }
 
+  def addNode(node: ThriftNode): Unit =
+    withConnection { implicit connection =>
+      SQL(s"INSERT INTO ${nodesTable(node.`type`)} (id) VALUES ({id})")
+        .on("id" -> node.id).execute()
+  }
+
   def setNodeAttribute(node: ThriftNode, attributeName: String, attributeValue: String): Unit =
     withConnection { implicit connection =>
       validateAttributeName(attributeName)
       // Note, we quote/escape attributeValue to prevent SQL injection, but can't quote attributeName
       // because its a column name.
-      SQL(s"UPDATE ${nodesTable(node.`type`)} SET $attributeName = {attributeValue} WHERE id = ${node.id}")
-        .on("attributeValue" -> attributeValue).execute()
+      SQL(s"UPDATE ${nodesTable(node.`type`)} SET $attributeName = {attributeValue} WHERE id = {id}")
+        .on("attributeValue" -> attributeValue, "id" -> node.id).execute()
     }
 
   def getTempestIdsWithAttributeValue(nodeType: String, attributeName: String,

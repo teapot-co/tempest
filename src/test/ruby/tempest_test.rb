@@ -100,4 +100,32 @@ expect_equal(
   [book101],
   "Wrong out neighbors with attribute")
 
+test_mutation = false
+# After running mutation tests, to avoid interference with tests above, recreate the test graph in docker by running the
+# example node/edge creation commands from the readme.
+# We've disabled these until we find a way to keep the mutated graph from changing results of future tests.
+if test_mutation then
+  daniel = make_node("user", "daniel")
+  client.add_node(daniel)
+  client.set_node_attribute(daniel, "name", "Daniel Smith")
+  expect_equal(client.get_node_attribute(daniel, "name"), "Daniel Smith", "wrong new name")
+
+  # TODO: Make this test work
+  # client.set_node_attribute(daniel, "login_count", 42)
+
+  expect_exception(Teapot::TempestDB::SQLException) do
+    client.add_node(daniel)
+  end
+
+  client.add_edge("follows", alice, daniel)
+  expect_equal(client.out_neighbors("follows", alice).sort, [bob, daniel], "wrong new neighbors")
+
+  book101 = make_node("book", "101")
+  book102 = make_node("book", "102")
+  book103 = make_node("book", "103")
+  client.add_edges("has_read", [alice, daniel], [book102, book103])
+  expect_equal(client.out_neighbors("has_read", alice).sort, [book101, book102, book103].sort, "wrong new neighbors")
+  expect_equal(client.out_neighbors("has_read", daniel), [book103], "wrong new neighbors")
+end
+
 puts "All Ruby client tests passed :)"

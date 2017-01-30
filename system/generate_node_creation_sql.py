@@ -49,7 +49,7 @@ with open(config_filename, 'r') as config_file:
         for (attribute, attribute_type) in zip(node_attributes, node_attribute_types):
             if attribute_type in type_to_postgres:
                 postgres_type = type_to_postgres[attribute_type]
-                constraint = " UNIQUE NOT NULL" if "attribute" == "id" else ""
+                constraint = " UNIQUE NOT NULL" if attribute == "id" else ""
                 print '    "' + attribute + '" ' + postgres_type + constraint + ","
             else:
                 print "Invalid attribute type \"" + attribute_type + "\" in " + config_filename

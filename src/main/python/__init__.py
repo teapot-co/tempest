@@ -221,6 +221,14 @@ class TempestClient:
         """Close the TCP connection to the server."""
         self.__thrift_client.close()
 
+    def add_node(self, node):
+        """ Create the given node, so edges and attributes can be set on it."""
+        self.__thrift_client.addNode(node)
+
+    def set_node_attribute(self, node, attribute_name, attribute_value):
+        """Set the given attribute on the given node, which must have been added previously."""
+        self.__thrift_client.setNodeAttribute(node, attribute_name, attribute_value)
+
     def add_edges(self, edge_type,  nodes1, nodes2):
         """ Adds edges from corresponding items in the given parallel lists to the graph. """
         self.__thrift_client.addEdges(edge_type, nodes1, nodes2)
