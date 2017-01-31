@@ -90,10 +90,14 @@ Tempest was built by a team of Stanford PhDs---[Peter Lofgren](@plofgren) (lead 
    directory outside docker, so you can upgrade tempest without losing your data.  To
    use Tempest DB, install docker on your machine, then run
    
-   `docker run -t -i -v $YOUR_DATA_DIR:/data -v ~/:/mnt/home/ -p 127.0.0.1:10001:10001 teapotco/tempestdb:latest bash`
-   (Mounting your home directory using `-v ~/:/mnt/home/` is optional, but could be useful for reading
-   your graph files from docker.)  The docker image contains a built release of Tempest; if you'd like to run against
+   `docker run -t -i -v $YOUR_DATA_DIR:/data -p 127.0.0.1:10001:10001 teapotco/tempestdb:latest bash`
+   You can make additional directories available to docker as needed, 
+   for example, to make your home directory available from inside docker, add `-v ~/:/mnt/home/` to the above command. 
+   The docker image contains a built release of Tempest. 
+   If you're a developer and would like to run against
    a tempest repo you've checked out locally (say at ~/tempest), add `-v ~/tempest/:/root/tempest/` to the above command.
+   For development, you should also add `-p 5432:5432` to the above command, and follow the below instructions
+   for creating the test node and edge types, so that your tests can run outside docker against the postgres database inside docker.
 2. You need three types of file to fire up the Tempest server with your graph: 
       a) a csv file for each node type,
       b) a csv file for each edge type, and
@@ -101,7 +105,6 @@ Tempest was built by a team of Stanford PhDs---[Peter Lofgren](@plofgren) (lead 
 
   To see the format of the headerless node csv and the edge csv expected by Tempest, look at `example/users.csv`
   and `follows.csv`.
-  
 3. Once you have your node and edge files in csv format, create a config file in `$YOUR_DATA_DIR/config/`
    for each node and edge type.  The name of the config file must match the name of the node or edge type,
    so for example if you have a node type called `user` there must be a file in `$YOUR_DATA_DIR/config/user.yaml`.
@@ -110,16 +113,12 @@ Tempest was built by a team of Stanford PhDs---[Peter Lofgren](@plofgren) (lead 
       - nodeAttributes A list of name and type for each attribute in your csv file. Attributes type 
         may only be 'string', 'int' (32 bit), 'bigint' (64 bit), or 'boolean'. Enter the attributes
         in the same order as they appear in the node file.
+      - One of your nodeAttributes must be called 'id'. This nodeAttribute must have type string, and must be unique across all nodes of this type.
    As in the example files `example/follows.yaml` and `example/has_read.yaml`, each `<edge_type>.yaml` file should have the following fields:
-      - csvFile: the headerless csv file, for example '/mnt/home/data/has_read.csv'
+      - csvFile: the headerless csv file, for example '/mnt/home/data/has_read.csv'.  Every line of this file must be a pair "sourceId,targetId"
+        where sourceId matches some id of sourceNodeType, and targetId matches the id of some node in targetNodeType
       - sourceNodeType: The type of node on the left of each edge, for example 'user'
       - targetNodeType: The type of node on the right of each edge, for example 'book'
-      - sourceNodeIdentifierField: the attribute in sourceNodeType which this csv file uses to identify nodes, for example 'username'
-      - targetNodeIdentifierField: the attribute in targetNodeType which this csv file uses to identify nodes, for example 'id'
-   Tempest internally refers to nodes using a 32-bit int `id` attribute.  If a node type already has
-   an `id` field, Tempest will use that; otherwise Temepst will create an auto-incrementing `id` 
-   attribute for that node type.  Node `id`s are only meaninful within a node type, for example,
-   user 3 and book 3 refer to completely different nodes.
 4. Convert your graph to binary and load your nodes and edges into Postgres by running
    `create_node_type.sh <node_type>` or `create_edge_type.sh <edge_type>` for each node or edge type.
    For example, to load the example graphs, from inside docker run
@@ -161,7 +160,7 @@ Tempest was built by a team of Stanford PhDs---[Peter Lofgren](@plofgren) (lead 
 ## Using Tempest as a library
 
 ### Requirements
-Tempest depends on Java and [sbt](http://www.scala-sbt.org/download.html).
+Tempest depends on Java, [sbt](http://www.scala-sbt.org/download.html), and [thrift](https://thrift.apache.org/).  To install thrift on OS X, you can run `brew install thrift`, or for other platforms see their [install instructions](https://thrift.apache.org/docs/install/). Before compiling Tempest, you'll need to generate thrift files using `src/main/bash/generate_thrift.sh`.
 
 ### Converting a Graph to Tempest Format
 For large graphs, you will want to first convert your graph to the Tempest binary format.  The 
@@ -171,6 +170,7 @@ the test graph, for example, run:
 ```
 git clone https://github.com/teapot-co/tempest.git
 cd tempest
+src/main/bash/generate_thrift.sh
 bin/convert_graph_immutable.sh src/test/resources/test_graph.txt test_graph.dat
 ```
 ### Languages Supported by Tempest

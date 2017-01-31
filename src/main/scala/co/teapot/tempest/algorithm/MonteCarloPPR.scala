@@ -29,7 +29,7 @@ import scala.util.Random
   * They are generalized in a few different ways:
   *   - LengthConstraint specifies that the walk have even, odd, or any length.
   *   - firstStepDirection can specify an out-neighbor or in-neighbor is followed first.
-  *   - params.alternating specifies whether the walk keeps following out-neighbors (PPR) or alternates between out
+  *   - alternating specifies whether the walk keeps following out-neighbors (PPR) or alternates between out
   *     and in-neighbors (SALSA)
   *  As examples, on Twitter if you have a tweet producer like Obama and want to find similar tweet producers,
   *     you likely want to use an even-length alternating walk, starting with EdgeDir.In (to first find followers of Obama).
@@ -51,6 +51,7 @@ object MonteCarloPPR {
                   firstStepDirection: EdgeDir,
                   lengthConstraint: LengthConstraint,
                   params: MonteCarloPageRankParams,
+                  alternatingWalk: Boolean,
                   random: Random = new Random()):
   collection.Map[Int, Double] = {
     val pprs = CollectionUtil.efficientIntDoubleMapWithDefault0()
@@ -74,7 +75,7 @@ object MonteCarloPPR {
         currentLength = 0
       } else {
         v = graph.neighbor(v, random.nextInt(vDegree), currentDirection)
-        if (params.alternatingWalk) {
+        if (alternatingWalk) {
           currentDirection = currentDirection.flip
         }
         currentLength += 1
@@ -89,6 +90,7 @@ object MonteCarloPPR {
                           firstStepDirection: EdgeDir,
                           lengthConstraint: LengthConstraint,
                           params: MonteCarloPageRankParams,
+                          alternatingWalk: Boolean,
                           threadCount: Int):
   collection.Map[Int, Double] = {
     val paramsForThread = params.deepCopy()
@@ -96,7 +98,7 @@ object MonteCarloPPR {
     paramsForThread.setMinReportedVisits(0) // Threads shouldn't filter before counts have been averaged.
     val pprMapFutures = (0 until threadCount) map { i =>
       Future[collection.Map[Int, Double]] {
-        estimatePPR(graph, startIds, firstStepDirection, lengthConstraint, paramsForThread)
+        estimatePPR(graph, startIds, firstStepDirection, lengthConstraint, paramsForThread, alternatingWalk)
       }
     }
 
@@ -107,7 +109,7 @@ object MonteCarloPPR {
   }
 
   /** Applies the isSetMinReportedVisits and maxResultCount constraints of the given params. */
-  def filterPPRResults(pprs: collection.Map[Int, Double], params: MonteCarloPageRankParams): collection.Map[Int, Double] = {
+  def filterPPRResults[A](pprs: collection.Map[A, Double], params: MonteCarloPageRankParams): collection.Map[A, Double] = {
     val prunedPPRs = if (params.isSetMinReportedVisits) {
       pprs filter {
         // Subtracting 0.5 is just to avoid floating point exactness issues

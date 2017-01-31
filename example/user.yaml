@@ -5,6 +5,6 @@ csvFile: /root/tempest/example/users.csv
 # Supported types: int (32 bit), bigint (64 bit), string, boolean
 nodeAttributes:
   - name: string
-  - username: string
+  - id: string
   - login_count: int
   - premium_subscriber: boolean

@@ -3,6 +3,3 @@ csvFile: /root/tempest/example/follows.csv
 
 sourceNodeType: user
 targetNodeType: user
-# sourceNodeIdentifierField is the attribute in sourceNodeType which this csv file uses to identify nodes
-sourceNodeIdentifierField: username
-targetNodeIdentifierField: username

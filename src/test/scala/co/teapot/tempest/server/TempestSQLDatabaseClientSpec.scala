@@ -1,73 +1,82 @@
 package co.teapot.tempest.server
 
-import java.io.File
-import co.teapot.tempest.{SQLException, UndefinedAttributeException}
+import co.teapot.tempest.typedgraph.Node
 import co.teapot.tempest.util.ConfigLoader
-import org.scalatest.{Matchers, FlatSpec}
-import anorm.{SqlParser, SQL}
+import co.teapot.tempest.{Node => ThriftNode, SQLException}
+import com.zaxxer.hikari.pool.HikariPool.PoolInitializationException
+import org.scalatest.{FlatSpec, Matchers}
 
 class TempestSQLDatabaseClientSpec extends FlatSpec with Matchers {
-  val testConfigPath = "src/test/resources/config/database.yml"
-  if (new File(testConfigPath).exists()) {
-    val testConfig = ConfigLoader.loadConfig[DatabaseConfig](testConfigPath)
-    "A TempestDatabaseClientSpec" should "connect correctly" in {
-      val c = new TempestSQLDatabaseClient(testConfig)
-      c.getMultiNodeAttributeAsJSON("graph1", Seq(1, 3), "name").toSeq should contain theSameElementsAs
-        Seq(1L -> "\"Alice Johnson\"", 3L -> "\"Carol \"ninja\" Coder\"")
-      c.getNodeAttributeAsJSON("graph1", 1L, "login_count") shouldEqual ("5")
-      c.getNodeAttributeAsJSON("graph1", 1L, "premium_subscriber") shouldEqual ("false")
-      c.getNodeAttributeAsJSON("graph1", 3L, "premium_subscriber") shouldEqual ("true")
+  val testConfigPath = "src/test/resources/config/database.yaml"
+  val testConfig = ConfigLoader.loadConfig[DatabaseConfig](testConfigPath)
 
-      // node id 4 has null name
-      c.getNodeAttributeAsJSON("graph1", 4L, "name") shouldEqual "null"
-
-      // TODO: UndefinedAttributeException would be more precise than SQLException
-      an[SQLException] should be thrownBy {
-        c.getMultiNodeAttribute[String]("graph1", Seq(1L, 3L), "invalidAttributeName")
-      }
-
-      c.getNodeIdsWithAttributeValue("graph1", "username", "alice") should contain theSameElementsAs (Seq(1L))
-
-      c.nodeIdsFiltered("graph1", "login_count > 2") should contain theSameElementsAs (Seq(1L, 3L))
-
-      c.filterNodeIdsUsingAttributeValue("graph1", Seq(1L, 2L), "username", "alice") should contain theSameElementsAs (Seq(1L))
-      c.filterNodeIds("graph1", Seq(2L, 3L), "login_count > 2") should contain theSameElementsAs (Seq(3L))
-
-      c.filterNodeIds("graph1", Seq(1L, 2L), "name = 'Alice Johnson'") should contain theSameElementsAs (Seq(1L))
-
-      a [SQLException] should be thrownBy {
-        c.nodeIdsFiltered("graph1", "Bizzare * %")
-      }
-
-
-      // Test node update
-      c.setNodeAttribute("graph1", 2L, "username", "newBob")
-      c.getNodeAttribute[String]("graph1", 2L, "username") should equal (Some("newBob"))
-      c.setNodeAttribute("graph1", 2L, "username", "bob")
-
-      // TODO: Eventually add and test support for adding new nodes
-      //c.withConnection { implicit connection =>
-      //  SQL("DELETE FROM graph1_nodes WHERE id = 42").execute()
-      //}
-
-      // Test edges creation TODO
-      //c.addEdges("graph1", Array(10L, 20L), Array(11L, 21L))
-      //c.withConnection { implicit connection =>
-      //  SQL("select id2 from edges WHERE id1 = 10").as(SqlParser.int(1).*) should contain (11)
-      //  SQL("select id1 from edges WHERE id2 = 21").as(SqlParser.int(1).*) should contain (20)
-      //  SQL("DELETE FROM edges WHERE id2 in (20, 21)").execute()
-      //}
-
-      // Test graph2 returns independent results
-      c.getNodeAttributeAsJSON("graph2", 1L, "username") shouldEqual "\"alice2\""
-      c.getNodeIdsWithAttributeValue("graph2", "username", "alice2") should contain theSameElementsAs (Seq(1L))
-      c.getNodeIdsWithAttributeValue("graph2", "username", "alice") should contain theSameElementsAs (Seq())
-      c.getNodeAttributeAsJSON("graph2", 1L, "login_count2") shouldEqual "52"
-      c.nodeIdsFiltered("graph2", "login_count2 = 32") should contain theSameElementsAs (Seq(3L))
-      c.nodeIdsFiltered("graph2", "username = 'nameless'") should contain theSameElementsAs (Seq(3000000004L))
-
+  "A TempestDatabaseClientSpec" should "connect correctly" in {
+    val c: TempestSQLDatabaseClient = try {
+      new TempestSQLDatabaseClient(testConfig)
+    } catch {
+      case e: PoolInitializationException =>
+        throw new RuntimeException("Failed to connect to postgres.\nYou may want to follow the directions in Readme.md " +
+          "on setting up a dev docker instance.\nIn particular, make sure you used -p 5432:5432 when starting docker" +
+          "and docker is running.\nYou may need to run /root/tempest/system/start_postgres.sh inside docker.")
     }
-  } else {
-    System.err.println(s"Omitting database tests due to missing config file $testConfigPath")
+
+
+    c.getSingleTypeNodeAttributeAsJSON("user", Seq("alice", "carol"), "name").toSeq should contain theSameElementsAs
+      Seq("alice" -> "\"Alice Johnson\"", "carol" -> "\"Carol \"ninja\" Coder\"")
+    c.getNodeAttributeAsJSON("user", "alice", "login_count") shouldEqual ("5")
+    c.getNodeAttributeAsJSON("user", "alice", "premium_subscriber") shouldEqual ("false")
+    c.getNodeAttributeAsJSON("user", "carol", "premium_subscriber") shouldEqual ("true")
+
+    // node "nameless" has null name
+    c.getNodeAttributeAsJSON("user", "nameless", "name") shouldEqual "null"
+
+    // TODO: UndefinedAttributeException would be more precise than SQLException
+    an[SQLException] should be thrownBy {
+      c.getMultiNodeAttribute[String]("user", Seq("alice", "carol"), "invalidAttributeName")
+    }
+
+    c.getTempestIdsWithAttributeValue("user", "name", "Alice Johnson") should contain theSameElementsAs (Seq(1))
+    c.toNode(new ThriftNode("user", "alice")) shouldEqual (Node("user", 1))
+    c.nodeToThriftNodeMap(Seq(Node("user", 1), Node("user", 3))) should contain theSameElementsAs
+      Map(Node("user", 1) -> new ThriftNode("user", "alice"),
+        Node("user", 3) -> new ThriftNode("user", "carol"))
+
+    c.nodeIdsMatchingClause("user", "login_count > 2") should contain theSameElementsAs (Seq("alice", "carol"))
+
+    c.filterNodeIds("user", Seq("bob", "carol"), "login_count > 2") should contain theSameElementsAs (Seq("carol"))
+
+    c.filterNodeIds("user", Seq("alice", "bob"), "name = 'Alice Johnson'") should contain theSameElementsAs (Seq("alice"))
+
+    a [SQLException] should be thrownBy {
+      c.nodeIdsMatchingClause("user", "Bizzare * %")
+    }
+
+
+    // Test node update
+    // TODO: Restore after implementing addNode
+    //c.setNodeAttribute("graph1", 2L, "username", "newBob")
+    //c.getNodeAttribute[String]("graph1", 2L, "username") should equal (Some("newBob"))
+    //c.setNodeAttribute("graph1", 2L, "username", "bob")
+
+    // TODO: Eventually add and test support for adding new nodes
+    //c.withConnection { implicit connection =>
+    //  SQL("DELETE FROM graph1_nodes WHERE id = 42").execute()
+    //}
+
+    // Test edges creation TODO
+    //c.addEdges("graph1", Array(10L, 20L), Array(11L, 21L))
+    //c.withConnection { implicit connection =>
+    //  SQL("select id2 from edges WHERE id1 = 10").as(SqlParser.int(1).*) should contain (11)
+    //  SQL("select id1 from edges WHERE id2 = 21").as(SqlParser.int(1).*) should contain (20)
+    //  SQL("DELETE FROM edges WHERE id2 in (20, 21)").execute()
+    //}
+
+    // Test book node type returns independent results
+    c.getNodeAttributeAsJSON("book", "103", "title") shouldEqual "\"Roots\""
+    c.nodeIdsMatchingClause("book", "title = 'Roots'") should contain theSameElementsAs (Seq("103"))
+    c.getTempestIdsWithAttributeValue("book", "title", "Roots") should contain theSameElementsAs (Seq(3))
+    c.thriftNodeToNodeMap(Seq(new ThriftNode("book", "101") , new ThriftNode("book", "103") )) should contain theSameElementsAs
+      Map(new ThriftNode("book", "101") -> Node("book", 1),
+        new ThriftNode("book", "103") -> Node("book", 3))
   }
 }
