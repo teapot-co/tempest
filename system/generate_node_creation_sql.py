@@ -34,22 +34,22 @@ with open(config_filename, 'r') as config_file:
         node_attributes = [m.keys()[0] for m in node_attribute_maps]
         node_attribute_types = [m.values()[0] for m in node_attribute_maps]
 
-        # If the imported data doesn't have a "id" column, we'll create one.
-        create_id = ("id" not in node_attributes)
-
+        if "id" not in node_attributes:
+            print "Error: config file " + config_filename + " is missing an id column.  Please choose a column to" + \
+                  " use as an id, and add \"id: string\" to the node attributes."
+            sys.exit(1)
+        id_index = node_attributes.index("id")
+        if node_attribute_types[id_index] != "string":
+            print "Error: in " + config_filename + ", id must have type string"
+            sys.exit(1)
         print "DROP TABLE IF EXISTS " + table_name + ";"
         print "CREATE TABLE " + table_name + " ("
-        if create_id:
-            print "    id SERIAL PRIMARY KEY,"
-            #node_attributes.append("id")
-            #node_attribute_types.append("serial")
-        else:
-            id_index = node_attributes.index("id")
-            assert node_attribute_types[id_index] == "int", "id must have type int"
+        print "    tempest_id SERIAL PRIMARY KEY,"
+
         for (attribute, attribute_type) in zip(node_attributes, node_attribute_types):
             if attribute_type in type_to_postgres:
                 postgres_type = type_to_postgres[attribute_type]
-                constraint = " PRIMARY KEY" if "attribute" == "id" else ""
+                constraint = " UNIQUE NOT NULL" if attribute == "id" else ""
                 print '    "' + attribute + '" ' + postgres_type + constraint + ","
             else:
                 print "Invalid attribute type \"" + attribute_type + "\" in " + config_filename

@@ -1,22 +1,23 @@
 package co.teapot.tempest.typedgraph
 
-import co.teapot.tempest.Node
+import scala.util.Random
 
 /** A graph where each node has a type. */
-/* This class is still being developed. */
+/* This class is still being developed.  For now it is undirected. */
 trait TypedGraph {
- // Return a Traversable to avoid materializing a Seq of Nodes (potentially saving memory)
-  def outNeighbors(node: Node): Traversable[Node]
 
-  def inNeighbors(node: Node): Traversable[Node]
+  /**
+   * Returns the degree (# neighbors) of the given node. Returns 0 if the given node is not part of this graph (wrong
+   * type, or too large of tempestId)
+   */
+  def degree(node: Node): Int
 
-  /** Traverses over both out and in neighbors of the given node. Will traverse a node twice if it is both an out-neighbor
-    * and an in-neighbor.
-    */
-  def neighbors(node: Node): Traversable[Node] = new Traversable[Node] {
-    def foreach[A](f: Node => A): Unit = {
-      outNeighbors(node).foreach(f)
-      inNeighbors(node).foreach(f)
-    }
+  // Return a Traversable to avoid materializing a Seq of Nodes (potentially saving memory)
+  def neighbors(node: Node): Traversable[Node]
+
+  def neighbor(node: Node, i: Int): Node
+
+  def randomNeighbor(node: Node, random: Random = Random.self): Node = {
+    neighbor(node, random.nextInt(degree(node)))
   }
 }
