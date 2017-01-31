@@ -30,4 +30,9 @@ unmanagedSourceDirectories in Compile += baseDirectory.value / "src/gen/java"
 
 test in assembly := {} // Disable tests during assembly
 
+// don't reuse the same JVM instance between tests runs
+// we're currently leaking some resources so if we reuse the same JVM instance
+// tests fail with errors related to obtaining a database driver for postgres
+fork in Test := true
+
 assemblyJarName in assembly := "tempest-assembly.jar" // By default, assembly appends a version number, which requires changing bash scripts that reference the jar
