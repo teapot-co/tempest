@@ -40,15 +40,14 @@ sourceGenerators in Compile += Def.task {
   val generateThriftScript = baseDirectory.value / "src/main/bash/generate_thrift.sh"
 
   val cachedProcess = FileFunction.cached(streams.value.cacheDirectory / "generate_thrift", FilesInfo.hash) { (in: Set[File]) =>
-    // here we don't extract input files but just get the path to script directly and
-    // rely on bash script to know which thrift files to Process
-    // possibly to be changed in the future
-    val generatorOuputPath = (sourceManaged in Compile).value / "thrift"
+    // here we don't extract input files
+    // we rely on bash script to know which thrift files to Process
+    val generatorOutputPath = (sourceManaged in Compile).value / "thrift"
     Process(
       command = generateThriftScript.toString,
-      arguments = Seq(generatorOuputPath.toString)
+      arguments = Seq(generatorOutputPath.toString)
     ).!
-    Process(s"find ${baseDirectory.value}/src/gen/ -name *.java").lines.map(file(_)).toSet
+    (generatorOutputPath ** "*.java").get.toSet
   }
   // we pass both the path to bash script and paths to all *.thrift files in src/main/thrift directory
   // so cache gets invalidated when _either_ the bash script itself is edited or one of thrift files

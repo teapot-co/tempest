@@ -5,7 +5,7 @@ mkdir -p $JAVA_GENERATOR_OUTPUT
 mkdir -p ruby-package/lib/gen/
 mkdir -p python-package/tempest_db
 
-rm -r $JAVA_GENERATOR_OUTPUT/* # Remove any old versions
+rm -rf $JAVA_GENERATOR_OUTPUT/* # Remove any old versions
 rm -r ruby-package/lib/gen/*
 rm -r python-package/tempest_db # Remove any old versions
 
