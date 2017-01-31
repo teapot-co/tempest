@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
-mkdir -p src/gen/java
+DEFAULT_JAVA_GENERATOR_OUTPUT="src/gen/java"
+JAVA_GENERATOR_OUTPUT=${1-$DEFAULT_JAVA_GENERATOR_OUTPUT}
+mkdir -p $JAVA_GENERATOR_OUTPUT
 mkdir -p ruby-package/lib/gen/
 mkdir -p python-package/tempest_db
 
-rm -r src/gen/java/* # Remove any old versions
+rm -r $JAVA_GENERATOR_OUTPUT/* # Remove any old versions
 rm -r ruby-package/lib/gen/*
 rm -r python-package/tempest_db # Remove any old versions
 
-thrift -out src/gen/java -gen java src/main/thrift/tempest.thrift
+thrift -out $JAVA_GENERATOR_OUTPUT -gen java src/main/thrift/tempest.thrift
 thrift -out ruby-package/lib/gen -gen rb src/main/thrift/tempest.thrift
 thrift -out python-package -gen py src/main/thrift/tempest.thrift
 

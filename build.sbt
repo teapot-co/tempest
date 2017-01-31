@@ -43,7 +43,11 @@ sourceGenerators in Compile += Def.task {
     // here we don't extract input files but just get the path to script directly and
     // rely on bash script to know which thrift files to Process
     // possibly to be changed in the future
-    Process(generateThriftScript.toString).!
+    val generatorOuputPath = (sourceManaged in Compile).value / "thrift"
+    Process(
+      command = generateThriftScript.toString,
+      arguments = Seq(generatorOuputPath.toString)
+    ).!
     Process(s"find ${baseDirectory.value}/src/gen/ -name *.java").lines.map(file(_)).toSet
   }
   // we pass both the path to bash script and paths to all *.thrift files in src/main/thrift directory
