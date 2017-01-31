@@ -26,8 +26,6 @@ scalacOptions ++= Seq(
 
 javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 
-unmanagedSourceDirectories in Compile += baseDirectory.value / "src/gen/java"
-
 test in assembly := {} // Disable tests during assembly
 
 // don't reuse the same JVM instance between tests runs
@@ -36,3 +34,23 @@ test in assembly := {} // Disable tests during assembly
 fork in Test := true
 
 assemblyJarName in assembly := "tempest-assembly.jar" // By default, assembly appends a version number, which requires changing bash scripts that reference the jar
+
+sourceGenerators in Compile += Def.task {
+
+  val generateThriftScript = baseDirectory.value / "src/main/bash/generate_thrift.sh"
+
+  val cachedProcess = FileFunction.cached(streams.value.cacheDirectory / "generate_thrift", FilesInfo.hash) { (in: Set[File]) =>
+    // here we don't extract input files but just get the path to script directly and
+    // rely on bash script to know which thrift files to Process
+    // possibly to be changed in the future
+    Process(generateThriftScript.toString).!
+    Process(s"find ${baseDirectory.value}/src/gen/ -name *.java").lines.map(file(_)).toSet
+  }
+  // we pass both the path to bash script and paths to all *.thrift files in src/main/thrift directory
+  // so cache gets invalidated when _either_ the bash script itself is edited or one of thrift files
+  // is changed
+  cachedProcess(
+    Set(generateThriftScript)
+    ++ ((sourceDirectory in Compile in compile).value / "thrift" ** "*.thrift").get
+  ).toSeq
+}.taskValue
