@@ -6,7 +6,7 @@ ruby:
 (cd ruby-package; gem push tempest_db-0.14.0.gem)
 
 docker:
-docker build .
+sbt assembly && docker build .
 docker tag <the tag printed by build> teapotco/tempestdb:0.14.0
 docker tag <the tag printed by build> teapotco/tempestdb:latest
 docker push teapotco/tempestdb:0.14.0
