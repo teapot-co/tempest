@@ -110,9 +110,9 @@ class TempestClient:
                 self.__thrift_client = get_thrift_client(self.__host, self.__port)
                 return None
 
-    def node_count(self):
+    def node_count(self, edge_type):
         """ Return the number of nodes."""
-        return self.__with_retries(lambda: self.__thrift_client.nodeCount())
+        return self.__with_retries(lambda: self.__thrift_client.nodeCount(edge_type))
 
     def edge_count(self, edge_type):
         """ Return the number of edges."""
