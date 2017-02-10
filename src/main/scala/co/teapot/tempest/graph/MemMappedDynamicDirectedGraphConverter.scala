@@ -42,33 +42,33 @@ object MemMappedDynamicDirectedGraphConverter {
               outputGraphFile: File,
               log: String => Unit = System.err.println): Unit = {
     val graph = new MemMappedDynamicDirectedGraph(outputGraphFile, syncAllWrites=false)
-    val outDegrees = new IntBigArrayBigList()
-    val inDegrees = new IntBigArrayBigList()
+    val outDegrees = new IntArrayList()
+    val inDegrees = new IntArrayList()
 
     Util.logWithRunningTime(log, "first pass", printAtStart = true) {
-      FileUtil.forEachLongPair(edgeListFile, log, linesPerMessage = 1000000) { (id1, id2) =>
-        if (id1 >= outDegrees.size64) {
-          outDegrees.size(id1 + 1) // Note that size fills new entries with 0s
+      FileUtil.forEachIntPair(edgeListFile, log, linesPerMessage = 1000000) { (id1, id2) =>
+        if (id1 >= outDegrees.size) {
+          outDegrees.addAll(IntArrayList.wrap(new Array[Int](id1 + 1 - outDegrees.size)))
         }
-        if (id2 >= inDegrees.size64) {
-          inDegrees.size(id2 + 1)
+        if (id2 >= inDegrees.size) {
+          inDegrees.addAll(IntArrayList.wrap(new Array[Int](id2 + 1 - inDegrees.size)))
         }
         outDegrees.set(id1, outDegrees.get(id1) + 1)
         inDegrees.set(id2, inDegrees.get(id2) + 1)
       }
     }
-    val maxNodeId = math.max(outDegrees.size64 - 1, inDegrees.size64 - 1)
+    val maxNodeId = math.max(outDegrees.size - 1, inDegrees.size - 1)
 
     Util.logWithRunningTime(log, "Allocating neighbor arrays", printAtStart = true) {
       println(s"Allocating space for $maxNodeId nodes")
       graph.ensureValidId(maxNodeId)
-      for (id1 <- CollectionUtil.longRange(0, outDegrees.size64)) {
-        if (id1 < 5L) log(s"Reserving ${outDegrees.get(id1)} out-neighbors for $id1")
+      for (id1 <- 0 until outDegrees.size) {
+        if (id1 < 5) log(s"Reserving ${outDegrees.get(id1)} out-neighbors for $id1")
         if (outDegrees.get(id1) > 0) {
           graph.setOutDegreeCapacity(id1.toInt, outDegrees.get(id1))
         }
       }
-      for (id2 <- CollectionUtil.longRange(0, inDegrees.size64)) {
+      for (id2 <- 0 until inDegrees.size) {
         if (id2 < 5) log(s"Reserving ${inDegrees.get(id2)} in-neighbors for $id2")
         if (inDegrees.get(id2) > 0) {
           graph.setInDegreeCapacity(id2.toInt, inDegrees.get(id2))
@@ -77,9 +77,9 @@ object MemMappedDynamicDirectedGraphConverter {
     }
 
     Util.logWithRunningTime(log, "2nd pass: Adding edges", printAtStart = true) {
-      FileUtil.forEachLongPair(edgeListFile, log, linesPerMessage = 1000000) { (id1, id2) =>
+      FileUtil.forEachIntPair(edgeListFile, log, linesPerMessage = 1000000) { (id1, id2) =>
         //log(s"adding edge $id1, $id2")
-        graph.addEdge(id1.toInt, id2.toInt)
+        graph.addEdge(id1, id2)
       }
     }
 

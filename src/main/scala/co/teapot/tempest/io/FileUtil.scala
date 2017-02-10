@@ -53,6 +53,20 @@ object FileUtil {
     }
   }
 
+  def forEachIntPair(intPairFile: File, log: String => Unit, logProgress: Boolean = true, linesPerMessage: Int = 1000000)
+                     (f: (Int, Int) => Unit): Unit = {
+    val linePattern = Pattern.compile(raw"(\d+)\s+(\d+)")
+    foreachLine(intPairFile, log, logProgress, linesPerMessage) { line =>
+      val matcher = linePattern.matcher(line)
+      if (!matcher.matches()) {
+        log("invalid line: " + line)
+      } else {
+        val u = matcher.group(1).toInt // Groups are 1-indexed
+        val v = matcher.group(2).toInt
+        f(u, v)
+      }
+    }
+  }
   /** Iterates over nonempty lines in the given file, optionally logging progress periodically using the
     * given log function.
     */
