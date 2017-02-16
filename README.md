@@ -142,9 +142,13 @@ Tempest was built by a team of Stanford PhDs---[Peter Lofgren](@plofgren) (lead 
    ```
    import tempest_db
    c = tempest_db.TempestClient()
-   alice_id = c.nodes("user", "username = 'alice'")[0]
-   alice_book_ids = c.out_neighbors("has_read", alice_id)
-   alice_book_titles = c.multi_node_attribute("book", alice_book_ids, "title")
+   alice = tempest_db.Node("user", "alice")
+   client.out_neighbors("follows", alice)
+   # result: [Node(type='user', id='bob')]
+   alice_books = client.out_neighbors("has_read", alice)
+   c.multi_node_attribute(alice_books, "title")
+   # result: {Node(type='book', id='101'): 'The Lord of the Rings',
+   #          Node(type='book', id='103'): 'Roots'}
    ```
 
 ### Recommended Machine Sizes
@@ -224,31 +228,7 @@ The documentation javadoc for the graph classes is linked above in the Scala sec
 To use tempest from python, it has a client/server mode, where the server
 stores large graphs in RAM, while the client is conveniently in python.  The server and client can even
 be on different machines; for example the client can run on a web server while the server runs in a large
-graph server.
-
-First clone the repository and convert the graph to Tempest binary format, as described
-above.  Then start the server, supplying the binary graph name, for example
-```
-bin/start_graph_only_server.sh test_graph.dat 
-```
-The server runs by default on TCP port 10001, but you can change this, for example
-```
-bin/start_graph_only_server.shtest_graph.dat 12345
-```
-
-Finally, connect to the server from python.  First run `pip install tempest_db`.  Then
-from the python console:
-```
->>> import tempest_db
->>> graph = tempest_db.client()
->>> graph.max_node_id()
-9
->>> graph.out_degree(2)
-4
->>> graph.out_neighbors(2)
-[0, 1, 3, 9]
-```
+graph server.  See the above instructions on using TempestDB.
 
 ## Project Roadmap
-- Improve support for multiple edge types.
 - Support edge attributes.
