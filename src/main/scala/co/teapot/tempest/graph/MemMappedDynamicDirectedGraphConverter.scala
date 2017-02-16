@@ -48,6 +48,8 @@ object MemMappedDynamicDirectedGraphConverter {
     Util.logWithRunningTime(log, "first pass", printAtStart = true) {
       FileUtil.forEachIntPair(edgeListFile, log, linesPerMessage = 1000000) { (id1, id2) =>
         if (id1 >= outDegrees.size) {
+          // Note: addAll internally doubles the array capacity whenever the current capacity is reached, so
+          // the addAll calls in this loop in total cost O(maxNodeId) time and space.
           outDegrees.addAll(IntArrayList.wrap(new Array[Int](id1 + 1 - outDegrees.size)))
         }
         if (id2 >= inDegrees.size) {
