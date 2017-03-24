@@ -11,15 +11,7 @@ class TempestSQLDatabaseClientSpec extends FlatSpec with Matchers {
   val testConfig = ConfigLoader.loadConfig[DatabaseConfig](testConfigPath)
 
   "A TempestDatabaseClientSpec" should "connect correctly" in {
-    val c: TempestSQLDatabaseClient = try {
-      new TempestSQLDatabaseClient(testConfig)
-    } catch {
-      case e: PoolInitializationException =>
-        throw new RuntimeException("Failed to connect to postgres.\nYou may want to follow the directions in Readme.md " +
-          "on setting up a dev docker instance.\nIn particular, make sure you used -p 5432:5432 when starting docker" +
-          "and docker is running.\nYou may need to run /root/tempest/system/start_postgres.sh inside docker.")
-    }
-
+    val c = createTempestSQLDatabaseClient()
 
     c.getSingleTypeNodeAttributeAsJSON("user", Seq("alice", "carol"), "name").toSeq should contain theSameElementsAs
       Seq("alice" -> "\"Alice Johnson\"", "carol" -> "\"Carol \"ninja\" Coder\"")
@@ -79,4 +71,46 @@ class TempestSQLDatabaseClientSpec extends FlatSpec with Matchers {
       Map(new ThriftNode("book", "101") -> Node("book", 1),
         new ThriftNode("book", "103") -> Node("book", 3))
   }
+
+  it should "accept arbitrary non-existent ids" in {
+    val c = createTempestSQLDatabaseClient()
+    // use an id that simulates SQL injection attack and test that such queries do not crash
+    val nonexistentId = Seq("; DROP TABLE user")
+    c.getSingleTypeNodeAttributeAsJSON("user", nonexistentId, "name").toSeq should contain theSameElementsAs
+      Seq.empty
+    c.filterNodeIds("user", nonexistentId, "name = 'Alice Johnson'") should contain theSameElementsAs Seq.empty
+    c.getMultiNodeAttribute[String]("user", nonexistentId, "name") should contain theSameElementsAs Seq.empty
+  }
+
+  it should "find arbitrary ids" in {
+    val c = createTempestSQLDatabaseClient()
+    val nodeId = "; DROP TABLE user;"
+    c.getSingleTypeNodeAttributeAsJSON("user", Seq(nodeId), "name").toSeq should contain theSameElementsAs {
+      Seq("; DROP TABLE user;" -> "\"sneaky\"")
+    }
+    c.filterNodeIds("user", Seq(nodeId), "name = 'sneaky'") should contain theSameElementsAs {
+      Seq(nodeId)
+    }
+    c.getMultiNodeAttribute[String]("user", Seq(nodeId), "name") should contain theSameElementsAs {
+      Map(nodeId -> "sneaky")
+    }
+  }
+
+  it should "limit number of ids passed" in {
+    val c = createTempestSQLDatabaseClient()
+    val nodeIds = (1 to 100000).map(_.toString)
+    an[SQLException] should be thrownBy {
+      c.getSingleTypeNodeAttributeAsJSON("user", nodeIds, "name")
+    }
+  }
+
+  private def createTempestSQLDatabaseClient(): TempestSQLDatabaseClient =
+    try {
+      new TempestSQLDatabaseClient(testConfig)
+    } catch {
+      case e: PoolInitializationException =>
+        throw new RuntimeException("Failed to connect to postgres.\nYou may want to follow the directions in Readme.md " +
+          "on setting up a dev docker instance.\nIn particular, make sure you used -p 5432:5432 when starting docker" +
+          "and docker is running.\nYou may need to run /root/tempest/system/start_postgres.sh inside docker.")
+    }
 }

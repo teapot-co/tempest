@@ -14,7 +14,7 @@
 
 package co.teapot.tempest.server
 
-import java.sql.{Connection, Types}
+import java.sql.{Connection, PreparedStatement, Types}
 
 import anorm._
 import co.teapot.tempest.{Node => ThriftNode, _}
@@ -161,15 +161,12 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
       if (nodeIds.isEmpty)
         return Map.empty
       validateAttributeName(attributeName)
-      for (id <- nodeIds) {
-        validateId(id)
-      }
+      validateNodeIds(nodeIds)
 
-      val idList = stringsToPostgresSet(nodeIds)
       val statement =
-        s"SELECT id, $attributeName FROM ${nodesTable(nodeType)} WHERE id IN $idList"
+        s"SELECT id, $attributeName FROM ${nodesTable(nodeType)} WHERE id IN ({nodeIds})"
       // apply() here is deprecated, but it's easier to use than its replacements
-      val idValuePairs = SQL(statement).apply().flatMap { row =>
+      val idValuePairs = SQL(statement).on('nodeIds -> nodeIds).apply().flatMap { row =>
         // Use flatMap and Option to omit null values
         row[Option[A]](attributeName) map { value: A =>
           (row[String]("id"), value)
@@ -185,19 +182,21 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
       if (nodeIds.isEmpty)
         return Map.empty
       validateAttributeName(attributeName)
-      for (id <- nodeIds) {
-        validateId(id)
-      }
 
-      val idList = stringsToPostgresSet(nodeIds)
+
+      // generates (?, ?, ..., ?), one question mark per node id
+      val sqlInParams = Iterator.fill(nodeIds.size)("?").mkString("(", ",", ")")
       val sql =
-        s"SELECT id, $attributeName FROM ${nodesTable(nodeType)} WHERE id IN $idList"
+        s"SELECT id, $attributeName FROM ${nodesTable(nodeType)} WHERE id in $sqlInParams"
       val result = new mutable.HashMap[String, String]()
 
       // Use JDBC directly rather than ANorm to access column types
-      val s = connection.createStatement()
+      val pstmt: PreparedStatement = connection.prepareStatement(sql)
+      // SQL indexes parameters from 1 instead of 0
+      for ((id, i) <- nodeIds.zipWithIndex)
+        pstmt.setString(i+1, id)
 
-      val resultSet = s.executeQuery(sql)
+      val resultSet = pstmt.executeQuery()
       val resultType = resultSet.getMetaData.getColumnType(2)
       while (resultSet.next()) {
         val id = resultSet.getString(1)
@@ -260,10 +259,11 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
     withConnection { implicit connection =>
       if (nodeIds.isEmpty)
         return Seq.empty
+      validateNodeIds(nodeIds)
       rejectUnsafeSQL(sqlClause)
-      SQL(s"SELECT id FROM ${nodesTable(nodeType)} WHERE $sqlClause AND " +
-        "id IN " + stringsToPostgresSet(nodeIds))
-        .as(SqlParser.str(1).*)
+      val tableName = nodesTable(nodeType)
+      val query = SQL(s"SELECT id FROM $tableName WHERE $sqlClause AND id IN ({nodeIds})").on('nodeIds -> nodeIds)
+      query.as(SqlParser.str(1).*)
     }
 
   def addEdges(edgeType: String, ids1: Seq[String], ids2: Seq[String]): Unit = ???
@@ -285,10 +285,11 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
       throw new InvalidArgumentException(s"Malformed sql clause: '$sqlClause'")
   }
 
-  def validateId(id: String): Unit = {
-    if (! id.matches("[a-zA-Z0-9_ ]*")) {
-      throw new InvalidArgumentException(s"Invalid id '$id'")
-    }
+  def validateNodeIds(ids: Seq[String]): Unit = {
+    val maxIdSize = 10000
+    if (ids.size > maxIdSize)
+      throw new InvalidArgumentException(s"The number ${ids.size} of node ids exceeds the limit of $maxIdSize." +
+        s"The limit prevents SQL query size explosion.")
   }
 
   def stringsToPostgresSet(strings: Iterable[String]): String =
