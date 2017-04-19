@@ -60,6 +60,7 @@ object MemMappedDynamicDirectedGraphConverter {
       }
     }
     val maxNodeId = math.max(outDegrees.size - 1, inDegrees.size - 1)
+    graph.ensureValidId(maxNodeId) // Preallocate node array
 
     Util.logWithRunningTime(log, "Allocating neighbor arrays", printAtStart = true) {
       println(s"Allocating space for $maxNodeId nodes")

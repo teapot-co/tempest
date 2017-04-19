@@ -123,6 +123,9 @@ class MemMappedDynamicUnidirectionalGraph(allocator: MemoryMappedAllocator,
   private def ensureSufficientCapacity(id: Int, newDegree: Int) = {
     if (neighborsPointer(id) == NullPointer ||
         allocator.allocationCapacity(neighborsPointer(id)) < 4 * newDegree) {
+      if (neighborsPointer(id) != NullPointer)
+        println(s"Not enough capacity, id $id, newDegre $id oldCapacity " +
+        s"${allocator.allocationCapacity(neighborsPointer(id))} bytes")
       setCapacity(id, Util.nextLeadingTwoBitNumber(4 * newDegree))
     }
   }
@@ -135,9 +138,18 @@ class MemMappedDynamicUnidirectionalGraph(allocator: MemoryMappedAllocator,
     ensureValidId(Integer.toUnsignedLong(id))
     val oldPointer = neighborsPointer(id)
     val newPointer = allocator.alloc(4 * newCapacity)
+    if (id == 18547357) {
+      println(s"Just allocated ${4 * newCapacity} bytes for node 18547357. New pointer $newPointer")
+      println(s"New capacity: ${allocator.allocationCapacity(newPointer)}")
+    }
     if (oldPointer != NullPointer) {
       allocator.data.copy(newPointer, oldPointer, 4 * degree(id))
+      println(s"ERROR: Deallocating unexpectedly, id $id, newCapacity $newCapacity oldCapacity " +
+        s"${allocator.allocationCapacity(oldPointer)} bytes")
       allocationsToFree.push(oldPointer) // For concurrent readers, don't immediately free.
+    }
+    if (id == 18547357) {
+      println(s"After data copying, new capacity: ${allocator.allocationCapacity(newPointer)}")
     }
     setNeighborsPointer(id, newPointer)
   }
@@ -148,6 +160,7 @@ class MemMappedDynamicUnidirectionalGraph(allocator: MemoryMappedAllocator,
     this.synchronized {
       val oldMaxId = maxNodeIdLong
       if (id > oldMaxId) {
+        if(oldMaxId > 1) println(s"ERROR: ensureValidId($id) called when oldMaxId is $oldMaxId")
         if (id >= nodeCapacity) {
           val newCapacity = Util.nextLeadingTwoBitNumber(id + 1L)
           log.info(s"increasing node capacity to $newCapacity")
@@ -181,8 +194,10 @@ class MemMappedDynamicUnidirectionalGraph(allocator: MemoryMappedAllocator,
     }, msDelayFreeingAllocations, msDelayFreeingAllocations)
   }
   private def freeOldAllocations(): Unit = {
-    if (previousAllocationsToFree.size > 0)
+    if (previousAllocationsToFree.size > 0) {
       log.info(s"Freeing ${previousAllocationsToFree} old allocations")
+    }
+
     for (i <- previousAllocationsToFree.toLongArray()) {
       allocator.free(i)
     }

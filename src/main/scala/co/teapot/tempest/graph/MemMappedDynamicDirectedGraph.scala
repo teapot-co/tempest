@@ -98,8 +98,21 @@ class MemMappedDynamicDirectedGraph(file: File, syncAllWrites: Boolean = false) 
     */
   def addEdge(id1: Int, id2: Int): Unit = {
     setEdgeCount(edgeCount + 1)
-    outGraph.addEdge(id1, id2)
-    inGraph.addEdge(id2, id1)
+    try {
+      outGraph.addEdge(id1, id2)
+    } catch {
+      case  e: IllegalArgumentException =>
+        println(s"Exception adding out-neighbor $id2 to node $id1 (having out-degree ${outGraph.degree(id1)})")
+        throw e
+    }
+
+    try {
+      inGraph.addEdge(id2, id1)
+    } catch {
+      case  e: IllegalArgumentException =>
+        println(s"Exception adding in-neighbor $id1 to node $id2 (having in-degree ${outGraph.degree(id2)})")
+        throw e
+    }
   }
 
   /** Increases maxNodeId and creates neighborless nodes as needed to ensure the given id is a valid id. */
