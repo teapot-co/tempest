@@ -22,20 +22,86 @@ import it.unimi.dsi.fastutil.longs.LongArrayList
 
 import MemoryMappedAllocator._ // Make constants available
 
+/**
+  * A class wrapping a raw Long that counts bytes (in an array,
+  * memory block, per-node, etc.). This class exists mostly to
+  * support Offset and Pointer manipulation with explicit
+  * emphasis that things you manipulate are expressed in bytes.
+  */
+case class ByteCount(raw: Long) extends Ordered[ByteCount] {
+  override def compare(that: ByteCount): Int = raw.compareTo(that.raw)
+  def toOffset: Offset = Offset(raw)
+  def +(other: ByteCount): ByteCount = ByteCount(raw + other.raw)
+}
+object ByteCount {
+  implicit val ordering: Ordering[ByteCount] = Ordering.by(_.raw)
+  def forNodes(nodesNumber: Int): ByteCount = ByteCount(4L * nodesNumber)
+}
+
+/**
+  * A class wrapping a raw Long that keeps track of an offset
+  * relative to some pointer. It defines some handy utilities
+  * for basic algebra on offsets and pointers.
+  *
+  * To reduce risk of integer overflow, it doesn't define
+  * multiplication methods. Use factory methods in companion object
+  * instead.
+  */
+case class Offset(raw: Long) {
+  require(raw >= 0)
+  def +(other: Offset): Offset = Offset(raw + other.raw)
+  def +(other: Pointer): Pointer = Pointer(raw + other.raw)
+  def -(other: Offset): Offset = Offset(raw - other.raw)
+  def toPointer: Pointer = Pointer(raw)
+  def toBlockNumber(blockSize: ByteCount): Int = {
+    val result = raw / blockSize.raw
+    assert(result < Int.MaxValue)
+    result.toInt
+  }
+  def isStartOfBlock(blockSize: ByteCount): Boolean = {
+    raw % blockSize.raw == 0
+  }
+  def toByteCount: ByteCount = ByteCount(raw)
+}
+object Offset {
+  def fromBlocks(blockCount: Int, blockSize: ByteCount): Offset =
+    Offset(blockCount.toLong * blockSize.raw)
+  def ints(howMany: Int): Offset = Offset(4L * howMany.toLong)
+  def longs(howMany: Int): Offset = Offset(8L * howMany.toLong)
+}
+
+/**
+  * Pointer is a class wrapping a raw Long that keeps track
+  * of memory in a memory mapped file. This class exists to
+  * make low-level memory allocator APIs a little bit more
+  * type safe. For example, by distinguishing between Offset,
+  * ByteCount and Pointer it's harder to mix up memory address
+  * and memory capacity.
+  */
+case class Pointer(raw: Long) extends AnyVal {
+  def +(offset: Offset): Pointer = Pointer(raw + offset.raw)
+  def -(other: Pointer): Offset = Offset(raw - other.raw)
+  def -(other: Offset): Pointer = Pointer(raw - other.raw)
+  def toOffset: Offset = Offset(raw)
+}
+object Pointer {
+  val PointerByteCount: ByteCount = ByteCount(8)
+}
+
 /** Manages memory and provides functions similar to C's standard library, including functions to
   * allocate memory, extend an allocation, and free memory. All "pointers" are byte offsets into data,
   * a LargeMappedByteBuffer.  */
 trait Allocator {
   /** Returns a pointer to a piece within data of size at least byteCount bytes.*/
-  def alloc(byteCount: Long): Long
+  def alloc(byteCount: ByteCount): Pointer
 
   /** Returns a pointer to a piece within data of size at least byteCount bytes.  Copies all
     * data from the allocation at the given originalPointer to the new pointer.  If freeOriginal
     * is true, the allocation at the original pointer is freed.*/
-  def realloc(originalPointer: Long, byteCount: Long/*, freeOriginal: Boolean = true*/): Long
+  def realloc(originalPointer: Pointer, byteCount: ByteCount/*, freeOriginal: Boolean = true*/): Pointer
 
   /** Free the memory pointed  */
-  def free(pointer: Long)
+  def free(pointer: Pointer)
 
   /** All pointers refer to locations within data. */
   def data: LargeMappedByteBuffer
@@ -67,8 +133,8 @@ trait Allocator {
    */
 
 class MemoryMappedAllocator(dataFile: File,
-                            val pieceSizes: Array[Int] = MemoryMappedAllocator.DefaultPieceSizes,
-                            val blockSize: Int = MemoryMappedAllocator.DefaultBlockSize
+                            val pieceSizes: Array[ByteCount] = MemoryMappedAllocator.DefaultPieceSizes,
+                            val blockSize: ByteCount = MemoryMappedAllocator.DefaultBlockSize
                            ) extends Allocator {
   val log = Logger.get
   log.info(s"allocator data file ${dataFile.getAbsolutePath} has length " + dataFile.length())
@@ -78,11 +144,13 @@ class MemoryMappedAllocator(dataFile: File,
 
   private[mmalloc] def allocatedBlockCount = data.getInt(AllocatedBlockCountPointer)
 
-  private val largestPieceSize = pieceSizes.last
+  private val largestPieceSize: ByteCount = pieceSizes.last
   require(pieceSizes.sorted.sameElements(pieceSizes))
-  require(largestPieceSize + PieceBlock.BitsetOffset + 4 <= blockSize)
+  // TODO: convert everything to byte counts/byte offset and do the math over those types
+  require(largestPieceSize.raw + PieceBlock.BitsetOffset.raw + 4 <= blockSize.raw)
 
   // Blocks are identified by a pointer to their first byte
+  // TODO: convert freeBlocks to array list of pointers
   private val freeBlocks = new LongArrayList()
 
   private val pieceAllocators: Array[PieceAllocator] = Array.tabulate(pieceSizes.length) { i =>
@@ -101,7 +169,7 @@ class MemoryMappedAllocator(dataFile: File,
     // Use var i so we can jump past blocks in large allocations.
     var i = 0
     while (i < allocatedBlockCount) {
-      val pointer = HeaderSize + i.toLong * blockSize.toLong
+      val pointer = (HeaderSize.toOffset + Offset.fromBlocks(i, blockSize)).toPointer
       if (PieceBlock.isPieceBlock(pointer, data)) {
         if (! PieceBlock.isFull(pointer, data)) {
           val pieceSize = PieceBlock.pieceSize(pointer, data)
@@ -115,7 +183,7 @@ class MemoryMappedAllocator(dataFile: File,
         require(LargeBlock.isFreeBlock(pointer, data),
           s"Block pointer $pointer with magic number ${data.getLong(pointer + LargeBlock.BlockTypeOffset)} "
           + "has invalid block type")
-        freeBlocks.push(pointer)
+        freeBlocks.push(pointer.raw)
         i += 1
       }
     }
@@ -132,11 +200,11 @@ class MemoryMappedAllocator(dataFile: File,
   }
 
   /** Returns a pointer to the first byte of a new block. The data in the block is undefined.*/
-  private[mmalloc] def allocBlock(): Long = {
+  private[mmalloc] def allocBlock(): Pointer = {
     if (freeBlocks.size > 0) {
-      freeBlocks.popLong()
+      Pointer(freeBlocks.popLong())
     } else {
-      val newPointer = allocatedBlockCount * blockSize.toLong + HeaderSize
+      val newPointer = (Offset.fromBlocks(allocatedBlockCount, blockSize) + HeaderSize.toOffset).toPointer
       data.putInt(AllocatedBlockCountPointer, allocatedBlockCount + 1, syncAllWrites)
       log.trace(s"new block pointer: $newPointer; blockCount $allocatedBlockCount")
       newPointer
@@ -144,30 +212,30 @@ class MemoryMappedAllocator(dataFile: File,
   }
 
   /** Returns the PieceAllocator for the smallest pieceSize >= the given size. */
-  private def pieceAllocatorForSize(size: Int): PieceAllocator = {
+  private def pieceAllocatorForSize(size: ByteCount): PieceAllocator = {
     assert (size <= largestPieceSize)
-    val signedI = util.Arrays.binarySearch(pieceSizes, size.toInt)
+    val signedI = util.Arrays.binarySearch(pieceSizes, size, ByteCount.ordering)
     val pieceSizeI = if (signedI >= 0)
       signedI
     else
       -signedI - 1 // The smallest index with value greater then size
 
-    assert(pieceSizes(pieceSizeI) >= size.toInt)
-    assert(pieceSizeI == 0 || pieceSizes(pieceSizeI - 1) < size.toInt)
+    assert(pieceSizes(pieceSizeI) >= size)
+    assert(pieceSizeI == 0 || pieceSizes(pieceSizeI - 1) < size)
     pieceAllocators(pieceSizeI)
   }
 
   /** Given a pointer, returns a pointer to the first byte of the block containing the pointer. */
-  private[mmalloc] def pointerToBlock(pointer: Long): Long = {
-    require(pointer >= HeaderSize, s"pointer $pointer < HeaderSize $HeaderSize")
-    val blockI = (pointer - HeaderSize) / blockSize.toLong
-    HeaderSize + blockI * blockSize.toLong
+  private[mmalloc] def pointerToBlock(pointer: Pointer): Pointer = {
+    require(pointer.raw >= HeaderSize.raw, s"pointer $pointer < HeaderSize $HeaderSize")
+    val blockI = (pointer - HeaderSize.toOffset).toOffset.toBlockNumber(blockSize)
+    HeaderSize.toOffset.toPointer + Offset.fromBlocks(blockI, blockSize)
   }
 
   /** Assuming the given pointer was allocated by this allocator, returns the number of bytes in
     * its allocation.
     */
-  def allocationCapacity(pointer: Long): Long = {
+  def allocationCapacity(pointer: Pointer): ByteCount = {
     val blockPointer = pointerToBlock(pointer)
       if (PieceBlock.isPieceBlock(blockPointer, data)) {
         PieceBlock.pieceSize(blockPointer, data)
@@ -176,26 +244,27 @@ class MemoryMappedAllocator(dataFile: File,
           s"computing capacity (e.g. through realloc) of pointer $pointer led to blockPointer " +
             s"$blockPointer with magic number " +
             data.getLong(blockPointer + LargeBlock.BlockTypeOffset))
-        LargeBlock.blockCount(blockPointer, data) * blockSize.toLong - LargeBlock.HeaderSize
+        val blockCount = LargeBlock.blockCount(blockPointer, data)
+        (Offset.fromBlocks(blockCount, blockSize) - LargeBlock.HeaderSize.toOffset).toByteCount
       }
   }
 
-  override def alloc(size: Long): Long =
+  override def alloc(size: ByteCount): Pointer =
     this.synchronized {
       if (size > largestPieceSize) {
-        val newBlockCount = Util.divideRoundingUp(size + LargeBlock.HeaderSize, blockSize.toLong).toInt
-        val largeBlockStart = HeaderSize + allocatedBlockCount * blockSize.toLong
+        val newBlockCount = Util.divideRoundingUp((size + LargeBlock.HeaderSize).raw, blockSize.raw).toInt
+        val largeBlockStart = (HeaderSize.toOffset + Offset.fromBlocks(allocatedBlockCount, blockSize)).toPointer
         data.putInt(AllocatedBlockCountPointer, allocatedBlockCount + newBlockCount, forceToDisk=syncAllWrites)
         LargeBlock.initializeLargeBlock(largeBlockStart, data, newBlockCount)
-        val dataStart = largeBlockStart + LargeBlock.HeaderSize
+        val dataStart = largeBlockStart + LargeBlock.HeaderSize.toOffset
         log.trace(s"Allocated $newBlockCount blocks starting at $largeBlockStart for allocation of size $size")
         dataStart
       } else {
-        pieceAllocatorForSize(size.toInt).alloc()
+        pieceAllocatorForSize(size).alloc()
       }
     }
 
-  override def realloc(originalPointer: Long, byteCount: Long /*, freeOriginal: Boolean = true*/): Long =
+  override def realloc(originalPointer: Pointer, byteCount: ByteCount /*, freeOriginal: Boolean = true*/): Pointer =
     this.synchronized {
       val oldCapacity = allocationCapacity(originalPointer)
 
@@ -209,7 +278,7 @@ class MemoryMappedAllocator(dataFile: File,
       }
     }
 
-  override def free(pointer: Long): Unit =
+  override def free(pointer: Pointer): Unit =
     this.synchronized {
       val blockPointer = pointerToBlock(pointer)
       if (PieceBlock.isPieceBlock(blockPointer, data)) {
@@ -221,9 +290,9 @@ class MemoryMappedAllocator(dataFile: File,
             data.getLong(blockPointer + LargeBlock.BlockTypeOffset))
         val blockCount = LargeBlock.blockCount(blockPointer, data)
         for (i <- 0 until blockCount) {
-          val freeBlockPointer = blockPointer + i.toLong * blockSize.toLong
+          val freeBlockPointer = blockPointer + Offset.fromBlocks(i, blockSize)
           data.putLong(freeBlockPointer + LargeBlock.BlockTypeOffset, LargeBlock.FreeBlockMagicNumber)
-          freeBlocks.push(freeBlockPointer)
+          freeBlocks.push(freeBlockPointer.raw)
         }
       }
     }
@@ -237,12 +306,12 @@ class MemoryMappedAllocator(dataFile: File,
 
 object MemoryMappedAllocator {
   // Header data
-  val VersionPointer = 0L
-  val AllocatedBlockCountPointer = 4L
+  val VersionPointer = Pointer(0L)
+  val AllocatedBlockCountPointer = Pointer(4L)
   /** Users can store global variables between this pointer and HeaderSize. */
-  val GlobalApplicationDataPointer = 8L
+  val GlobalApplicationDataPointer = Pointer(8L)
   // Make headerSize a multiple of a typical page size for better virtual memory alignment.
-  val HeaderSize = 4096
+  val HeaderSize = ByteCount(4096)
 
   val CurrentVersion = 0
 
@@ -250,7 +319,7 @@ object MemoryMappedAllocator {
   // and this keeps the per-block overhead reasonable.
   // We actually use 1MB + 4KB per block, so even after the header is stored, the block can store a
   // 1 MB piece.  We use 4KB because that is a typical page size.
-  val DefaultBlockSize = (1 << 20) + (1 << 12)
+  val DefaultBlockSize = ByteCount((1 << 20) + (1 << 12))
 
   // As a reasonable trade-off between realloc cost, overhead per piece size, and the internal
   // fragmentation cost of pieces being larger than requested,
@@ -258,8 +327,8 @@ object MemoryMappedAllocator {
   // Since our default block size is a bit over 2**20, we exclude 2**20 * 3/4 and 2**20 * 3/8,
   // since we can only store one piece of size 2**20 * 3/4 in a block, and only two pieces of size
   // 2**20 * 3/8 in a block.
-  val DefaultPieceSizes: Array[Int] =
+  val DefaultPieceSizes: Array[ByteCount] =
     (((1 to 20) map  (i => 1 << i)) ++
       ((1 to 18) map  (i => (1 << i) * 3 / 2))
-      ).sorted.toArray
+      ).sorted.toArray.map(x => ByteCount(x.toLong))
 }

@@ -17,7 +17,7 @@ package co.teapot.tempest.graph
 import java.util.{Timer, TimerTask}
 
 import co.teapot.tempest.graph.MemMappedDynamicUnidirectionalGraph._
-import co.teapot.mmalloc.MemoryMappedAllocator
+import co.teapot.mmalloc.{ByteCount, MemoryMappedAllocator, Offset, Pointer}
 import co.teapot.tempest.util.Util
 import com.twitter.logging.Logger
 import it.unimi.dsi.fastutil.longs.LongArrayList
@@ -37,7 +37,7 @@ import it.unimi.dsi.fastutil.longs.LongArrayList
   *
   */
 class MemMappedDynamicUnidirectionalGraph(allocator: MemoryMappedAllocator,
-                                          dataPointerPointer: Long,
+                                          dataPointerPointer: Pointer,
                                           initializeNewGraph: Boolean,
                                           msDelayFreeingAllocations: Long = 1000 * 60 /* TODO: Read from config file */) {
   val log = Logger.get
@@ -48,7 +48,7 @@ class MemMappedDynamicUnidirectionalGraph(allocator: MemoryMappedAllocator,
   setupAllocationFreeingThread()
 
   if (initializeNewGraph) {
-    setDataPointer(allocator.alloc(NodeArrayOffset)) // Space for graph variables and 0 nodes
+    setDataPointer(allocator.alloc(NodeArrayOffset.toByteCount)) // Space for graph variables and 0 nodes
     setMaxNodeId(-1L)
     setNodeCapacity(0L)
   }
@@ -59,27 +59,35 @@ class MemMappedDynamicUnidirectionalGraph(allocator: MemoryMappedAllocator,
   //   3) a (12 * nodeCapacity)-byte array of node data
   //        (4-byte degree and an 8-byte neighborPointer per node)
 
-  def dataPointer = data.getLong(dataPointerPointer)
-  private def setDataPointer(p: Long): Unit = data.putLong(dataPointerPointer, p)
+  def dataPointer: Pointer = data.getPointer(dataPointerPointer)
+  private def setDataPointer(p: Pointer): Unit = data.putPointer(dataPointerPointer, p)
 
   // We store maxNodeId as a long to support ids between 2**31 and 2**32.
-  def maxNodeId: Int = maxNodeIdLong.toInt
+  def maxNodeId: Int = {
+    val result = maxNodeIdLong
+    require(result < Int.MaxValue)
+    result.toInt
+  }
   def maxNodeIdLong: Long =
     data.getLong(dataPointer + MaxNodeIdOffset)
   private def setMaxNodeId(id: Long): Unit = {
     data.putLong(dataPointer + MaxNodeIdOffset, id, allocator.syncAllWrites)
   }
 
-  private def nodeCapacity: Long = data.getLong(dataPointer + NodeCapacityOffset)
+  private def nodeCapacity: Int = {
+    val result = data.getLong(dataPointer + NodeCapacityOffset)
+    require(result < Int.MaxValue)
+    result.toInt
+  }
   private def setNodeCapacity(c: Long): Unit = data.putLong(dataPointer + NodeCapacityOffset, c, allocator.syncAllWrites)
 
-  private def nodeArrayPointer: Long = dataPointer + NodeArrayOffset
+  private def nodeArrayPointer: Pointer = dataPointer + NodeArrayOffset
 
   /** Returns a pointer to a node's (degree, neighborPointer) pair.
     * */
-  private def nodePointer(id: Int): Long = {
+  private def nodePointer(id: Int): Pointer = {
     require(Integer.toUnsignedLong(id) < nodeCapacity, s"id ${Integer.toUnsignedLong(id)} >= nodeCapacity $nodeCapacity")
-    nodeArrayPointer + BytesPerNode * Integer.toUnsignedLong(id)
+    nodeArrayPointer + Offset.fromBlocks(id, BytesPerNode)
   }
 
   def degree(id: Int): Int =
@@ -88,13 +96,13 @@ class MemMappedDynamicUnidirectionalGraph(allocator: MemoryMappedAllocator,
     data.putInt(nodePointer(id), d, sync)
 
   /** Points to the first byte of the neighbors of node id. */
-  private def neighborsPointer(id: Int): Long = {
-    data.getLong(nodePointer(id) + NodeNeighborOffset)
+  private def neighborsPointer(id: Int): Pointer = {
+    data.getPointer(nodePointer(id) + NodeNeighborOffset)
   }
-  private def setNeighborsPointer(id: Int, p: Long, sync: Boolean = allocator.syncAllWrites): Unit = {
+  private def setNeighborsPointer(id: Int, p: Pointer, sync: Boolean = allocator.syncAllWrites): Unit = {
     // Note: This write might not be aligned to a multiple of 16 bytes. LargeMemoryMappedByteBuffer
     // putLong allows un-aligned longs.
-    data.putLong(nodePointer(id) + NodeNeighborOffset, p, sync)
+    data.putPointer(nodePointer(id) + NodeNeighborOffset, p, sync)
   }
 
   def neighbors(id: Int): IndexedSeq[Int] = {
@@ -111,53 +119,57 @@ class MemMappedDynamicUnidirectionalGraph(allocator: MemoryMappedAllocator,
   /** Appends id2 to the neighbors of id1. */
   def addEdge(id1: Int, id2: Int): Unit =
     this.synchronized {
-      ensureValidId(math.max(Integer.toUnsignedLong(id1), Integer.toUnsignedLong(id2)))
+      ensureValidId(math.max(id1, id2))
       val oldDegree = degree(id1)
       ensureSufficientCapacity(id1, oldDegree + 1)
       // For concurrent readers, add edge before incrementing degree
-      data.putInt(neighborsPointer(id1) + 4 * oldDegree, id2, allocator.syncAllWrites)
+      val neighborsOffset = Offset.fromBlocks(oldDegree, BytesPerNeighbor)
+      data.putInt(neighborsPointer(id1) + neighborsOffset, id2, allocator.syncAllWrites)
       setDegree(id1, oldDegree + 1)
     }
 
   /** Ensures the given id has space for newDegree neighbors by calling setCapacity if needed. */
   private def ensureSufficientCapacity(id: Int, newDegree: Int) = {
     if (neighborsPointer(id) == NullPointer ||
-        allocator.allocationCapacity(neighborsPointer(id)) < 4 * newDegree) {
-      setCapacity(id, Util.nextLeadingTwoBitNumber(4 * newDegree))
+        allocator.allocationCapacity(neighborsPointer(id)) < ByteCount.forNodes(newDegree)) {
+      setCapacity(id, Util.nextLeadingTwoBitNumber(newDegree))
     }
   }
 
   /** Ensures the given id has space for newCapacity neighbors by allocating a new neighbor area.
     * This method doesn't need to be called by clients, but it can be called to improve performance
     * if the client is going to add many new neighbors to the given node id.  */
-  def setCapacity(id: Int, newCapacity: Int): Unit = {
-    log.trace(s"increasing node ${id}'s neighbor capacity to $newCapacity")
-    ensureValidId(Integer.toUnsignedLong(id))
+  def setCapacity(id: Int, newNodeCapacity: Int): Unit = {
+    log.trace(s"increasing node $id's neighbor capacity to $newNodeCapacity")
+    ensureValidId(id)
     val oldPointer = neighborsPointer(id)
-    val newPointer = allocator.alloc(4 * newCapacity)
+    val newPointer = allocator.alloc(ByteCount.forNodes(newNodeCapacity))
     if (oldPointer != NullPointer) {
-      allocator.data.copy(newPointer, oldPointer, 4 * degree(id))
-      allocationsToFree.push(oldPointer) // For concurrent readers, don't immediately free.
+      allocator.data.copy(newPointer, oldPointer, ByteCount.forNodes(degree(id)))
+      allocationsToFree.push(oldPointer.raw) // For concurrent readers, don't immediately free.
     }
     setNeighborsPointer(id, newPointer)
   }
 
   /** Increases maxNodeId to be at least id, and extends the node data array if needed to ensure
     * the given id is a valid id. */
-  def ensureValidId(id: Long): Unit =
+  def ensureValidId(id: Int): Unit =
     this.synchronized {
-      val oldMaxId = maxNodeIdLong
+      val oldMaxId = maxNodeId
       if (id > oldMaxId) {
         if (id >= nodeCapacity) {
-          val newCapacity = Util.nextLeadingTwoBitNumber(id + 1L)
+          val newCapacity = Util.nextLeadingTwoBitNumber(id + 1)
           log.info(s"increasing node capacity to $newCapacity")
-          val newPointer = allocator.alloc(BytesPerNode * newCapacity + NodeArrayOffset)
-          allocator.data.copy(newPointer, dataPointer, BytesPerNode * nodeCapacity + NodeArrayOffset)
-          allocationsToFree.push(dataPointer) // For concurrent readers, don't immediately free.
+          val newByteCountForNodes = Offset.fromBlocks(newCapacity, BytesPerNode).toByteCount
+          val newPointer = allocator.alloc(newByteCountForNodes + NodeArrayOffset.toByteCount)
+          val oldByteCountForNodes = Offset.fromBlocks(nodeCapacity, BytesPerNode).toByteCount
+          allocator.data.copy(newPointer, dataPointer, oldByteCountForNodes + NodeArrayOffset.toByteCount)
+          allocationsToFree.push(dataPointer.raw) // For concurrent readers, don't immediately free.
           setDataPointer(newPointer) // For concurrent readers, update dataPointer after copying data.
           setNodeCapacity(newCapacity)
           }
-        assert(allocator.allocationCapacity(dataPointer) >= NodeArrayOffset + 12 * (maxNodeIdLong + 1),
+        val nodeArrayCapacity = Offset.fromBlocks(maxNodeId+1, BytesPerNode)
+        assert(allocator.allocationCapacity(dataPointer) >= (NodeArrayOffset + nodeArrayCapacity).toByteCount,
           s"data array capacity ${allocator.allocationCapacity(dataPointer)} insufficient for maxNodeId $maxNodeIdLong")
         // Initialize new nodes
         for (i <- Util.longRange(oldMaxId + 1, id + 1)) {
@@ -165,7 +177,7 @@ class MemMappedDynamicUnidirectionalGraph(allocator: MemoryMappedAllocator,
           setNeighborsPointer(i.toInt, NullPointer, sync=false)
         }
         if (allocator.syncAllWrites) {
-          data.syncToDisk(nodePointer(0), nodePointer(id.toInt) - nodePointer(0) + BytesPerNode)
+          data.syncToDisk(nodePointer(0), (nodePointer(id.toInt) - nodePointer(0)).toByteCount + BytesPerNode)
         }
         setMaxNodeId(id) // For concurrent readers, update maxNodeId last.
       }
@@ -182,9 +194,9 @@ class MemMappedDynamicUnidirectionalGraph(allocator: MemoryMappedAllocator,
   }
   private def freeOldAllocations(): Unit = {
     if (previousAllocationsToFree.size > 0)
-      log.info(s"Freeing ${previousAllocationsToFree} old allocations")
+      log.info(s"Freeing $previousAllocationsToFree old allocations")
     for (i <- previousAllocationsToFree.toLongArray()) {
-      allocator.free(i)
+      allocator.free(Pointer(i))
     }
     previousAllocationsToFree = allocationsToFree
     allocationsToFree = new LongArrayList()
@@ -200,13 +212,15 @@ class MemMappedDynamicUnidirectionalGraph(allocator: MemoryMappedAllocator,
 
 object MemMappedDynamicUnidirectionalGraph {
   // Offsets relative to dataPointer where graph variables are stored:
-  val MaxNodeIdOffset = 0L
-  val NodeCapacityOffset = 8L
-  val NodeArrayOffset = 16L
+  val MaxNodeIdOffset = Offset(0L)
+  val NodeCapacityOffset = Offset(8L)
+  val NodeArrayOffset = Offset(16L)
 
+  val BytesPerDegree = ByteCount(4)
   // For each node, we store a 4-byte degree and an 8-byte neighborPointer.
-  val BytesPerNode = 12
-  val NodeNeighborOffset = 4L
+  val BytesPerNode = BytesPerDegree + Pointer.PointerByteCount
+  val BytesPerNeighbor = ByteCount(4)
+  val NodeNeighborOffset = Offset(4L)
 
-  val NullPointer = -1L // Used for neighbor pointer of nodes with no neighbors
+  val NullPointer = Pointer(-1L) // Used for neighbor pointer of nodes with no neighbors
 }

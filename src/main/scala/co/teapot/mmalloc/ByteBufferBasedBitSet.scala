@@ -23,7 +23,7 @@ import co.teapot.tempest.util.Util
   (1 << i).
  */
 private[mmalloc] class ByteBufferBasedBitSet(
-    pointer: Long,
+    pointer: Pointer,
     data: LargeMappedByteBuffer,
     bitCount: Int,
     syncAllWrites: Boolean) {
@@ -53,7 +53,7 @@ private[mmalloc] class ByteBufferBasedBitSet(
     val startGroupI = groupIndex(searchStart)
     for (groupI <- (startGroupI until groupCount).view ++ (0 until startGroupI)) {
       if (doesGroupContainBit(groupI, set)) {
-        val group = data.getInt(pointer + groupI * 4)
+        val group = data.getInt(pointer + Offset.ints(groupI))
         // Add in the offset of the set bit within group
         return Some(groupI * 32 + Integer.numberOfTrailingZeros(if (set) group else ~group))
       }
@@ -64,7 +64,7 @@ private[mmalloc] class ByteBufferBasedBitSet(
   /** Checks if the ith group contains a bit in the given state. */
   private def doesGroupContainBit(groupI: Int, set: Boolean): Boolean = {
     require(groupI < groupCount)
-    val group = data.getInt(pointer + groupI * 4)
+    val group = data.getInt(pointer + Offset.ints(groupI))
     if ((groupI + 1) * 32 <= bitCount) {
       group != (if (set) 0 else ~0)
     } else {
@@ -75,7 +75,7 @@ private[mmalloc] class ByteBufferBasedBitSet(
 
   /** Mark the ith bit as set or not set. */
   def set(i: Int, isSet: Boolean): Unit = {
-    val p = pointer + 4 * groupIndex(i)
+    val p = pointer + Offset.ints(groupIndex(i))
     val newInt = if (isSet) {
       data.getInt(p) | (1 << indexWithinGroup(i))
     } else {
@@ -86,27 +86,29 @@ private[mmalloc] class ByteBufferBasedBitSet(
 
   /** Returns the set status of the ith bit. */
   def get(i: Int): Boolean = {
-    val p = pointer + 4 * groupIndex(i)
+    val p = pointer + Offset.ints(groupIndex(i))
     (data.getInt(p) & (1 << indexWithinGroup(i))) != 0
   }
 
   /** Returns hexidecimal of the first k 32-bit groups. */
   def prefixToString(k: Int): String = {
-    ((0 until k) map { i => data.getInt(pointer + 4 * i).toHexString }).mkString(" ")
+    ((0 until k) map { i => data.getInt(pointer + Offset.ints(i)).toHexString }).mkString(" ")
   }
 }
 
 private[mmalloc] object ByteBufferBasedBitSet {
-  def initializeWith1s(pointer: Long, data: LargeMappedByteBuffer, bitCount: Int): Unit = {
+  def initializeWith1s(pointer: Pointer, data: LargeMappedByteBuffer, bitCount: Int): Unit = {
     for (i <- 0 until bitCount / 32) {
-      data.putInt(pointer + 4 * i, 0xFFFFFFFF)
+      data.putInt(pointer + Offset.ints(i), 0xFFFFFFFF)
     }
-    data.putInt(pointer + 4 * (bitCount / 32), (1 << (bitCount % 32)) - 1)
+    val offset = Offset.ints(bitCount / 32)
+    data.putInt(pointer + offset, (1 << (bitCount % 32)) - 1)
   }
 
-  def initializeWith0s(pointer: Long, data: LargeMappedByteBuffer, bitCount: Int): Unit = {
+  def initializeWith0s(pointer: Pointer, data: LargeMappedByteBuffer, bitCount: Int): Unit = {
     for (i <- 0 until Util.divideRoundingUp(bitCount, 32)) {
-      data.putInt(pointer + 4 * i, 0)
+      val offset = Offset.ints(i)
+      data.putInt(pointer + offset, 0)
     }
   }
 }
