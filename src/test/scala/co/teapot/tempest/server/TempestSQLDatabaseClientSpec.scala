@@ -39,7 +39,7 @@ class TempestSQLDatabaseClientSpec extends FlatSpec with Matchers {
 
     c.filterNodeIds("user", Seq("alice", "bob"), "name = 'Alice Johnson'") should contain theSameElementsAs (Seq("alice"))
 
-    a [SQLException] should be thrownBy {
+    a[SQLException] should be thrownBy {
       c.nodeIdsMatchingClause("user", "Bizzare * %")
     }
 
@@ -67,7 +67,7 @@ class TempestSQLDatabaseClientSpec extends FlatSpec with Matchers {
     c.getNodeAttributeAsJSON("book", "103", "title") shouldEqual "\"Roots\""
     c.nodeIdsMatchingClause("book", "title = 'Roots'") should contain theSameElementsAs (Seq("103"))
     c.getTempestIdsWithAttributeValue("book", "title", "Roots") should contain theSameElementsAs (Seq(3))
-    c.thriftNodeToNodeMap(Seq(new ThriftNode("book", "101") , new ThriftNode("book", "103") )) should contain theSameElementsAs
+    c.thriftNodeToNodeMap(Seq(new ThriftNode("book", "101"), new ThriftNode("book", "103"))) should contain theSameElementsAs
       Map(new ThriftNode("book", "101") -> Node("book", 1),
         new ThriftNode("book", "103") -> Node("book", 3))
   }
@@ -101,6 +101,37 @@ class TempestSQLDatabaseClientSpec extends FlatSpec with Matchers {
     val nodeIds = (1 to 100000).map(_.toString)
     an[SQLException] should be thrownBy {
       c.getSingleTypeNodeAttributeAsJSON("user", nodeIds, "name")
+    }
+  }
+
+  it should "add new nodes" in {
+    val c = createTempestSQLDatabaseClient()
+    val nodeType = "user"
+
+    {
+      val nodeIds = (1 to 10).map(_.toString)
+      val nodes = nodeIds.map { id => new ThriftNode(nodeType, id) }
+      c.addNewNodes(nodes)
+    }
+
+    {
+      val nodeIds = (5 to 15).map(_.toString)
+      val nodes = nodeIds.map { id => new ThriftNode(nodeType, id) }
+      c.addNewNodes(nodes)
+    }
+
+    val allNodeIds = (1 to 15).map(_.toString)
+
+    c.filterNodeIds(nodeType, allNodeIds, "1 = 1") should contain theSameElementsAs {
+      allNodeIds
+    }
+
+    {
+      val nodeIds = (1 to 10).map(_.toString)
+      val nodes = nodeIds.map { id => new ThriftNode(nodeType, id) }
+      an[SQLException] should be thrownBy {
+        c.addNodes(nodes)
+      }
     }
   }
 

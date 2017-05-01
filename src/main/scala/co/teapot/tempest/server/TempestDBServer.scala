@@ -342,17 +342,32 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
     databaseClient.addNode(node)
   }
 
+  override def addNodes(nodes: util.List[ThriftNode]): Unit = {
+    databaseClient.addNodes(nodes.asScala)
+  }
+
+  override def addNewNodes(nodes: util.List[ThriftNode]): Unit = {
+    databaseClient.addNewNodes(nodes.asScala)
+  }
+
   def setNodeAttribute(node: ThriftNode, attributeName: String, attributeValue: String): Unit =
     databaseClient.setNodeAttribute(node, attributeName, attributeValue)
 
-  override def addEdges(edgeType: String,
-                        sourceNodesJava: util.List[ThriftNode],
-                        targetNodesJava: util.List[ThriftNode]): Unit = {
+  def addEdgesInternal(edgeType: String,
+                       sourceNodesJava: util.List[ThriftNode],
+                       targetNodesJava: util.List[ThriftNode],
+                       addNewNodes: Boolean = false): Unit = {
     if (sourceNodesJava.size != targetNodesJava.size) {
       throw new UnequalListSizeException()
     }
     val sourceNodes = sourceNodesJava.asScala
     val targetNodes = targetNodesJava.asScala
+
+    if (addNewNodes) {
+      // Add nodes that do not exist to the DB
+      databaseClient.addNewNodes(sourceNodes)
+      databaseClient.addNewNodes(targetNodes)
+    }
 
     val nodeToIntNodeMap = databaseClient.thriftNodeToNodeMap(sourceNodes ++ targetNodes)
     val sourceTempestIds = sourceNodes map { node: ThriftNode => nodeToIntNodeMap(node).tempestId }
@@ -363,6 +378,18 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
     for ((sourceId, targetId) <- sourceTempestIds zip targetTempestIds) {
       graph(edgeType).addEdge(sourceId, targetId) // Future optimization: efficient Multi-add
     }
+  }
+
+  override def addEdges(edgeType: String,
+                        sourceNodesJava: util.List[ThriftNode],
+                        targetNodesJava: util.List[ThriftNode]): Unit = {
+    addEdgesInternal(edgeType, sourceNodesJava, targetNodesJava)
+  }
+
+  override def addNodesAndEdges(edgeType: String,
+                                sourceNodesJava: util.List[ThriftNode],
+                                targetNodesJava: util.List[ThriftNode]): Unit = {
+    addEdgesInternal(edgeType, sourceNodesJava, targetNodesJava, addNewNodes = true)
   }
 }
 
