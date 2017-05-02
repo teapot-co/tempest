@@ -16,7 +16,7 @@ package co.teapot.tempest.graph
 
 import java.io.File
 
-import co.teapot.mmalloc.MemoryMappedAllocator
+import co.teapot.mmalloc.{MemoryMappedAllocator, Offset}
 
 /**
   * A graph which stores edge data in a memory mapped file.  There is no object overhead per
@@ -47,8 +47,8 @@ class MemMappedDynamicDirectedGraph(file: File, syncAllWrites: Boolean = false) 
   mmAllocator.syncAllWrites = syncAllWrites
 
   private val edgeCountPointer = MemoryMappedAllocator.GlobalApplicationDataPointer
-  private val outGraphDataPointer = MemoryMappedAllocator.GlobalApplicationDataPointer + 8L
-  private val inGraphDataPointer = MemoryMappedAllocator.GlobalApplicationDataPointer + 16L
+  private val outGraphDataPointer = MemoryMappedAllocator.GlobalApplicationDataPointer + Offset(8L)
+  private val inGraphDataPointer = MemoryMappedAllocator.GlobalApplicationDataPointer + Offset(16L)
 
   private val outGraph = new MemMappedDynamicUnidirectionalGraph(mmAllocator, outGraphDataPointer, initializeNewGraph)
   private val inGraph = new MemMappedDynamicUnidirectionalGraph(mmAllocator, inGraphDataPointer, initializeNewGraph)
@@ -103,7 +103,7 @@ class MemMappedDynamicDirectedGraph(file: File, syncAllWrites: Boolean = false) 
   }
 
   /** Increases maxNodeId and creates neighborless nodes as needed to ensure the given id is a valid id. */
-  def ensureValidId(id: Long): Unit = {
+  def ensureValidId(id: Int): Unit = {
     outGraph.ensureValidId(id)
     inGraph.ensureValidId(id)
   }

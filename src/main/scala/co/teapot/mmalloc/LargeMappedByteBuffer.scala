@@ -25,24 +25,24 @@ import com.indeed.util.mmap.{DirectMemory, MMapBuffer}
   * extends the length of the underlying file.
   */
 trait LargeMappedByteBuffer {
-  def getInt(index: Long): Int
-  def putInt(index: Long, v: Int, forceToDisk: Boolean = false): Unit
+  def getInt(index: Pointer): Int
+  def putInt(index: Pointer, v: Int, forceToDisk: Boolean = false): Unit
 
-  def getLong(index: Long): Long
-  def putLong(index: Long, v: Long, forceToDisk: Boolean = false): Unit
+  def getLong(index: Pointer): Long
+  def putLong(index: Pointer, v: Long, forceToDisk: Boolean = false): Unit
 
-  def intSeq(start: Long, len: Int): IndexedSeq[Int] = new IndexedSeq[Int]() {
-    def apply(i: Int): Int = getInt(start + 4 * i)
+  def intSeq(start: Pointer, len: Int): IndexedSeq[Int] = new IndexedSeq[Int]() {
+    def apply(i: Int): Int = getInt(start + Offset.ints(i))
     def length: Int = len
   }
 
-  def longSeq(start: Long, len: Int): IndexedSeq[Long] = new IndexedSeq[Long]() {
-    def apply(i: Int): Long = getLong(start + 8 * i)
+  def longSeq(start: Pointer, len: Int): IndexedSeq[Long] = new IndexedSeq[Long]() {
+    def apply(i: Int): Long = getLong(start + Offset.longs(i))
     def length: Int = len
   }
 
   /** Copies byteCount bytes from srcIndex to destIndex in this buffer.  */
-  def copy(destIndex: Long, srcIndex: Long, byteCount: Long): Unit
+  def copy(destIndex: Pointer, srcIndex: Pointer, byteCount: ByteCount): Unit
 
   /** Loads the underlying memory mapped file into physical RAM.
     */
@@ -50,7 +50,7 @@ trait LargeMappedByteBuffer {
 
   /** Syncs count bytes at the given index to disk and blocks until that completes.
     */
-  def syncToDisk(startIndex: Long, count: Long): Unit
+  def syncToDisk(startIndex: Pointer, count: ByteCount): Unit
 
   /** Syncs all buffers to disk and blocks until that completes (see MappedByteBuffer.force()).
     */
@@ -70,9 +70,9 @@ class MMapByteBuffer(f: File) extends LargeMappedByteBuffer {
   val MinExpansionFactor = 1.1 // To prevent many tiny resizes, always resize by at least this factor.
 
   /** Makes sure that the given index is a valid offset by remapping if needed. */
-  def ensureSize(i: Long): Unit = {
-    if (i >= memory.length) {
-      val newSize = Util.divideRoundingUp(math.max(i + 1, (memory.length * MinExpansionFactor).toLong), ChunkSize) * ChunkSize
+  def ensureSize(i: Pointer): Unit = {
+    if (i.raw >= memory.length) {
+      val newSize = Util.divideRoundingUp(math.max(i.raw + 1, (memory.length * MinExpansionFactor).toLong), ChunkSize) * ChunkSize
       println(s"Resizing file from ${memory.length} to $newSize bytes") // TODO: Remove println
       buffer.close()
       buffer = new MMapBuffer(f, 0, newSize, FileChannel.MapMode.READ_WRITE, ByteOrder.nativeOrder())
@@ -80,27 +80,31 @@ class MMapByteBuffer(f: File) extends LargeMappedByteBuffer {
     }
   }
 
-  def getInt(index: Long): Int = memory.getInt(index)
-  def putInt(index: Long, v: Int, forceToDisk: Boolean = false): Unit = {
-    ensureSize(index + 3)
-    memory.putInt(index, v)
+  override def getInt(index: Pointer): Int = memory.getInt(index.raw)
+
+  def putInt(index: Pointer, v: Int, forceToDisk: Boolean = false): Unit = {
+    ensureSize(index + Offset.bytes(3))
+    memory.putInt(index.raw, v)
     if (forceToDisk)
-      buffer.sync(index, 4)
+      buffer.sync(index.raw, 4)
   }
 
+  override def getLong(index: Pointer): Long = memory.getLong(index.raw)
+  def getPointer(index: Pointer): Pointer = Pointer(getLong(index))
 
-  def getLong(index: Long): Long = memory.getLong(index)
-  def putLong(index: Long, v: Long, forceToDisk: Boolean = false): Unit = {
-    ensureSize(index + 7)
-    memory.putLong(index, v)
+  def putLong(index: Pointer, v: Long, forceToDisk: Boolean = false): Unit = {
+    ensureSize(index + Offset.bytes(7))
+    memory.putLong(index.raw, v)
     if (forceToDisk)
-      buffer.sync(index, 8)
+      buffer.sync(index.raw, 8)
   }
+  def putPointer(index: Pointer, v: Pointer, forceToDisk: Boolean = false): Unit =
+    putLong(index, v.raw, forceToDisk)
 
   /** Copies byteCount bytes from srcIndex to destIndex in this buffer.  */
-  def copy(destIndex: Long, srcIndex: Long, byteCount: Long): Unit = {
-    ensureSize(destIndex + byteCount)
-    memory.putBytes(destIndex, memory, srcIndex, byteCount)
+  def copy(destIndex: Pointer, srcIndex: Pointer, byteCount: ByteCount): Unit = {
+    ensureSize(destIndex + byteCount.toOffset)
+    memory.putBytes(destIndex.raw, memory, srcIndex.raw, byteCount.raw)
   }
 
   /** Loads the underlying memory mapped file into physical RAM.  Uses mlock.
@@ -111,13 +115,13 @@ class MMapByteBuffer(f: File) extends LargeMappedByteBuffer {
   /** Syncs the buffer containing the given indexes in the given range to disk and blocks until that completes (see
     * MappedByteBuffer.force()).
     */
-  def syncToDisk(startIndex: Long, count: Long): Unit = {
-    buffer.sync(startIndex, count)
+  override def syncToDisk(startIndex: Pointer, count: ByteCount): Unit = {
+    buffer.sync(startIndex.raw, count.raw)
   }
 
   /** Syncs all buffers to disk and blocks until that completes (see MappedByteBuffer.force()).
     */
-  def syncToDisk(): Unit = syncToDisk(0, memory.length())
+  def syncToDisk(): Unit = syncToDisk(Pointer(0), ByteCount(memory.length()))
 
   def close(): Unit = buffer.close()
 }
