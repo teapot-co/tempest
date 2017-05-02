@@ -225,6 +225,14 @@ class TempestClient:
         """ Create the given node, so edges and attributes can be set on it."""
         self.__thrift_client.addNode(node)
 
+    def add_nodes(self, nodes):
+        """ Create the given nodes, so edges and attributes can be set on them."""
+        self.__thrift_client.addNodes(nodes)
+
+    def add_new_nodes(self, nodes):
+        """ Create the given nodes, so edges and attributes can be set on them."""
+        self.__thrift_client.addNewNodes(nodes)
+
     def set_node_attribute(self, node, attribute_name, attribute_value):
         """Set the given attribute on the given node, which must have been added previously."""
         self.__thrift_client.setNodeAttribute(node, attribute_name, attribute_value)
@@ -232,6 +240,12 @@ class TempestClient:
     def add_edges(self, edge_type,  nodes1, nodes2):
         """ Adds edges from corresponding items in the given parallel lists to the graph. """
         self.__thrift_client.addEdges(edge_type, nodes1, nodes2)
+
+    def add_nodes_and_edges(self, edge_type,  nodes1, nodes2):
+        """ Adds edges from corresponding items in the given parallel lists to the graph.
+            Also ensures that the required nodes are added if necessary.
+        """
+        self.__thrift_client.addNodesAndEdges(edge_type, nodes1, nodes2)
 
     def add_edge(self, edge_type,  node1, node2):
         """ Adds the given edge to the graph. """

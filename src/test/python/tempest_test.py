@@ -98,31 +98,57 @@ expect_exception(lambda: client.out_neighbor("follows", alice, 2),
 #expect_equal(sorted(twitter_2010_example.get_influencers("follows", 'alice', client)),
 #             sorted(['bob', 'carol']))
 
-test_mutation = False
+test_mutation = True
 # After running mutation tests, to avoid interference with tests above, recreate the test graph in docker by running the
 # example node/edge creation commands from the readme.
 # We've disabled these until we find a way to keep the mutated graph from changing results of future tests.
 if test_mutation:
     daniel = Node("user", "daniel")
-    client.add_node(daniel)
+    emily = Node("user", "emily")
+    felix = Node("user", "felix")
+
+    client.add_new_nodes([daniel, emily, felix])
+
     client.set_node_attribute(daniel, "name", "Daniel Smith")
-    client.add_edge("follows", alice, daniel)
-    expect_equal(client.out_degree("follows", alice), 2)
+
+    client.add_nodes_and_edges("follows", [emily, felix], [daniel, daniel])
+
+    expect_equal(client.out_degree("follows", emily), 1)
+    expect_equal(client.in_degree("follows", daniel), 2)
+    expect_equal(client.out_neighbors("follows", felix), [daniel])
+    expect_equal(client.in_neighbors("follows", daniel), [emily, felix])
 
     # TODO: Make this test work
     # client.set_node_attribute(daniel, "login_count", 42)
 
-    expect_equal(client.out_neighbors("follows", alice), [bob, daniel])
-    expect_equal(client.in_degree("follows", daniel), 1)
-    expect_equal(client.in_neighbors("follows", daniel), [alice])
-    expect_equal(client.out_neighbors("has_read", daniel), [])
+    book101 = Node("book", "101b")
+    book102 = Node("book", "102b")
+    book103 = Node("book", "103b")
+    client.add_new_nodes([book101, book102, book103])
 
-    book101 = Node("book", "101")
-    book102 = Node("book", "102")
-    book103 = Node("book", "103")
-    client.add_edges("has_read", [alice, daniel], [book102, book103])
-    expect_equal(set(client.out_neighbors("has_read", alice)), set([book101, book102, book103]))
+    client.add_nodes_and_edges("has_read", [emily, daniel], [book102, book103])
+    expect_equal(set(client.out_neighbors("has_read", emily)), set([book102]))
     expect_equal(client.out_neighbors("has_read", daniel), [book103])
+
+    ed = Node("user", "ed")
+    fred = Node("user", "fred")
+    george = Node("user", "george")
+
+    client.add_new_nodes([ed, fred])
+    client.add_nodes_and_edges("follows", [ed, fred, ed], [fred, george, george])
+
+    print client.out_neighbors("follows", ed)
+    expect_equal(set(client.out_neighbors("follows", ed)), set([fred, george]))
+    expect_equal(set(client.out_neighbors("follows", fred)), set([george]))
+    expect_equal(set(client.in_neighbors("follows", fred)), set([ed]))
+    expect_equal(set(client.in_neighbors("follows", george)), set([ed, fred]))
+
+    # add again to test idempotency
+    client.add_nodes_and_edges("follows", [ed, fred, ed], [fred, george, george])
+    expect_equal(client.out_degree("follows", ed), 2)
+    expect_equal(client.out_degree("follows", fred), 1)
+    expect_equal(client.in_degree("follows", fred), 1)
+    expect_equal(client.in_degree("follows", george), 2)
 
 client.close()
 print "Python client tests passed :)"

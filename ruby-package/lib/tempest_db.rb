@@ -227,6 +227,20 @@ module Teapot
         }
       end
 
+      # @param [Array<Teapot::TempestDB::Node>] nodes
+      def add_nodes(nodes)
+        @thrift_client.with_retries { |executor|
+          executor.addNodes(nodes)
+        }
+      end
+
+      # @param [Array<Teapot::TempestDB::Node>] nodes
+      def add_new_nodes(nodes)
+        @thrift_client.with_retries { |executor|
+          executor.addNewNodes(nodes)
+        }
+      end
+
       # @param [Teapot::TempestDB::Node] node
       # @param [String] attribute_name
       # @param [String] attribute_value
@@ -240,6 +254,15 @@ module Teapot
       # @param [Array<Teapot::TempestDB::Node>] source_nodes
       # @param [Array<Teapot::TempestDB::Node>] target_nodes
       def add_edges(edge_type, source_nodes, target_nodes)
+        @thrift_client.with_retries { |executor|
+          executor.addEdges(edge_type, source_nodes, target_nodes)
+        }
+      end
+
+      # @param [String] edge_type
+      # @param [Array<Teapot::TempestDB::Node>] source_nodes
+      # @param [Array<Teapot::TempestDB::Node>] target_nodes
+      def add_nodes_and_edges(edge_type, source_nodes, target_nodes)
         @thrift_client.with_retries { |executor|
           executor.addEdges(edge_type, source_nodes, target_nodes)
         }
