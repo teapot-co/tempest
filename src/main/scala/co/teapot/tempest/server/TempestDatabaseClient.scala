@@ -267,8 +267,6 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
     val existingNodeIds = filterNodeIds(nodeType, nodeIds, "1 = 1").toSet
     val newNodes = nodes.filterNot { node => existingNodeIds.contains(node.id) }
 
-    println(s"${existingNodeIds.size} existing nodes, ${newNodes.size} new nodes")
-
     addNodes(newNodes)
   }
 
