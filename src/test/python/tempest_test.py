@@ -111,7 +111,7 @@ if test_mutation:
 
     client.set_node_attribute(daniel, "name", "Daniel Smith")
 
-    client.add_nodes_and_edges("follows", [emily, felix], [daniel, daniel])
+    client.add_nodes_and_edges("follows", [emily, felix], [daniel, daniel], True)
 
     expect_equal(client.out_degree("follows", emily), 1)
     expect_equal(client.in_degree("follows", daniel), 2)
@@ -126,7 +126,7 @@ if test_mutation:
     book103 = Node("book", "103b")
     client.add_new_nodes([book101, book102, book103])
 
-    client.add_nodes_and_edges("has_read", [emily, daniel], [book102, book103])
+    client.add_nodes_and_edges("has_read", [emily, daniel], [book102, book103], True)
     expect_equal(set(client.out_neighbors("has_read", emily)), set([book102]))
     expect_equal(client.out_neighbors("has_read", daniel), [book103])
 
@@ -135,7 +135,7 @@ if test_mutation:
     george = Node("user", "george")
 
     client.add_new_nodes([ed, fred])
-    client.add_nodes_and_edges("follows", [ed, fred, ed], [fred, george, george])
+    client.add_nodes_and_edges("follows", [ed, fred, ed], [fred, george, george], True)
 
     print client.out_neighbors("follows", ed)
     expect_equal(set(client.out_neighbors("follows", ed)), set([fred, george]))
@@ -144,7 +144,7 @@ if test_mutation:
     expect_equal(set(client.in_neighbors("follows", george)), set([ed, fred]))
 
     # add again to test idempotency
-    client.add_nodes_and_edges("follows", [ed, fred, ed], [fred, george, george])
+    client.add_nodes_and_edges("follows", [ed, fred, ed], [fred, george, george], True)
     expect_equal(client.out_degree("follows", ed), 2)
     expect_equal(client.out_degree("follows", fred), 1)
     expect_equal(client.in_degree("follows", fred), 1)

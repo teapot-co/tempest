@@ -241,11 +241,11 @@ class TempestClient:
         """ Adds edges from corresponding items in the given parallel lists to the graph. """
         self.__thrift_client.addEdges(edge_type, nodes1, nodes2)
 
-    def add_nodes_and_edges(self, edge_type,  nodes1, nodes2):
+    def add_nodes_and_edges(self, edge_type,  nodes1, nodes2, check_for_duplicates=False):
         """ Adds edges from corresponding items in the given parallel lists to the graph.
             Also ensures that the required nodes are added if necessary.
         """
-        self.__thrift_client.addNodesAndEdges(edge_type, nodes1, nodes2)
+        self.__thrift_client.addNodesAndEdges(edge_type, nodes1, nodes2, check_for_duplicates)
 
     def add_edge(self, edge_type,  node1, node2):
         """ Adds the given edge to the graph. """

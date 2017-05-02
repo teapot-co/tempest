@@ -183,7 +183,7 @@ service TempestDBService {
      and target nodes exist in the DB
   */
   void addNodesAndEdges(1:string edgeType, 2:list<Node> sourceNodes,
-                  3:list<Node> targetNodes)
+                  3:list<Node> targetNodes, 4:bool checkForDuplicates)
       throws (1: UndefinedGraphException error1, 2: UnequalListSizeException error2);
 }
 

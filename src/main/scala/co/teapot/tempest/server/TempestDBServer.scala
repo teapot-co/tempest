@@ -367,16 +367,17 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
    */
   override def addNodesAndEdges(edgeType: String,
                                 sourceNodesJava: util.List[ThriftNode],
-                                targetNodesJava: util.List[ThriftNode]): Unit = {
+                                targetNodesJava: util.List[ThriftNode],
+                                checkForDuplicates: Boolean): Unit = {
     addEdgesInternal(edgeType, sourceNodesJava, targetNodesJava,
-      addNewNodes = true, skipExistingEdges = true)
+      addNewNodes = true, checkForDuplicates = checkForDuplicates)
   }
 
   def addEdgesInternal(edgeType: String,
                        sourceNodesJava: util.List[ThriftNode],
                        targetNodesJava: util.List[ThriftNode],
                        addNewNodes: Boolean = false,
-                       skipExistingEdges: Boolean = false): Unit = {
+                       checkForDuplicates: Boolean = false): Unit = {
     if (sourceNodesJava.size != targetNodesJava.size) {
       throw new UnequalListSizeException()
     }
@@ -390,7 +391,7 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
       databaseClient.addNewNodes(targetNodes)
     }
 
-    val (sourceTempestIds, targetTempestIds) = if (skipExistingEdges) {
+    val (sourceTempestIds, targetTempestIds) = if (checkForDuplicates) {
       getNewEdgeIds(edgeType, sourceNodes, targetNodes)
     } else {
       getEdgeIds(sourceNodes, targetNodes)
