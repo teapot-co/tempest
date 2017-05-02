@@ -11,11 +11,12 @@ class LargeMappedByteBufferSpec extends FlatSpec with Matchers {
     val f = File.createTempFile("test", ".dat")
     f.deleteOnExit()
     val b = new MMapByteBuffer(f)
-    b.putInt(Pointer(1234 + (1L<< 30)), 42)
-    b.getInt(Pointer(1234 + (1L<< 30))) shouldEqual (42)
-    b.syncToDisk(1234 + (1L<< 30), 4)
+    val memLoc = Pointer(1234 + (1L << 30))
+    b.putInt(memLoc, 42)
+    b.getInt(memLoc) shouldEqual (42)
+    b.syncToDisk(memLoc, ByteCount(4))
     val b2 = new MMapByteBuffer(f)
-    b2.getInt(1234 + (1L<< 30)) shouldEqual (42)
+    b2.getInt(Pointer(1234 + (1L<< 30))) shouldEqual (42)
   }
 
   it should "support copying" in {
@@ -26,9 +27,9 @@ class LargeMappedByteBufferSpec extends FlatSpec with Matchers {
     val srcP = Pointer(4)
     b.putInt(srcP, 0x12345678)
     b.copy(Pointer(20), srcP, ByteCount(4))
-    b.getInt(20) should equal (0x12345678)
+    b.getInt(Pointer(20)) should equal (0x12345678)
     b.copy(Pointer(256), srcP, ByteCount(4))
-    b.getInt(256) should equal (0x12345678)
+    b.getInt(Pointer(256)) should equal (0x12345678)
 
     // Test multi-buffer copying
     val intCount = 456
@@ -51,12 +52,12 @@ class LargeMappedByteBufferSpec extends FlatSpec with Matchers {
 
     // try copying with start or dest on buffer boundaries
     b.copy(dest, Pointer(100), ByteCount(200))
-    b.getInt(dest) should equal (b.getInt(100))
+    b.getInt(dest) should equal (b.getInt(Pointer(100)))
     b.copy(start, Pointer(1000), ByteCount(200))
-    b.getInt(1000) should equal (b.getInt(start))
+    b.getInt(Pointer(1000)) should equal (b.getInt(start))
     b.copy(Pointer(1000), Pointer(100), ByteCount(200))
-    b.getInt(100) should equal(b.getInt(1000))
-    b.getInt(296) should equal(b.getInt(1196))
+    b.getInt(Pointer(100)) should equal(b.getInt(Pointer(1000)))
+    b.getInt(Pointer(296)) should equal(b.getInt(Pointer(1196)))
   }
 
   it should "support longSeq" in {
