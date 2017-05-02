@@ -64,8 +64,10 @@ case class Offset(raw: Long) {
   def toByteCount: ByteCount = ByteCount(raw)
 }
 object Offset {
-  def fromBlocks(blockCount: Int, blockSize: ByteCount): Offset =
+  def blocks(blockCount: Int, blockSize: ByteCount): Offset =
     Offset(blockCount.toLong * blockSize.raw)
+  def bits(howMany: Int): Offset = Offset(howMany / 8)
+  def bytes(howMany: Int): Offset = Offset(howMany)
   def ints(howMany: Int): Offset = Offset(4L * howMany.toLong)
   def longs(howMany: Int): Offset = Offset(8L * howMany.toLong)
 }
@@ -169,7 +171,7 @@ class MemoryMappedAllocator(dataFile: File,
     // Use var i so we can jump past blocks in large allocations.
     var i = 0
     while (i < allocatedBlockCount) {
-      val pointer = (HeaderSize.toOffset + Offset.fromBlocks(i, blockSize)).toPointer
+      val pointer = (HeaderSize.toOffset + Offset.blocks(i, blockSize)).toPointer
       if (PieceBlock.isPieceBlock(pointer, data)) {
         if (! PieceBlock.isFull(pointer, data)) {
           val pieceSize = PieceBlock.pieceSize(pointer, data)
@@ -204,7 +206,7 @@ class MemoryMappedAllocator(dataFile: File,
     if (freeBlocks.size > 0) {
       Pointer(freeBlocks.popLong())
     } else {
-      val newPointer = (Offset.fromBlocks(allocatedBlockCount, blockSize) + HeaderSize.toOffset).toPointer
+      val newPointer = (Offset.blocks(allocatedBlockCount, blockSize) + HeaderSize.toOffset).toPointer
       data.putInt(AllocatedBlockCountPointer, allocatedBlockCount + 1, syncAllWrites)
       log.trace(s"new block pointer: $newPointer; blockCount $allocatedBlockCount")
       newPointer
@@ -229,7 +231,7 @@ class MemoryMappedAllocator(dataFile: File,
   private[mmalloc] def pointerToBlock(pointer: Pointer): Pointer = {
     require(pointer.raw >= HeaderSize.raw, s"pointer $pointer < HeaderSize $HeaderSize")
     val blockI = (pointer - HeaderSize.toOffset).toOffset.toBlockNumber(blockSize)
-    HeaderSize.toOffset.toPointer + Offset.fromBlocks(blockI, blockSize)
+    HeaderSize.toOffset.toPointer + Offset.blocks(blockI, blockSize)
   }
 
   /** Assuming the given pointer was allocated by this allocator, returns the number of bytes in
@@ -245,7 +247,7 @@ class MemoryMappedAllocator(dataFile: File,
             s"$blockPointer with magic number " +
             data.getLong(blockPointer + LargeBlock.BlockTypeOffset))
         val blockCount = LargeBlock.blockCount(blockPointer, data)
-        (Offset.fromBlocks(blockCount, blockSize) - LargeBlock.HeaderSize.toOffset).toByteCount
+        (Offset.blocks(blockCount, blockSize) - LargeBlock.HeaderSize.toOffset).toByteCount
       }
   }
 
@@ -253,7 +255,7 @@ class MemoryMappedAllocator(dataFile: File,
     this.synchronized {
       if (size > largestPieceSize) {
         val newBlockCount = Util.divideRoundingUp((size + LargeBlock.HeaderSize).raw, blockSize.raw).toInt
-        val largeBlockStart = (HeaderSize.toOffset + Offset.fromBlocks(allocatedBlockCount, blockSize)).toPointer
+        val largeBlockStart = (HeaderSize.toOffset + Offset.blocks(allocatedBlockCount, blockSize)).toPointer
         data.putInt(AllocatedBlockCountPointer, allocatedBlockCount + newBlockCount, forceToDisk=syncAllWrites)
         LargeBlock.initializeLargeBlock(largeBlockStart, data, newBlockCount)
         val dataStart = largeBlockStart + LargeBlock.HeaderSize.toOffset
@@ -290,7 +292,7 @@ class MemoryMappedAllocator(dataFile: File,
             data.getLong(blockPointer + LargeBlock.BlockTypeOffset))
         val blockCount = LargeBlock.blockCount(blockPointer, data)
         for (i <- 0 until blockCount) {
-          val freeBlockPointer = blockPointer + Offset.fromBlocks(i, blockSize)
+          val freeBlockPointer = blockPointer + Offset.blocks(i, blockSize)
           data.putLong(freeBlockPointer + LargeBlock.BlockTypeOffset, LargeBlock.FreeBlockMagicNumber)
           freeBlocks.push(freeBlockPointer.raw)
         }

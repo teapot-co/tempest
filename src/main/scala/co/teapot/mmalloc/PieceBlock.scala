@@ -60,7 +60,7 @@ private[mmalloc] class PieceBlock(val pointer: Pointer, mmAllocator: MemoryMappe
     PieceBlock.setFreeCount(pointer, data, PieceBlock.freeCount(pointer, data) - 1, syncAllWrites)
     PieceBlock.log.trace(s"Allocated piece $i from PieceBlock($pointer); new freeCount $freeCount")
     logFreeSet()
-    firstPiecePointer + Offset.fromBlocks(i, pieceSize)
+    firstPiecePointer + Offset.blocks(i, pieceSize)
   }
 
   /** Marks the piece starting at the given pointer as free. */
@@ -100,7 +100,7 @@ private[mmalloc] object PieceBlock {
   def pieceSize(pointer: Pointer, data: LargeMappedByteBuffer): ByteCount =
     ByteCount(data.getInt(pointer + PieceSizeOffset))
   def setPieceSize(pointer: Pointer, data: LargeMappedByteBuffer, pieceSize: ByteCount, syncWrite: Boolean): Unit = {
-//    require(pointer.raw + PieceSizeOffset > 0, "Possible integer overflow found")
+    require((pointer + PieceSizeOffset).raw > 0, "Possible integer overflow found")
     require(pieceSize.raw < Int.MaxValue, "Piece size has to fit into Integer type")
     data.putInt(pointer + PieceSizeOffset, pieceSize.raw.toInt, syncWrite)
   }
@@ -143,7 +143,7 @@ private[mmalloc] object PieceBlock {
     data.putInt(pointer + SearchStartOffset, 0)
     ByteBufferBasedBitSet.initializeWith1s(pointer + BitsetOffset, data, pieceCount)
     if (syncWrite) {
-      data.syncToDisk(pointer, ByteCount(BitsetOffset.raw + pieceCount / 8))
+      data.syncToDisk(pointer, (BitsetOffset + Offset.bits(pieceCount)).toByteCount)
     }
   }
 }

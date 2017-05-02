@@ -83,7 +83,7 @@ class MMapByteBuffer(f: File) extends LargeMappedByteBuffer {
   override def getInt(index: Pointer): Int = memory.getInt(index.raw)
 
   def putInt(index: Pointer, v: Int, forceToDisk: Boolean = false): Unit = {
-    ensureSize(index + Offset(3))
+    ensureSize(index + Offset.bytes(3))
     memory.putInt(index.raw, v)
     if (forceToDisk)
       buffer.sync(index.raw, 4)
@@ -93,7 +93,7 @@ class MMapByteBuffer(f: File) extends LargeMappedByteBuffer {
   def getPointer(index: Pointer): Pointer = Pointer(getLong(index))
 
   def putLong(index: Pointer, v: Long, forceToDisk: Boolean = false): Unit = {
-    ensureSize(index + Offset(7))
+    ensureSize(index + Offset.bytes(7))
     memory.putLong(index.raw, v)
     if (forceToDisk)
       buffer.sync(index.raw, 8)

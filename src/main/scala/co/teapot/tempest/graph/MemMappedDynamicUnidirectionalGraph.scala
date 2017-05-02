@@ -87,7 +87,7 @@ class MemMappedDynamicUnidirectionalGraph(allocator: MemoryMappedAllocator,
     * */
   private def nodePointer(id: Int): Pointer = {
     require(Integer.toUnsignedLong(id) < nodeCapacity, s"id ${Integer.toUnsignedLong(id)} >= nodeCapacity $nodeCapacity")
-    nodeArrayPointer + Offset.fromBlocks(id, BytesPerNode)
+    nodeArrayPointer + Offset.blocks(id, BytesPerNode)
   }
 
   def degree(id: Int): Int =
@@ -123,7 +123,7 @@ class MemMappedDynamicUnidirectionalGraph(allocator: MemoryMappedAllocator,
       val oldDegree = degree(id1)
       ensureSufficientCapacity(id1, oldDegree + 1)
       // For concurrent readers, add edge before incrementing degree
-      val neighborsOffset = Offset.fromBlocks(oldDegree, BytesPerNeighbor)
+      val neighborsOffset = Offset.blocks(oldDegree, BytesPerNeighbor)
       data.putInt(neighborsPointer(id1) + neighborsOffset, id2, allocator.syncAllWrites)
       setDegree(id1, oldDegree + 1)
     }
@@ -160,15 +160,15 @@ class MemMappedDynamicUnidirectionalGraph(allocator: MemoryMappedAllocator,
         if (id >= nodeCapacity) {
           val newCapacity = Util.nextLeadingTwoBitNumber(id + 1)
           log.info(s"increasing node capacity to $newCapacity")
-          val newByteCountForNodes = Offset.fromBlocks(newCapacity, BytesPerNode).toByteCount
+          val newByteCountForNodes = Offset.blocks(newCapacity, BytesPerNode).toByteCount
           val newPointer = allocator.alloc(newByteCountForNodes + NodeArrayOffset.toByteCount)
-          val oldByteCountForNodes = Offset.fromBlocks(nodeCapacity, BytesPerNode).toByteCount
+          val oldByteCountForNodes = Offset.blocks(nodeCapacity, BytesPerNode).toByteCount
           allocator.data.copy(newPointer, dataPointer, oldByteCountForNodes + NodeArrayOffset.toByteCount)
           allocationsToFree.push(dataPointer.raw) // For concurrent readers, don't immediately free.
           setDataPointer(newPointer) // For concurrent readers, update dataPointer after copying data.
           setNodeCapacity(newCapacity)
           }
-        val nodeArrayCapacity = Offset.fromBlocks(maxNodeId+1, BytesPerNode)
+        val nodeArrayCapacity = Offset.blocks(maxNodeId+1, BytesPerNode)
         assert(allocator.allocationCapacity(dataPointer) >= (NodeArrayOffset + nodeArrayCapacity).toByteCount,
           s"data array capacity ${allocator.allocationCapacity(dataPointer)} insufficient for maxNodeId $maxNodeIdLong")
         // Initialize new nodes
