@@ -11,3 +11,18 @@ docker tag <the tag printed by build> teapotco/tempestdb:0.14.0
 docker tag <the tag printed by build> teapotco/tempestdb:latest
 docker push teapotco/tempestdb:0.14.0
 docker push teapotco/tempestdb:latest
+
+## To run tests locally:
+
+# In one tab
+mkdir -p ~/tempest_data
+docker run -p 5432:5432 -it -v ~/tempest_data:/data <tag printed by the build> /root/tempest/bin/start_server.sh
+<Generate the example graph in the Readme>
+
+# In another tab
+sbt test
+
+## To run a postgres shell inside the docker container:
+docker run -p 5432:5432 -it -v ~/tempest_data:/data <tag printed by the build> bash
+start_server.sh &
+psql tempest postgres
