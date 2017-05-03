@@ -37,15 +37,16 @@ class TempestDBServerClientSpec extends FlatSpec with Matchers {
     // If you want the server to serve indefinitely, so you can run ad-hoc client commands, uncomment this line:
     // server.serve()
 
+    // Start the server on a new thread
     Future[Unit] {
       server.serve()
-    } //Start the server on a new thread
+    }
 
     while (!server.isServing) {
       Thread.sleep(10)
     }
 
-    //This notation forwards the process output to stdout
+    // This notation forwards the process output to stdout
     val ret = Process("ruby -Iruby-package/lib src/test/ruby/tempest_test.rb").!
     ret shouldEqual 0
 

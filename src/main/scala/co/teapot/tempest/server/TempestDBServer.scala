@@ -169,8 +169,7 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
     */
   def kStepNodeType(edgeType: String, edgeDir: EdgeDir, k: Int): String = {
     val edgeConfig = loadEdgeConfig(edgeType)
-    if ((edgeDir == EdgeDirOut && k % 2 == 0) ||
-      (edgeDir == EdgeDirIn && k % 2 == 1)) {
+    if ((edgeDir == EdgeDirOut && k % 2 == 0) || (edgeDir == EdgeDirIn && k % 2 == 1)) {
       edgeConfig.getSourceNodeType
     } else {
       edgeConfig.getTargetNodeType
@@ -363,7 +362,7 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
     This function is similar to the addEdges call, however, it differs in two ways:
     1. Nodes that are not yet in the graph are added automatically. In contrast, addEdges
        will throw an exception if that happens.
-    2. It ensures that it will not add duplicate edges.
+    2. It optionally ensures that it will not add duplicate edges.
    */
   override def addNodesAndEdges(edgeType: String,
                                 sourceNodesJava: util.List[ThriftNode],
@@ -448,8 +447,8 @@ object TempestDBServer {
   def getProcessor(configFileName: String): TProcessor = {
     val config = ConfigLoader.loadConfig[TempestDBServerConfig](configFileName)
     // Not currently used: ConfigLoader.loadConfig[TempestDBServerConfig](configFileName)
-    val databaseConfigFile = "/root/tempest/system/database.yaml"
     // TODO: move db config to main config?
+    val databaseConfigFile = "/root/tempest/system/database.yaml"
     val databaseConfig = ConfigLoader.loadConfig[DatabaseConfig](databaseConfigFile)
     val databaseClient = new TempestSQLDatabaseClient(databaseConfig)
 

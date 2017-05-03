@@ -264,7 +264,7 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
     val nodeIds = nodes.map(_.id)
     val nodeType = nodes.head.`type`
 
-    val existingNodeIds = filterNodeIds(nodeType, nodeIds, "1 = 1").toSet
+    val existingNodeIds = filterNodeIds(nodeType, nodeIds, "TRUE").toSet
     val newNodes = nodes.filterNot { node => existingNodeIds.contains(node.id) }
 
     addNodes(newNodes)
