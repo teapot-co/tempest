@@ -98,11 +98,38 @@ expect_exception(lambda: client.out_neighbor("follows", alice, 2),
 #expect_equal(sorted(twitter_2010_example.get_influencers("follows", 'alice', client)),
 #             sorted(['bob', 'carol']))
 
-test_mutation = True
+test_mutation = False
 # After running mutation tests, to avoid interference with tests above, recreate the test graph in docker by running the
 # example node/edge creation commands from the readme.
 # We've disabled these until we find a way to keep the mutated graph from changing results of future tests.
 if test_mutation:
+    daniel = Node("user", "daniel")
+    client.add_node(daniel)
+    client.set_node_attribute(daniel, "name", "Daniel Smith")
+    client.add_edge("follows", alice, daniel)
+    expect_equal(client.out_degree("follows", alice), 2)
+
+    # TODO: Make this test work
+    # client.set_node_attribute(daniel, "login_count", 42)
+
+    expect_equal(client.out_neighbors("follows", alice), [bob, daniel])
+    expect_equal(client.in_degree("follows", daniel), 1)
+    expect_equal(client.in_neighbors("follows", daniel), [alice])
+    expect_equal(client.out_neighbors("has_read", daniel), [])
+
+    book101 = Node("book", "101")
+    book102 = Node("book", "102")
+    book103 = Node("book", "103")
+    client.add_edges("has_read", [alice, daniel], [book102, book103])
+    expect_equal(set(client.out_neighbors("has_read", alice)), set([book101, book102, book103]))
+    expect_equal(client.out_neighbors("has_read", daniel), [book103])
+
+test_safe_addition = True
+# Note: These tests below are "safe" in the sense that they will not cause subsequent tests to
+# fail. However, they will modify the graph, thus src/test/resources/binary_graphs/follows.dat
+# and src/test/resources/binary_graphs/has_read.dat will be touched. Take care not to check those
+# modifications in.
+if test_safe_addition:
     daniel = Node("user", "daniel")
     emily = Node("user", "emily")
     felix = Node("user", "felix")
