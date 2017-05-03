@@ -11,7 +11,7 @@ class ByteBufferBasedBitSetSpec extends FlatSpec with Matchers {
     val f = File.createTempFile("test", ".dat")
     f.deleteOnExit()
     val buffer = new MMapByteBuffer(f)
-    val pointer = 42 // Arbitrary
+    val pointer = Pointer(42) // Arbitrary
     val bitCount = 201
     ByteBufferBasedBitSet.initializeWith1s(pointer, buffer, bitCount)
     val s = new ByteBufferBasedBitSet(pointer, buffer, bitCount, false)
@@ -34,8 +34,8 @@ class ByteBufferBasedBitSetSpec extends FlatSpec with Matchers {
     f.deleteOnExit()
     val buffer = new MMapByteBuffer(f)
     val bitCounts = Seq(128, 125, 97, 96)
-    val pointer0 = 64 // Arbitrary
-    val pointer1 = 80 // Arbitrary
+    val pointer0 = Pointer(64) // Arbitrary
+    val pointer1 = Pointer(80) // Arbitrary
     for (bitCount <- bitCounts) {
       ByteBufferBasedBitSet.initializeWith0s(pointer0, buffer, bitCount)
       val s0 = new ByteBufferBasedBitSet(pointer0, buffer, bitCount, false)

@@ -18,26 +18,26 @@ package co.teapot.mmalloc
   * the remaining blocks in the Large Block have no headers.*/
 private[mmalloc] object LargeBlock {
   // Header Layout
-  val BlockTypeOffset = 0
-  val BlockCountOffset = 8
+  val BlockTypeOffset = Offset(0)
+  val BlockCountOffset = Offset(8)
   // Skip 4 bytes for alignment
-  val HeaderSize = 16
+  val HeaderSize = ByteCount(16)
 
   /** A random number, to sanity check block locations. */
   val LargeBlockMagicNumber = 1648927401674812135L
   val FreeBlockMagicNumber = -3040736377681742059L
 
-  def isLargeBlock(pointer: Long, data: LargeMappedByteBuffer): Boolean =
+  def isLargeBlock(pointer: Pointer, data: LargeMappedByteBuffer): Boolean =
     data.getLong(pointer + BlockTypeOffset) == LargeBlockMagicNumber
 
-  def isFreeBlock(pointer: Long, data: LargeMappedByteBuffer): Boolean =
+  def isFreeBlock(pointer: Pointer, data: LargeMappedByteBuffer): Boolean =
     data.getLong(pointer + BlockTypeOffset) == FreeBlockMagicNumber
 
   /** The number of blocks in this LargeBlock, including this one. */
-  def blockCount(pointer: Long, data: LargeMappedByteBuffer): Int =
+  def blockCount(pointer: Pointer, data: LargeMappedByteBuffer): Int =
     data.getInt(pointer + BlockCountOffset)
 
-  def initializeLargeBlock(pointer: Long, data: LargeMappedByteBuffer, blockCount: Int): Unit = {
+  def initializeLargeBlock(pointer: Pointer, data: LargeMappedByteBuffer, blockCount: Int): Unit = {
     data.putLong(pointer + BlockTypeOffset, LargeBlockMagicNumber)
     data.putInt(pointer + BlockCountOffset, blockCount)
   }

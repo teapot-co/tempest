@@ -22,21 +22,21 @@ import it.unimi.dsi.fastutil.longs.LongArrayList
  * new pieces.  Only non-full blocks are stored in a list,
  * since full blocks are only needed when a pointer is freed, and then their location is
  * computed from the pointer being freed.  The current piece block is not stored in nonFullBlocks. */
-private[mmalloc] class PieceAllocator(pieceSize: Int, mmAllocator: MemoryMappedAllocator) {
+private[mmalloc] class PieceAllocator(pieceSize: ByteCount, mmAllocator: MemoryMappedAllocator) {
   val log = Logger.get
   private val nonFullBlocks = new LongArrayList()
   private var currentPieceBlockOption: Option[PieceBlock] = None
 
-  private[mmalloc] def appendNonFullBlock(pointer: Long): Unit =
-    nonFullBlocks.push(pointer)
+  private[mmalloc] def appendNonFullBlock(pointer: Pointer): Unit =
+    nonFullBlocks.push(pointer.raw)
 
   /** Returns a pointer to a piece of memory of pieceSize bytes.  */
-  def alloc(): Long = {
+  def alloc(): Pointer = {
     if (currentPieceBlockOption.isEmpty || currentPieceBlockOption.get.freeCount == 0) {
       if (nonFullBlocks.size == 0) {
         createNewBlock()
       }
-      val block = nonFullBlocks.popLong()
+      val block = Pointer(nonFullBlocks.popLong())
       currentPieceBlockOption = Some(new PieceBlock(block, mmAllocator))
     }
     currentPieceBlockOption.get.alloc()
@@ -51,14 +51,14 @@ private[mmalloc] class PieceAllocator(pieceSize: Int, mmAllocator: MemoryMappedA
       pieceSize,
       mmAllocator.blockSize,
       mmAllocator.syncAllWrites)
-    nonFullBlocks.push(newBlock)
+    nonFullBlocks.push(newBlock.raw)
   }
 
   /** Frees the given pointer, which must be part of the given block. */
-  def free(pointer: Long, block: PieceBlock): Unit = {
+  def free(pointer: Pointer, block: PieceBlock): Unit = {
     if (block.freeCount == 0 &&
         (currentPieceBlockOption.isEmpty || block.pointer != currentPieceBlockOption.get.pointer)) {
-      nonFullBlocks.push(block.pointer)
+      nonFullBlocks.push(block.pointer.raw)
     }
     block.free(pointer)
   }
