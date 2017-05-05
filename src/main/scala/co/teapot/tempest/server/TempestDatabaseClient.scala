@@ -14,7 +14,7 @@
 
 package co.teapot.tempest.server
 
-import java.sql.{Connection, PreparedStatement, Types}
+import java.sql.{Connection, PreparedStatement, Types, BatchUpdateException}
 
 import anorm._
 import co.teapot.tempest.{Node => ThriftNode, _}
@@ -22,6 +22,7 @@ import co.teapot.tempest.typedgraph.Node
 import org.postgresql.util.PSQLException
 
 import scala.collection.mutable
+import scala.collection.immutable
 
 /**
   * A TempestDatabaseClient provides methods to query attributes of nodes, find nodes matching a given query, and
@@ -46,7 +47,7 @@ trait TempestDatabaseClient {
       val idToTempestIdString = getSingleTypeNodeAttributeAsJSON(nodeType, ids.toSeq, "tempest_id")
       for (node <- nodes) {
         val tempestId = idToTempestIdString.getOrElse(node.id,
-                                                      throw new InvalidNodeIdException(s"Invalid node $node")
+          throw new InvalidNodeIdException(s"Invalid node $node")
         ).toInt
         result(node) = Node(nodeType, tempestId)
       }
@@ -102,6 +103,10 @@ trait TempestDatabaseClient {
 
   def addNode(node: ThriftNode): Unit
 
+  def addNodes(nodes: Seq[ThriftNode]): Unit
+
+  def addNewNodes(nodes: Seq[ThriftNode]): Unit
+
   def setNodeAttribute(node: ThriftNode,
                        attributeName: String,
                        attributeValue: String): Unit
@@ -142,7 +147,7 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
       val statement =
         SQL(s"SELECT tempest_id FROM ${nodesTable(node.`type`)} WHERE id = {id}").on("id" -> node.id)
       statement.as(SqlParser.int("tempest_id").singleOpt)
-  }
+    }
 
   def tempestIdToIdPairMulti(nodeType: String, tempestIds: Iterable[Int]): List[(Int, String)] =
     withConnection { implicit connection =>
@@ -151,12 +156,12 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
 
       val statement =
         SQL(s"SELECT tempest_id, id FROM ${nodesTable(nodeType)} WHERE tempest_id in (${tempestIds.mkString(",")})")
-      val rowParser = SqlParser.int("tempest_id") ~ SqlParser.str("id") map { case x ~ y => (x, y)}
+      val rowParser = SqlParser.int("tempest_id") ~ SqlParser.str("id") map { case x ~ y => (x, y) }
       statement.as(rowParser.*)
     }
 
   def getMultiNodeAttribute[A](nodeType: String, nodeIds: Seq[String], attributeName: String)
-                              (implicit c : anorm.Column[A]): collection.Map[String, A] =
+                              (implicit c: anorm.Column[A]): collection.Map[String, A] =
     withConnection { implicit connection =>
       if (nodeIds.isEmpty)
         return Map.empty
@@ -194,7 +199,7 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
       val pstmt: PreparedStatement = connection.prepareStatement(sql)
       // SQL indexes parameters from 1 instead of 0
       for ((id, i) <- nodeIds.zipWithIndex)
-        pstmt.setString(i+1, id)
+        pstmt.setString(i + 1, id)
 
       val resultSet = pstmt.executeQuery()
       val resultType = resultSet.getMetaData.getColumnType(2)
@@ -220,6 +225,49 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
     withConnection { implicit connection =>
       SQL(s"INSERT INTO ${nodesTable(node.`type`)} (id) VALUES ({id})")
         .on("id" -> node.id).execute()
+    }
+
+  def addNodes(nodes: Seq[ThriftNode]): Unit = {
+    if (nodes.isEmpty)
+      return
+
+    try {
+      // Currently, only support adding nodes of 1 type in a batch
+      val nodeTypes = nodes.map(_.`type`).toSet
+
+      if (nodeTypes.size > 1)
+        throw new InvalidArgumentException(s"All nodes need to be of the same type. Encountered node types: $nodeTypes")
+
+      val nodeIds = nodes.map(_.id).distinct
+      val tableName = nodesTable(nodes.head.`type`)
+
+      withConnection { implicit connection =>
+        val parameters = nodeIds.map { id => Seq[NamedParameter]("id" -> id) }
+
+        // Separating into head and tail is weird, but for some reason the anorm library wants it
+        // this way
+        val query = BatchSql(s"INSERT INTO $tableName (id) VALUES({id})",
+          parameters.head, parameters.tail:_*
+        )
+
+        query.execute()
+      }
+    } catch {
+      case e: BatchUpdateException => throw new SQLException(e.getMessage)
+    }
+  }
+
+  def addNewNodes(nodes: Seq[ThriftNode]): Unit = {
+    if (nodes.isEmpty)
+      return
+
+    val nodeIds = nodes.map(_.id)
+    val nodeType = nodes.head.`type`
+
+    val existingNodeIds = filterNodeIds(nodeType, nodeIds, "TRUE").toSet
+    val newNodes = nodes.filterNot { node => existingNodeIds.contains(node.id) }
+
+    addNodes(newNodes)
   }
 
   def setNodeAttribute(node: ThriftNode, attributeName: String, attributeValue: String): Unit =
@@ -267,6 +315,7 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
     }
 
   def addEdges(edgeType: String, ids1: Seq[String], ids2: Seq[String]): Unit = ???
+
   // TODO: Revive this in the future if we want to store new edges in the DB
   /*
   withConnection { implicit connection =>
@@ -297,7 +346,7 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
 
   /** For security/safety, make sure attributeName is a valid identifier */
   def validateAttributeName(attributeName: String): Unit = {
-    if (! attributeName.matches("[a-zA-Z0-9_]*"))
+    if (!attributeName.matches("[a-zA-Z0-9_]*"))
       throw new InvalidArgumentException(s"Invalid attribute name '$attributeName'")
   }
 }

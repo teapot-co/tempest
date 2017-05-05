@@ -124,5 +124,58 @@ if test_mutation:
     expect_equal(set(client.out_neighbors("has_read", alice)), set([book101, book102, book103]))
     expect_equal(client.out_neighbors("has_read", daniel), [book103])
 
+test_safe_addition = True
+# Note: These tests below are "safe" in the sense that they will not cause subsequent tests to
+# fail. However, they will modify the graph, thus src/test/resources/binary_graphs/follows.dat
+# and src/test/resources/binary_graphs/has_read.dat will be touched. Take care not to check those
+# modifications in.
+if test_safe_addition:
+    daniel = Node("user", "daniel")
+    emily = Node("user", "emily")
+    felix = Node("user", "felix")
+
+    client.add_new_nodes([daniel, emily, felix])
+
+    client.set_node_attribute(daniel, "name", "Daniel Smith")
+
+    client.add_nodes_and_edges("follows", [emily, felix], [daniel, daniel], True)
+
+    expect_equal(client.out_degree("follows", emily), 1)
+    expect_equal(client.in_degree("follows", daniel), 2)
+    expect_equal(client.out_neighbors("follows", felix), [daniel])
+    expect_equal(client.in_neighbors("follows", daniel), [emily, felix])
+
+    # TODO: Make this test work
+    # client.set_node_attribute(daniel, "login_count", 42)
+
+    book101 = Node("book", "101b")
+    book102 = Node("book", "102b")
+    book103 = Node("book", "103b")
+    client.add_new_nodes([book101, book102, book103])
+
+    client.add_nodes_and_edges("has_read", [emily, daniel], [book102, book103], True)
+    expect_equal(set(client.out_neighbors("has_read", emily)), set([book102]))
+    expect_equal(client.out_neighbors("has_read", daniel), [book103])
+
+    ed = Node("user", "ed")
+    fred = Node("user", "fred")
+    george = Node("user", "george")
+
+    client.add_new_nodes([ed, fred])
+    client.add_nodes_and_edges("follows", [ed, fred, ed], [fred, george, george], True)
+
+    print client.out_neighbors("follows", ed)
+    expect_equal(set(client.out_neighbors("follows", ed)), set([fred, george]))
+    expect_equal(set(client.out_neighbors("follows", fred)), set([george]))
+    expect_equal(set(client.in_neighbors("follows", fred)), set([ed]))
+    expect_equal(set(client.in_neighbors("follows", george)), set([ed, fred]))
+
+    # add again to test idempotency
+    client.add_nodes_and_edges("follows", [ed, fred, ed], [fred, george, george], True)
+    expect_equal(client.out_degree("follows", ed), 2)
+    expect_equal(client.out_degree("follows", fred), 1)
+    expect_equal(client.in_degree("follows", fred), 1)
+    expect_equal(client.in_degree("follows", george), 2)
+
 client.close()
 print "Python client tests passed :)"

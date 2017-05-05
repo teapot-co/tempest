@@ -161,6 +161,12 @@ service TempestDBService {
   void addNode(1:Node node)
     throws (1: UndefinedGraphException error1, 2:InvalidArgumentException error2, 3:SQLException error3)
 
+  void addNodes(1:list<Node> nodes)
+    throws (1: UndefinedGraphException error1, 2:InvalidArgumentException error2, 3:SQLException error3)
+
+  void addNewNodes(1:list<Node> nodes)
+        throws (1: UndefinedGraphException error1, 2:InvalidArgumentException error2, 3:SQLException error3)
+
   void setNodeAttribute(1:Node node, 2:string attributeName, 3:string attributeValue)
     throws (1: UndefinedGraphException error1, 2:InvalidArgumentException error2, 3:SQLException error3)
 
@@ -172,5 +178,12 @@ service TempestDBService {
   void addEdges(1:string edgeType, 2:list<Node> sourceNodes,
                 3:list<Node> targetNodes)
     throws (1: UndefinedGraphException error1, 2: UnequalListSizeException error2);
+
+  /* This function does the same thing as `addEdges`, except it also ensures that the source
+     and target nodes exist in the DB
+  */
+  void addNodesAndEdges(1:string edgeType, 2:list<Node> sourceNodes,
+                  3:list<Node> targetNodes, 4:bool checkForDuplicates)
+      throws (1: UndefinedGraphException error1, 2: UnequalListSizeException error2);
 }
 

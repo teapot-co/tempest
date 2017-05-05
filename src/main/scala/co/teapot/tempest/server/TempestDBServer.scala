@@ -33,20 +33,21 @@ import scala.util.Random
 
 /** Given a graph, this thrift server responds to requests about that graph. */
 class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBServerConfig)
-    extends TempestDBService.Iface {
+  extends TempestDBService.Iface {
 
   // Load Graphs
   val graphMap = new mutable.HashMap[String, DynamicDirectedGraph]()
+
   def graph(edgeType: String): DynamicDirectedGraph = {
-    if (! graphMap.contains(edgeType)) {
+    if (!graphMap.contains(edgeType)) {
       val graphFile = new File(config.graphDirectory, s"$edgeType.dat")
       if (graphFile.exists) {
         val graph = new MemMappedDynamicDirectedGraph(
           graphFile,
           syncAllWrites = false /* Graph persistence is handled by database.*/) {
-            // If we add a node, it won't exist in the graph until we add edges to it,
-            // so assume nodes that don't exist in the graph have no neighbors.
-            override def defaultNeighbors(id: Int): IndexedSeq[Int] = IndexedSeq.empty
+          // If we add a node, it won't exist in the graph until we add edges to it,
+          // so assume nodes that don't exist in the graph have no neighbors.
+          override def defaultNeighbors(id: Int): IndexedSeq[Int] = IndexedSeq.empty
         }
         graphMap(edgeType) = graph
       } else {
@@ -58,7 +59,7 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
 
   def loadNodeConfig(nodeType: String): NodeTypeConfig = {
     val nodeConfigFile = new File(config.graphConfigDirectoryFile, s"$nodeType.yaml")
-    if (! nodeConfigFile.exists()) {
+    if (!nodeConfigFile.exists()) {
       throw new UndefinedGraphException(s"Graph config file ${nodeConfigFile.getCanonicalPath} not found")
     }
     ConfigLoader.loadConfig[NodeTypeConfig](nodeConfigFile)
@@ -66,7 +67,7 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
 
   def loadEdgeConfig(edgeType: String): EdgeTypeConfig = {
     val edgeConfigFile = new File(config.graphConfigDirectoryFile, s"$edgeType.yaml")
-    if (! edgeConfigFile.exists()) {
+    if (!edgeConfigFile.exists()) {
       throw new UndefinedGraphException(s"Graph config file ${edgeConfigFile.getCanonicalPath} not found")
     }
     ConfigLoader.loadConfig[EdgeTypeConfig](edgeConfigFile)
@@ -92,7 +93,6 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
     val nodeConfig = loadNodeConfig(nodeType)
     nodeConfig.attributeSet.contains(attributeName)
   }
-
 
 
   override def outDegree(edgeType: String, thriftNode: ThriftNode): Int = {
@@ -136,7 +136,6 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
     neighbor(edgeType, node, i, EdgeDirIn)
 
 
-
   override def connectedComponent(sourceNode: ThriftNode, edgeTypes: util.List[String], maxSize: Int): util.List[ThriftNode] = {
     val source = databaseClient.toNode(sourceNode)
 
@@ -147,10 +146,10 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
     val nodesToVisit = new util.ArrayDeque[Node]()
     reachedNodes += source
     nodesToVisit.push(source)
-    while (! nodesToVisit.isEmpty && reachedNodes.size < maxSize) {
+    while (!nodesToVisit.isEmpty && reachedNodes.size < maxSize) {
       val u = nodesToVisit.pop()
       for (v <- unionGraph.neighbors(u)) {
-        if (! reachedNodes.contains(v) && reachedNodes.size < maxSize) {
+        if (!reachedNodes.contains(v) && reachedNodes.size < maxSize) {
           reachedNodes += v
           nodesToVisit.push(v)
         }
@@ -170,8 +169,7 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
     */
   def kStepNodeType(edgeType: String, edgeDir: EdgeDir, k: Int): String = {
     val edgeConfig = loadEdgeConfig(edgeType)
-    if ((edgeDir == EdgeDirOut && k % 2 == 0) ||
-        (edgeDir == EdgeDirIn  && k % 2 == 1)) {
+    if ((edgeDir == EdgeDirOut && k % 2 == 0) || (edgeDir == EdgeDirIn && k % 2 == 1)) {
       edgeConfig.getSourceNodeType
     } else {
       edgeConfig.getTargetNodeType
@@ -179,12 +177,13 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
   }
 
   def satisfiesFilters(edgeType: String, nodeId: Long, degreeFilter: DegreeFilter): Boolean =
-    degreeFilter.forall {case(filterType, filterValue) =>
+    degreeFilter.forall { case (filterType, filterValue) =>
       satisfiesSingleFilter(edgeType, nodeId, filterType, filterValue)
     }
 
   def satisfiesSingleFilter(edgeType: String, nodeId: Long, filterType: DegreeFilterTypes, filterValue: Int): Boolean =
-    filterType match { // TODO: Support multiple graphs here
+    filterType match {
+      // TODO: Support multiple graphs here
       case DegreeFilterTypes.INDEGREE_MAX => graph(edgeType).inDegree(nodeId.toInt) <= filterValue
       case DegreeFilterTypes.INDEGREE_MIN => graph(edgeType).inDegree(nodeId.toInt) >= filterValue
       case DegreeFilterTypes.OUTDEGREE_MAX => graph(edgeType).outDegree(nodeId.toInt) <= filterValue
@@ -229,7 +228,7 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
                                          filter: java.util.Map[DegreeFilterTypes, Integer],
                                          alternating: Boolean): util.List[ThriftNode] =
     kStepNeighborsFiltered(edgeType, source, k, sqlClause, EdgeDirOut,
-                                       CollectionUtil.toScala(filter), alternating)
+      CollectionUtil.toScala(filter), alternating)
 
 
   override def kStepInNeighborsFiltered(edgeType: String,
@@ -239,7 +238,7 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
                                         filter: java.util.Map[DegreeFilterTypes, Integer],
                                         alternating: Boolean): util.List[ThriftNode] =
     kStepNeighborsFiltered(edgeType, source, k, sqlClause, EdgeDirIn,
-                           CollectionUtil.toScala(filter), alternating)
+      CollectionUtil.toScala(filter), alternating)
 
   def validateMonteCarloParams(params: MonteCarloPageRankParams): Unit = {
     if (params.resetProbability >= 1.0 || params.resetProbability <= 0.0) {
@@ -317,7 +316,6 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
   }
 
 
-
   override def nodeCount(edgeType: String): Int = graph(edgeType).nodeCountOption.getOrElse(
     throw new InvalidArgumentException("nodeCount not supported on this graph type"))
 
@@ -325,13 +323,13 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
 
   def nodes(nodeType: String, sqlClause: String): util.List[ThriftNode] = {
     val nodeIds = databaseClient.nodeIdsMatchingClause(nodeType, sqlClause)
-    (nodeIds map { id => new ThriftNode(nodeType, id)}).asJava
+    (nodeIds map { id => new ThriftNode(nodeType, id) }).asJava
   }
 
   override def getMultiNodeAttributeAsJSON(nodesJava: util.List[ThriftNode], attributeName: String): util.Map[ThriftNode, String] = {
     val nodeTypes = (nodesJava.asScala map (_.`type`)).toSet
     for (nodeType <- nodeTypes) {
-      if (! doesNodeTypeHaveAttribute(nodeType, attributeName)) {
+      if (!doesNodeTypeHaveAttribute(nodeType, attributeName)) {
         throw new InvalidArgumentException(s"Node type $nodeType does not have an attribute named $attributeName")
       }
     }
@@ -342,21 +340,61 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
     databaseClient.addNode(node)
   }
 
+  override def addNodes(nodes: util.List[ThriftNode]): Unit = {
+    databaseClient.addNodes(nodes.asScala)
+  }
+
+  override def addNewNodes(nodes: util.List[ThriftNode]): Unit = {
+    databaseClient.addNewNodes(nodes.asScala)
+  }
+
   def setNodeAttribute(node: ThriftNode, attributeName: String, attributeValue: String): Unit =
     databaseClient.setNodeAttribute(node, attributeName, attributeValue)
+
 
   override def addEdges(edgeType: String,
                         sourceNodesJava: util.List[ThriftNode],
                         targetNodesJava: util.List[ThriftNode]): Unit = {
+    addEdgesInternal(edgeType, sourceNodesJava, targetNodesJava)
+  }
+
+  /*
+    This function is similar to the addEdges call, however, it differs in two ways:
+    1. Nodes that are not yet in the graph are added automatically. In contrast, addEdges
+       will throw an exception if that happens.
+    2. It optionally ensures that it will not add duplicate edges.
+   */
+  override def addNodesAndEdges(edgeType: String,
+                                sourceNodesJava: util.List[ThriftNode],
+                                targetNodesJava: util.List[ThriftNode],
+                                checkForDuplicates: Boolean): Unit = {
+    addEdgesInternal(edgeType, sourceNodesJava, targetNodesJava,
+      addNewNodes = true, checkForDuplicates = checkForDuplicates)
+  }
+
+  def addEdgesInternal(edgeType: String,
+                       sourceNodesJava: util.List[ThriftNode],
+                       targetNodesJava: util.List[ThriftNode],
+                       addNewNodes: Boolean = false,
+                       checkForDuplicates: Boolean = false): Unit = {
     if (sourceNodesJava.size != targetNodesJava.size) {
       throw new UnequalListSizeException()
     }
+
     val sourceNodes = sourceNodesJava.asScala
     val targetNodes = targetNodesJava.asScala
 
-    val nodeToIntNodeMap = databaseClient.thriftNodeToNodeMap(sourceNodes ++ targetNodes)
-    val sourceTempestIds = sourceNodes map { node: ThriftNode => nodeToIntNodeMap(node).tempestId }
-    val targetTempestIds = targetNodes map { node: ThriftNode => nodeToIntNodeMap(node).tempestId }
+    if (addNewNodes) {
+      // Add nodes that do not yet exist to the DB
+      databaseClient.addNewNodes(sourceNodes)
+      databaseClient.addNewNodes(targetNodes)
+    }
+
+    val (sourceTempestIds, targetTempestIds) = if (checkForDuplicates) {
+      getNewEdgeIds(edgeType, sourceNodes, targetNodes)
+    } else {
+      getEdgeIds(sourceNodes, targetNodes)
+    }
 
     // TODO: Add edges to DB?
     // databaseClient.addEdges(graphName: String, CollectionUtil.toScala(sourceIds), CollectionUtil.toScala(destinationIds))
@@ -364,15 +402,53 @@ class TempestDBServer(databaseClient: TempestDatabaseClient, config: TempestDBSe
       graph(edgeType).addEdge(sourceId, targetId) // Future optimization: efficient Multi-add
     }
   }
-}
 
+  def getEdgeIds(sourceNodes: Seq[ThriftNode],
+                 targetNodes: Seq[ThriftNode]): (Seq[Int], Seq[Int]) = {
+    val nodeToIntNodeMap = databaseClient.thriftNodeToNodeMap(sourceNodes ++ targetNodes)
+    val sourceTempestIds = sourceNodes map { node: ThriftNode => nodeToIntNodeMap(node).tempestId }
+    val targetTempestIds = targetNodes map { node: ThriftNode => nodeToIntNodeMap(node).tempestId }
+
+    (sourceTempestIds, targetTempestIds)
+  }
+
+  /*
+    The following function returns the list of internal Tempest ids that correspond to edges that
+    are NOT in the graph.
+   */
+  def getNewEdgeIds(edgeType: String,
+                    sourceNodes: Seq[ThriftNode],
+                    targetNodes: Seq[ThriftNode]): (Seq[Int], Seq[Int]) = {
+    val (sourceTempestIds, targetTempestIds) = getEdgeIds(sourceNodes, targetNodes)
+
+    val newPairs = (sourceTempestIds zip targetTempestIds).filterNot {
+      case (sourceId, targetId) => {
+        val sourceDegree = graph(edgeType).inDegree(sourceId)
+        val targetDegree = graph(edgeType).inDegree(targetId)
+
+        val exists = if (sourceDegree < targetDegree) {
+          val sourceOutNeighbors = graph(edgeType).outNeighbors(sourceId)
+          sourceOutNeighbors.contains(targetId)
+        } else {
+          val targetInNeighbors = graph(edgeType).inNeighbors(targetId)
+          targetInNeighbors.contains(sourceId)
+        }
+
+        exists
+      }
+    }
+
+    newPairs.unzip
+  }
+}
 
 
 object TempestDBServer {
   def getProcessor(configFileName: String): TProcessor = {
     val config = ConfigLoader.loadConfig[TempestDBServerConfig](configFileName)
     // Not currently used: ConfigLoader.loadConfig[TempestDBServerConfig](configFileName)
-    val databaseConfigFile = "/root/tempest/system/database.yaml" // TODO: move db config to main config?
+    // TODO: move db config to main config?
+    val databaseConfigFile = "/root/tempest/system/database.yaml"
     val databaseConfig = ConfigLoader.loadConfig[DatabaseConfig](databaseConfigFile)
     val databaseClient = new TempestSQLDatabaseClient(databaseConfig)
 
