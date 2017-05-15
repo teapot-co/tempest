@@ -91,7 +91,10 @@ Tempest was built by a team of Stanford PhDs---[Peter Lofgren](@plofgren) (lead 
    use Tempest DB, install docker on your machine, then run
    
    `docker run -t -i -v $YOUR_DATA_DIR:/data -p 127.0.0.1:10001:10001 teapotco/tempestdb:latest bash`
-   You can make additional directories available to docker as needed, 
+   
+   where `$YOUR_DATA_DIR` is a directory on your machine with the graph you want to import and which will also store your
+   config files.
+   You can make additional directories available to docker as needed;
    for example, to make your home directory available from inside docker, add `-v ~/:/mnt/home/` to the above command. 
    The docker image contains a built release of Tempest. 
    If you're a developer and would like to run against
@@ -99,26 +102,26 @@ Tempest was built by a team of Stanford PhDs---[Peter Lofgren](@plofgren) (lead 
    For development, you should also add `-p 5432:5432` to the above command, and follow the below instructions
    for creating the test node and edge types, so that your tests can run outside docker against the postgres database inside docker.
 2. You need three types of file to fire up the Tempest server with your graph: 
-      a) a csv file for each node type,
-      b) a csv file for each edge type, and
-      c) a folder of config files (one file for each node type and each edge type).
+   1. a csv file for each node type,
+   2. a csv file for each edge type, and
+   3. a folder of config files (one file for each node type and each edge type).
 
-  To see the format of the headerless node csv and the edge csv expected by Tempest, look at `example/users.csv`
-  and `follows.csv`.
+   To see the format of the headerless node csv and the edge csv expected by Tempest, look at `example/users.csv`
+   and `follows.csv`.
 3. Once you have your node and edge files in csv format, create a config file in `$YOUR_DATA_DIR/config/`
    for each node and edge type.  The name of the config file must match the name of the node or edge type,
    so for example if you have a node type called `user` there must be a file in `$YOUR_DATA_DIR/config/user.yaml`.
    As in the example files `example/user.yaml` and `example/book.yaml`, each `<node_type>.yaml` file should have the following fields:
-      - csvFile: the headerless csv file, for example "/mnt/home/data/users.csv"
-      - nodeAttributes A list of name and type for each attribute in your csv file. Attributes type 
-        may only be 'string', 'int' (32 bit), 'bigint' (64 bit), or 'boolean'. Enter the attributes
-        in the same order as they appear in the node file.
-      - One of your nodeAttributes must be called 'id'. This nodeAttribute must have type string, and must be unique across all nodes of this type.
+   - csvFile: the headerless csv file, for example "/mnt/home/data/users.csv"
+   - nodeAttributes A list of name and type for each attribute in your csv file. Attributes type 
+      may only be 'string', 'int' (32 bit), 'bigint' (64 bit), or 'boolean'. Enter the attributes
+      in the same order as they appear in the node file.  One of your nodeAttributes must be called 'id'. 
+      This nodeAttribute must have type string, and must be unique across all nodes of this type.
    As in the example files `example/follows.yaml` and `example/has_read.yaml`, each `<edge_type>.yaml` file should have the following fields:
-      - csvFile: the headerless csv file, for example '/mnt/home/data/has_read.csv'.  Every line of this file must be a pair "sourceId,targetId"
-        where sourceId matches some id of sourceNodeType, and targetId matches the id of some node in targetNodeType
-      - sourceNodeType: The type of node on the left of each edge, for example 'user'
-      - targetNodeType: The type of node on the right of each edge, for example 'book'
+   - csvFile: the headerless csv file, for example '/mnt/home/data/has_read.csv'.  Every line of this file must be a pair "sourceId,targetId"
+      where sourceId matches some id of sourceNodeType, and targetId matches the id of some node in targetNodeType
+   - sourceNodeType: The type of node on the left of each edge, for example 'user'
+   - targetNodeType: The type of node on the right of each edge, for example 'book'
 4. Convert your graph to binary and load your nodes and edges into Postgres by running
    `create_node_type.sh <node_type>` or `create_edge_type.sh <edge_type>` for each node or edge type.
    For example, to load the example graphs, from inside docker run
@@ -134,7 +137,7 @@ Tempest was built by a team of Stanford PhDs---[Peter Lofgren](@plofgren) (lead 
    ```
    
    Depending on the size of your initial graph, this step may take up to a few hours. For example, for a graph of 1B edges, this step will take about 4 hours. We realize that is a long time to wait to get your hands on Tempest, but this is one-time hassle: once Tempest is initialized, stopping/starting only takes a few seconds.
-5. Start the server
+5. Start the server with
    `start_server.sh`
 6. Now you can connect to the server from inside or outside docker.  If outside docker, first run 
    `pip install tempest_db`. Then in `ipython` you can run, for example
