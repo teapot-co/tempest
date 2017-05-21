@@ -128,8 +128,9 @@ Tempest was built by a team of Stanford PhDs---[Peter Lofgren](@plofgren) (lead 
    
    ```
    # Note: normally you'd create config files outside docker, directly in $YOUR_DATA_DIR
-   mkdir /data/config/
+   mkdir -p /data/config/
    cp /root/tempest/example/{user,book,follows,has_read}.yaml /data/config/
+   chmod 777 /data/config/
    create_node_type.sh user
    create_node_type.sh book
    create_edge_type.sh follows
@@ -144,12 +145,12 @@ Tempest was built by a team of Stanford PhDs---[Peter Lofgren](@plofgren) (lead 
    
    ```
    import tempest_db
-   c = tempest_db.TempestClient()
+   client = tempest_db.TempestClient()
    alice = tempest_db.Node("user", "alice")
    client.out_neighbors("follows", alice)
    # result: [Node(type='user', id='bob')]
    alice_books = client.out_neighbors("has_read", alice)
-   c.multi_node_attribute(alice_books, "title")
+   client.multi_node_attribute(alice_books, "title")
    # result: {Node(type='book', id='101'): 'The Lord of the Rings',
    #          Node(type='book', id='103'): 'Roots'}
    ```
