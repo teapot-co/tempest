@@ -1,15 +1,18 @@
 package co.teapot.tempest.server
 
 import co.teapot.tempest.typedgraph.Node
-import co.teapot.tempest.util.ConfigLoader
 import co.teapot.tempest.{SQLException, Node => ThriftNode}
-import com.zaxxer.hikari.pool.HikariPool.PoolInitializationException
-import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
+import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers, Suite}
 
-class TempestSQLDatabaseClientSpec extends FlatSpec with Matchers with BeforeAndAfterEach {
-  val testConfigPath = "src/test/resources/config/database.yaml"
+trait H2DatabaseBasedTest { this: Suite =>
   val testConfig: DatabaseConfig = new H2DatabaseConfig
 
+  protected def createTempestSQLDatabaseClient(): TempestSQLDatabaseClient = {
+    new TempestSQLDatabaseClient(testConfig)
+  }
+}
+
+trait SyntheticDatabaseData extends BeforeAndAfterEach { this: H2DatabaseBasedTest with Suite =>
   override def beforeEach() {
     val config = createTempestSQLDatabaseClient()
     val connection = config.connectionSource.getConnection
@@ -35,6 +38,11 @@ class TempestSQLDatabaseClientSpec extends FlatSpec with Matchers with BeforeAnd
     stmt.execute("DROP ALL OBJECTS DELETE FILES")
     super.afterEach()
   }
+}
+
+class TempestSQLDatabaseClientSpec extends FlatSpec with Matchers with H2DatabaseBasedTest with SyntheticDatabaseData {
+
+
 
   "A TempestDatabaseClientSpec" should "connect correctly" in {
     val c = createTempestSQLDatabaseClient()
@@ -159,10 +167,6 @@ class TempestSQLDatabaseClientSpec extends FlatSpec with Matchers with BeforeAnd
         c.addNodes(nodes)
       }
     }
-  }
-
-  private def createTempestSQLDatabaseClient(): TempestSQLDatabaseClient = {
-    new TempestSQLDatabaseClient(testConfig)
   }
 
 }
