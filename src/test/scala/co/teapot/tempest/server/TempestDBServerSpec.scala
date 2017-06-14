@@ -14,7 +14,7 @@ class TempestDBServerSpec extends FlatSpec with Matchers {
     val configFileName = "src/test/resources/config/tempest.yaml"
     val config = ConfigLoader.loadConfig[TempestDBServerConfig](configFileName)
     val dbConfigPath = "src/test/resources/config/database.yaml"
-    val dbConfig = ConfigLoader.loadConfig[DatabaseConfig](dbConfigPath)
+    val dbConfig = ConfigLoader.loadConfig[PostgresDatabaseConfig](dbConfigPath)
     val databaseClient: TempestDatabaseClient = new TempestSQLDatabaseClient(dbConfig)
     new TempestDBServer( databaseClient, config)
   }

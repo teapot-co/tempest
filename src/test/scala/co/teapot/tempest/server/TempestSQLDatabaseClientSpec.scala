@@ -2,13 +2,39 @@ package co.teapot.tempest.server
 
 import co.teapot.tempest.typedgraph.Node
 import co.teapot.tempest.util.ConfigLoader
-import co.teapot.tempest.{Node => ThriftNode, SQLException}
+import co.teapot.tempest.{SQLException, Node => ThriftNode}
 import com.zaxxer.hikari.pool.HikariPool.PoolInitializationException
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
 
-class TempestSQLDatabaseClientSpec extends FlatSpec with Matchers {
+class TempestSQLDatabaseClientSpec extends FlatSpec with Matchers with BeforeAndAfterEach {
   val testConfigPath = "src/test/resources/config/database.yaml"
-  val testConfig = ConfigLoader.loadConfig[DatabaseConfig](testConfigPath)
+  val testConfig: DatabaseConfig = new H2DatabaseConfig
+
+  override def beforeEach() {
+    val config = createTempestSQLDatabaseClient()
+    val connection = config.connectionSource.getConnection
+    val stmt = connection.createStatement()
+    val sql =
+      """
+        |CREATE TABLE user_nodes (
+        |    tempest_id SERIAL PRIMARY KEY,
+        |    name varchar,
+        |    id varchar UNIQUE NOT NULL,
+        |    login_count int,
+        |    premium_subscriber boolean
+        |);
+      """.stripMargin
+    stmt.execute(sql)
+    super.beforeEach() // To be stackable, must call super.beforeEach
+  }
+
+  override def afterEach(): Unit = {
+    val config = createTempestSQLDatabaseClient()
+    val connection = config.connectionSource.getConnection
+    val stmt = connection.createStatement()
+    stmt.execute("DROP ALL OBJECTS DELETE FILES")
+    super.afterEach()
+  }
 
   "A TempestDatabaseClientSpec" should "connect correctly" in {
     val c = createTempestSQLDatabaseClient()
@@ -135,13 +161,8 @@ class TempestSQLDatabaseClientSpec extends FlatSpec with Matchers {
     }
   }
 
-  private def createTempestSQLDatabaseClient(): TempestSQLDatabaseClient =
-    try {
-      new TempestSQLDatabaseClient(testConfig)
-    } catch {
-      case e: PoolInitializationException =>
-        throw new RuntimeException("Failed to connect to postgres.\nYou may want to follow the directions in Readme.md " +
-          "on setting up a dev docker instance.\nIn particular, make sure you used -p 5432:5432 when starting docker" +
-          "and docker is running.\nYou may need to run /root/tempest/system/start_postgres.sh inside docker.")
-    }
+  private def createTempestSQLDatabaseClient(): TempestSQLDatabaseClient = {
+    new TempestSQLDatabaseClient(testConfig)
+  }
+
 }

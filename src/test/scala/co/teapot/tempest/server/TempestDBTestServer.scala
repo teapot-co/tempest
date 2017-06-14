@@ -7,7 +7,7 @@ import org.apache.thrift.TProcessor
 
 /** Launches a server using small graph and test database. */
 object TempestDBTestServer {
-  val databaseConfig = ConfigLoader.loadConfig[DatabaseConfig]("src/test/resources/config/database.yaml")
+  val databaseConfig = ConfigLoader.loadConfig[PostgresDatabaseConfig]("src/test/resources/config/database.yaml")
   def getProcessor(configFileName: String): TProcessor = {
     val config = ConfigLoader.loadConfig[TempestDBServerConfig](configFileName)
     val databaseClient = new TempestSQLDatabaseClient(databaseConfig)
