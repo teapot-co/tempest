@@ -63,9 +63,21 @@ class MemMappedDynamicDirectedGraph(file: File, syncAllWrites: Boolean = false) 
   else
       defaultNeighbors(id).size
 
+  override def outNeighborCount(id: Int) =
+    if (existsNode(id))
+      distinctOutNeighbors(id).size
+    else
+      defaultNeighbors(id).size
+
   override def inDegree(id: Int): Int =
     if (existsNode(id))
       inGraph.degree(id)
+    else
+      defaultNeighbors(id).size
+
+  override def inNeighborCount(id: Int) =
+    if (existsNode(id))
+      distinctInNeighbors(id).size
     else
       defaultNeighbors(id).size
 
