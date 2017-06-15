@@ -20,6 +20,7 @@ import anorm._
 import co.teapot.tempest.{Node => ThriftNode, _}
 import co.teapot.tempest.typedgraph.Node
 import org.postgresql.util.PSQLException
+import org.h2.jdbc.JdbcSQLException
 
 import scala.collection.mutable
 import scala.collection.immutable
@@ -136,6 +137,7 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
       body(connection)
     } catch {
       case e: PSQLException => throw new SQLException(e.getMessage)
+      case e: JdbcSQLException => throw new SQLException(e.getMessage)
     }
     finally {
       connection.close()
@@ -187,7 +189,7 @@ class TempestSQLDatabaseClient(config: DatabaseConfig) extends TempestDatabaseCl
       if (nodeIds.isEmpty)
         return Map.empty
       validateAttributeName(attributeName)
-
+      validateNodeIds(nodeIds)
 
       // generates (?, ?, ..., ?), one question mark per node id
       val sqlInParams = Iterator.fill(nodeIds.size)("?").mkString("(", ",", ")")

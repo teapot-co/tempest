@@ -1,10 +1,11 @@
 package co.teapot.tempest.server
 
 import co.teapot.tempest.typedgraph.Node
-import co.teapot.tempest.{SQLException, Node => ThriftNode}
+import co.teapot.tempest.{SQLException, InvalidArgumentException, Node => ThriftNode}
 import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers, Suite}
 
-trait H2DatabaseBasedTest { this: Suite =>
+trait H2DatabaseBasedTest {
+  this: Suite =>
   val testConfig: DatabaseConfig = new H2DatabaseConfig
 
   protected def createTempestSQLDatabaseClient(): TempestSQLDatabaseClient = {
@@ -12,13 +13,14 @@ trait H2DatabaseBasedTest { this: Suite =>
   }
 }
 
-trait SyntheticDatabaseData extends BeforeAndAfterEach { this: H2DatabaseBasedTest with Suite =>
-  override def beforeEach() {
-    val config = createTempestSQLDatabaseClient()
-    val connection = config.connectionSource.getConnection
-    val stmt = connection.createStatement()
+trait SyntheticDatabaseData extends BeforeAndAfterEach {
+  this: H2DatabaseBasedTest with Suite =>
+
+  def prepareTables(connection: java.sql.Connection): Unit = {
+    // TODO: Perhaps we should load this directly from the config/csv files
     val sql =
       """
+        |DROP TABLE IF EXISTS user_nodes;
         |CREATE TABLE user_nodes (
         |    tempest_id SERIAL PRIMARY KEY,
         |    name varchar,
@@ -26,8 +28,36 @@ trait SyntheticDatabaseData extends BeforeAndAfterEach { this: H2DatabaseBasedTe
         |    login_count int,
         |    premium_subscriber boolean
         |);
+        |
+        |DROP TABLE IF EXISTS book_nodes;
+        |CREATE TABLE book_nodes (
+        |    tempest_id SERIAL PRIMARY KEY,
+        |    id varchar UNIQUE NOT NULL,
+        |    title varchar
+        |);
+        |
+        |INSERT INTO user_nodes (name, id, login_count, premium_subscriber) VALUES ('Alice Johnson','alice',5,false);
+        |INSERT INTO user_nodes (name, id, login_count, premium_subscriber) VALUES ('Bob Smith, Jr.','bob',2,false);
+        |INSERT INTO user_nodes (name, id, login_count, premium_subscriber) VALUES ('Carol "ninja" Coder','carol',3,true);
+        |INSERT INTO user_nodes (name, id, login_count, premium_subscriber) VALUES (null,'nameless',0,false);
+        |INSERT INTO user_nodes (name, id, login_count, premium_subscriber) VALUES ('sneaky','; DROP TABLE user;',0,true);
+        |
+        |INSERT INTO book_nodes (id, title) VALUES ('101','The Lord of the Rings');
+        |INSERT INTO book_nodes (id, title) VALUES ('102','The Grapes of Wrath');
+        |INSERT INTO book_nodes (id, title) VALUES ('103','Roots');
+        |
       """.stripMargin
+
+    val stmt = connection.createStatement()
     stmt.execute(sql)
+  }
+
+  override def beforeEach() {
+    val config = createTempestSQLDatabaseClient()
+    val connection = config.connectionSource.getConnection
+
+    prepareTables(connection)
+
     super.beforeEach() // To be stackable, must call super.beforeEach
   }
 
@@ -41,7 +71,6 @@ trait SyntheticDatabaseData extends BeforeAndAfterEach { this: H2DatabaseBasedTe
 }
 
 class TempestSQLDatabaseClientSpec extends FlatSpec with Matchers with H2DatabaseBasedTest with SyntheticDatabaseData {
-
 
 
   "A TempestDatabaseClientSpec" should "connect correctly" in {
@@ -133,7 +162,7 @@ class TempestSQLDatabaseClientSpec extends FlatSpec with Matchers with H2Databas
   it should "limit number of ids passed" in {
     val c = createTempestSQLDatabaseClient()
     val nodeIds = (1 to 100000).map(_.toString)
-    an[SQLException] should be thrownBy {
+    an[InvalidArgumentException] should be thrownBy {
       c.getSingleTypeNodeAttributeAsJSON("user", nodeIds, "name")
     }
   }
