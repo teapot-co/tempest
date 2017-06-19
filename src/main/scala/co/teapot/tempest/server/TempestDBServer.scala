@@ -449,7 +449,7 @@ object TempestDBServer {
     // Not currently used: ConfigLoader.loadConfig[TempestDBServerConfig](configFileName)
     // TODO: move db config to main config?
     val databaseConfigFile = "/root/tempest/system/database.yaml"
-    val databaseConfig = ConfigLoader.loadConfig[DatabaseConfig](databaseConfigFile)
+    val databaseConfig = ConfigLoader.loadConfig[PostgresDatabaseConfig](databaseConfigFile)
     val databaseClient = new TempestSQLDatabaseClient(databaseConfig)
 
     val server = new TempestDBServer(databaseClient, config)

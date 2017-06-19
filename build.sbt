@@ -16,7 +16,8 @@ libraryDependencies ++= Seq(
   "org.yaml" % "snakeyaml" % "1.11",
   "com.typesafe.play" %% "anorm" % "2.4.0",
   "com.zaxxer" % "HikariCP" % "2.4.5",
-  "com.indeed" % "util-mmap" % "1.0.20"
+  "com.indeed" % "util-mmap" % "1.0.20",
+  "com.h2database" % "h2" % "1.4.196" /*% "test"*/
 )
 
 scalacOptions ++= Seq(
