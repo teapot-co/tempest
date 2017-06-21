@@ -14,7 +14,7 @@ import scala.sys.process.Process
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class TempestDBServerClientSpec extends FlatSpec with Matchers {
+class TempestDBServerClientSpec extends FlatSpec with Matchers with H2DatabaseBasedTest with SyntheticDatabaseData {
 
   /**
     * Starts a TempestDBServer and calls a ruby script that

@@ -9,12 +9,11 @@ import org.scalatest.{FlatSpec, Matchers}
 import scala.collection.JavaConverters._
 
 
-class TempestDBServerSpec extends FlatSpec with Matchers {
+class TempestDBServerSpec extends FlatSpec with Matchers with H2DatabaseBasedTest with SyntheticDatabaseData {
   def make_server(): TempestDBServer = {
     val configFileName = "src/test/resources/config/tempest.yaml"
     val config = ConfigLoader.loadConfig[TempestDBServerConfig](configFileName)
-    val dbConfigPath = "src/test/resources/config/database.yaml"
-    val dbConfig = ConfigLoader.loadConfig[DatabaseConfig](dbConfigPath)
+    val dbConfig = new H2DatabaseConfig
     val databaseClient: TempestDatabaseClient = new TempestSQLDatabaseClient(dbConfig)
     new TempestDBServer( databaseClient, config)
   }
