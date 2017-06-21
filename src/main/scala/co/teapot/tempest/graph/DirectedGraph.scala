@@ -35,7 +35,11 @@ trait DirectedGraph {
     * This is the same as outDegree() for a simple graph, but
     * could be very different for a multigraph.
     */
-  def outNeighborCount (id: Int): Int
+  def outNeighborCount(id: Int): Int =
+    if (existsNode(id))
+      distinctOutNeighbors(id).size
+    else
+      defaultNeighbors(id).size
 
   /** Returns the number of in-edges of the given id.
     * */
@@ -45,7 +49,11 @@ trait DirectedGraph {
     * This is the same as inDegree() for a simple graph, but
     * could be very different for a multigraph.
     */
-  def inNeighborCount (id: Int): Int
+  def inNeighborCount(id: Int): Int =
+    if (existsNode(id))
+      distinctInNeighbors(id).size
+    else
+      defaultNeighbors(id).size
 
   def degree(id: Int, direction: EdgeDir): Int = direction match {
     case EdgeDirOut => outDegree(id)
