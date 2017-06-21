@@ -27,41 +27,86 @@ import scala.collection.JavaConverters._
   * neighbors.
   */
 trait DirectedGraph {
-  /** Returns the number of out-neighbors of the given id.
+  /** Returns the number of out-edges of the given id.
     * */
   def outDegree(id: Int): Int
 
-  /** Returns the number of in-neighbors of the given id.
+  /** Returns the number of out-neighbors of the given id.
+    * This is the same as outDegree() for a simple graph, but
+    * could be very different for a multigraph.
+    */
+  def outNeighborCount(id: Int): Int =
+    if (existsNode(id))
+      distinctOutNeighbors(id).size
+    else
+      defaultNeighbors(id).size
+
+  /** Returns the number of in-edges of the given id.
     * */
   def inDegree(id: Int): Int
+
+  /** Returns the number of in-neighbors of the given id.
+    * This is the same as inDegree() for a simple graph, but
+    * could be very different for a multigraph.
+    */
+  def inNeighborCount(id: Int): Int =
+    if (existsNode(id))
+      distinctInNeighbors(id).size
+    else
+      defaultNeighbors(id).size
 
   def degree(id: Int, direction: EdgeDir): Int = direction match {
     case EdgeDirOut => outDegree(id)
     case EdgeDirIn => inDegree(id)
   }
 
+  def neighborCount(id: Int, direction: EdgeDir): Int = direction match {
+    case EdgeDirIn => inNeighborCount(id)
+    case EdgeDirOut => outNeighborCount(id)
+  }
+
   /** Returns the out-neighbors of the given id.
     * */
   def outNeighbors(id: Int): IndexedSeq[Int]
 
+  /** Returns distinct out-neighbors of the given id.
+    * This is the same as outNeighbors() for simple graphs, but
+    * can be very different for multigraphs.
+    */
+  def distinctOutNeighbors(id: Int): IndexedSeq[Int] = outNeighbors(id).distinct
+
   /** Returns the in-neighbors of the given id.
     * */
   def inNeighbors(id: Int): IndexedSeq[Int]
+
+  /** Returns distinct in-neighbors of the given id.
+    * This is the same as inNeighbors() for simple graphs, but
+    * can be very different for multigraphs.
+    */
+  def distinctInNeighbors(id: Int): IndexedSeq[Int] = inNeighbors(id).distinct
 
   def neighbors(id: Int, direction: EdgeDir): IndexedSeq[Int] = direction match {
     case EdgeDirOut => outNeighbors(id)
     case EdgeDirIn => inNeighbors(id)
   }
 
+  def distinctNeighbors(id: Int, direction: EdgeDir): IndexedSeq[Int] =
+    neighbors(id, direction).distinct
+
   /** Returns the out-neighbors of the given id as a java.util.List.
     * */
   def outNeighborList(id: Int): util.List[Integer] =
     outNeighbors(id).asJava.asInstanceOf[util.List[Integer]]
 
+  def distinctOutNeighborList(id: Int): util.List[Integer] =
+    distinctOutNeighbors(id).asJava.asInstanceOf[util.List[Integer]]
   /** Returns the in-neighbors of the given id as a java.util.List.
     * */
   def inNeighborList(id: Int): util.List[Integer] =
     inNeighbors(id).asJava.asInstanceOf[util.List[Integer]]
+
+  def distinctInNeighborList(id: Int): util.List[Integer] =
+    distinctInNeighbors(id).asJava.asInstanceOf[util.List[Integer]]
 
   /** Returns the ith out-neighbor of the node with the given id.
     * Throws IndexOutOfBoundsException unless 0 <= i < outDegree(id).
@@ -71,14 +116,24 @@ trait DirectedGraph {
    */
   def outNeighbor(id: Int, i: Int): Int = outNeighbors(id)(i)
 
+  def distinctOutNeighbor(id: Int, i: Int): Int = distinctOutNeighbors(id)(i)
+
   /** Returns the ith in-neighbor of the node with the given id.
     * Throws IndexOutOfBoundsException unless 0 <= i < inDegree(id).
     * */
   def inNeighbor(id: Int, i: Int): Int = inNeighbors(id)(i)
 
-  def neighbor(id: Int, i:Int, direction: EdgeDir): Int = direction match {
+  def distinctInNeighbor(id: Int, i: Int): Int = distinctInNeighbors(id)(i)
+
+
+  def neighbor(id: Int, i: Int, direction: EdgeDir): Int = direction match {
     case EdgeDirOut => outNeighbor(id, i)
     case EdgeDirIn => inNeighbor(id, i)
+  }
+
+  def distinctNeighbor(id: Int, i: Int, direction: EdgeDir): Int = direction match {
+    case EdgeDirOut => distinctOutNeighbor(id, i)
+    case EdgeDirIn => distinctInNeighbor(id, i)
   }
 
   /** All nodeIds that exist in the graph. */
@@ -108,10 +163,26 @@ trait DirectedGraph {
       throw new NoSuchElementException(s"id $id has no out-neighbors")
   }
 
+  def uniformRandomDistinctOutNeighbor(id: Int, random: Random = Random.self) = {
+    if (outDegree(id) > 0) {
+      val outNeighbors = distinctOutNeighbors(id)
+      distinctOutNeighbor(id, random.nextInt(outNeighbors.size))
+    } else
+      throw new NoSuchElementException(s"id $id has no out-neighbors")
+  }
+
   def uniformRandomInNeighbor(id: Int, random:Random = Random.self) = {
     if (inDegree(id) > 0)
       inNeighbor(id, random.nextInt(inDegree(id)))
     else
+      throw new NoSuchElementException(s"id $id has no in-neighbors")
+  }
+
+  def uniformRandomDistinctInNeighbor(id: Int, random: Random = Random.self) = {
+    if (inDegree(id) > 0) {
+      val inNeighbors = distinctInNeighbors(id)
+      distinctInNeighbor(id, random.nextInt(inNeighbors.size))
+    } else
       throw new NoSuchElementException(s"id $id has no in-neighbors")
   }
 
